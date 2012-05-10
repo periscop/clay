@@ -1,0 +1,130 @@
+\input texinfo
+@c %
+@c %  /*--------------------------------------------------------------------+
+@c %   |                              Clay                                  |
+@c %   |--------------------------------------------------------------------|
+@c %   |                             Clay.c                                 |
+@c %   |--------------------------------------------------------------------|
+@c %   |                    First version: 03/04/2012                       |
+@c %   +--------------------------------------------------------------------+
+@c %
+@c % release 0.0: May 4th 2008
+@c %
+
+@c % /*----------------------------------------------------------------------+
+@c %  |                           PART I: HEADER                             |
+@c %  +----------------------------------------------------------------------*/
+
+@c %**start of header
+
+@setfilename clay.info
+@settitle Clay, the Chunky Loop Alteration wizardrY
+
+@set EDITION 0.1
+@set VERSION 0.0.1
+@set UPDATED April 3rd 2012
+@setchapternewpage odd
+
+@c % This is to ask for A4 instead of Letter size document.
+@iftex
+     @afourpaper
+@end iftex
+
+@c %**end of header
+
+@c % /*----------------------------------------------------------------------+
+@c %  |                PART II: SUMMARY DESCRIPTION AND COPYRIGHT            |
+@c %  +----------------------------------------------------------------------*/
+
+@copying
+This document describes Clay, a tool and a library to perform code
+transformations in the polyhedral model.
+
+It would be quite kind to refer at the present document in any publication that
+results from the use of Clay:
+
+@example
+@@TechReport@{Bas12,
+@ @ author =@ @ @ @ @ @ @{C\'edric Bastoul@},
+@ @ title =@ @ @ @ @ @ @ @{Clay: A Tool and a Library for Code Transformations in the Polyhedral Model@},
+@ @ month =@ @ @ @ @ @ @ @{April@},
+@ @ year =@ @ @ @ @ @ @ @ 2012,
+@ @ institution = @{Paris-Sud University, France@}
+@}
+@end example
+
+Copyright @copyright{} 2012 University of Paris-Sud.
+
+@c quotation
+Permission is granted to copy, distribute and/or modify this document under
+the terms of the GNU Free Documentation License, Version 1.2 published by the
+Free Software Foundation; with no Invariant Sections, with no Front-Cover
+Texts, and with no Back-Cover Texts. To receive a copy of the
+GNU Free Documentation License, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
+@c end quotation
+@end copying
+
+@c % /*----------------------------------------------------------------------+
+@c %  |                 PART III: TITLEPAGE, CONTENTS, COPYRIGHT             |
+@c %  +----------------------------------------------------------------------*/
+@titlepage
+@title Clay
+@subtitle A Tool and a Library for Code Transformations in the Polyhedral Model
+@subtitle Edition @value{EDITION}, for Clay @value{VERSION}
+@subtitle @value{UPDATED}
+@author C@'edric Bastoul
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c Output the table of contents at the beginning.
+@contents
+
+@c % /*----------------------------------------------------------------------+
+@c %  |                     PART IV: TOP NODE AND MASTER MENU                |
+@c %  +----------------------------------------------------------------------*/
+@ifnottex
+@node Top
+@top OpenSCop
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::
+* Clay Software::
+* Clay Library::
+* References::
+@end menu
+
+@c % /*----------------------------------------------------------------------+
+@c %  |                      PART V: BODY OF THE DOCUMENT                    |
+@c %  +----------------------------------------------------------------------*/
+
+@c %  +---------------------------- INTRODUCTION -----------------------------+
+@node Introduction
+@chapter Introduction
+
+@c %  +------------------------------ SOFTWARE -------------------------------+
+@node Clay Software
+@chapter Clay Software
+
+@c %  +------------------------------ LIBRARY --------------------------------+
+@node Clay Library
+@chapter Clay Library
+
+@c %  +----------------------------- REFERENCES ------------------------------+
+@node References
+@chapter References
+
+@c % /*----------------------------------------------------------------------+
+@c %  |                      PART VI: END OF THE DOCUMENT                    |
+@c %  +----------------------------------------------------------------------*/
+@c @unnumbered Index
+@c @printindex cp
+
+@bye

@@ -1,0 +1,109 @@
+ 
+   /*--------------------------------------------------------------------+
+    |                              Clay                                  |
+    |--------------------------------------------------------------------|
+    |                            macros.h                                |
+    |--------------------------------------------------------------------|
+    |                    First version: 03/04/2012                       |
+    +--------------------------------------------------------------------+
+
+ +--------------------------------------------------------------------------+
+ |  / __)(  )    /__\ ( \/ )                                                |
+ | ( (__  )(__  /(__)\ \  /         Chunky Loop Alteration wizardrY         |
+ |  \___)(____)(__)(__)(__)                                                 |
+ +--------------------------------------------------------------------------+
+ | Copyright (C) 2012 University of Paris-Sud                               |
+ |                                                                          |
+ | This library is free software; you can redistribute it and/or modify it  |
+ | under the terms of the GNU Lesser General Public License as published by |
+ | the Free Software Foundation; either version 2.1 of the License, or      |
+ | (at your option) any later version.                                      |
+ |                                                                          |
+ | This library is distributed in the hope that it will be useful but       |
+ | WITHOUT ANY WARRANTY; without even the implied warranty of               |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser  |
+ | General Public License for more details.                                 |
+ |                                                                          |
+ | You should have received a copy of the GNU Lesser General Public License |
+ | along with this software; if not, write to the Free Software Foundation, |
+ | Inc., 51 Franklin Street, Fifth Floor,                                   |
+ | Boston, MA  02110-1301  USA                                              |
+ |                                                                          |
+ | Clay, the Chunky Loop Alteration wizardrY                                |
+ | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
+ +--------------------------------------------------------------------------*/
+
+/*--------------------------------------------------------------------------+
+ | THIS FILE HAS BEEN AUTOMATICALLY GENERATED FROM macros.h.in BY configure |
+ +--------------------------------------------------------------------------*/
+
+#ifndef CLAY_MACROS_H
+# define CLAY_MACROS_H
+
+# define CLAY_VERSION                   "@PACKAGE_VERSION@"
+
+# define CLAY_DEBUG			0
+# define CLAY_TRUE			1
+# define CLAY_FALSE			0
+
+/*--------------------------------------------------------------------------+
+ |                              UTILITY MACROS                              |
+ +--------------------------------------------------------------------------*/
+
+# define CLAY_info(msg)                                                    \
+         do {                                                              \
+           fprintf(stderr,"[Clay] Info: "msg" (%s).\n", __func__);         \
+         } while (0)
+
+# define CLAY_debug(msg)                                                   \
+         do {                                                              \
+           if (CLAY_DEBUG)                                                 \
+             fprintf(stderr,"[Clay] Debug: "msg" (%s).\n", __func__);      \
+         } while (0)
+
+# define CLAY_debug_call(function_call)                                    \
+         do {                                                              \
+           if (CLAY_DEBUG)                                                 \
+             function_call;                                                \
+         } while (0)
+
+# define CLAY_warning(msg)                                                 \
+         do {                                                              \
+           fprintf(stderr,"[Clay] Warning: "msg" (%s).\n", __func__);      \
+         } while (0)
+
+# define CLAY_error(msg)                                                   \
+         do {                                                              \
+           fprintf(stderr,"[Clay] Error: "msg" (%s).\n", __func__);        \
+           exit(1);                                                        \
+         } while (0)
+
+# define CLAY_malloc(ptr, type, size)                                      \
+         do {                                                              \
+           if (((ptr) = (type)malloc(size)) == NULL)                       \
+             CLAY_error("memory overflow");                                \
+         } while (0)
+
+# define CLAY_realloc(ptr, type, size)                                     \
+         do {                                                              \
+           if (((ptr) = (type)realloc(ptr, size)) == NULL)                 \
+             CLAY_error("memory overflow");                                \
+         } while (0)
+
+# define CLAY_strdup(destination, source)                                  \
+         do {                                                              \
+           if (source != NULL) {                                           \
+             if (((destination) = strdup(source)) == NULL)                 \
+               CLAY_error("memory overflow");                              \
+           }                                                               \
+           else {                                                          \
+             destination = NULL;                                           \
+             CLAY_debug("strdup of a NULL string");                        \
+           }                                                               \
+         } while (0)
+
+# define CLAY_max(x,y) ((x) > (y)? (x) : (y))
+
+# define CLAY_min(x,y) ((x) < (y)? (x) : (y))
+
+#endif /* define CLAY_MACROS_H */
