@@ -86,7 +86,14 @@ osl_statement_p clay_beta_find(osl_statement_p, clay_array_p);
 osl_statement_p clay_beta_first_statement(osl_statement_p, clay_array_p);
 bool            clay_beta_check(osl_statement_p, clay_array_p);
 void*           clay_beta_max_value(osl_statement_p, clay_array_p);
-int             clay_beta_nb_statements(osl_statement_p,clay_array_p);
+int             clay_beta_nb_parts(osl_statement_p,clay_array_p);
 void            clay_beta_shift(osl_statement_p, clay_array_p, int);
+
+
+/*****************************************************************************\
+ *                     String operation                                       *
+ `****************************************************************************/
+
+char*           clay_string_replace(char*, char*, char*);
 
 #endif

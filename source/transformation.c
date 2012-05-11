@@ -40,6 +40,7 @@
 #include <osl/scop.h>
 #include <osl/body.h>
 #include <osl/strings.h>
+#include <osl/util.h>
 #include <osl/extensions/scatnames.h>
 #include <osl/statement.h>
 #include <osl/relation.h>
@@ -599,6 +600,56 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty) {
 }
 
 
+/* 
+ * clay_string_replace function:
+ * Search and replace a string with another string , in a string
+ * Minor modifications from :
+ * http://www.binarytides.com/blog/str_replace-for-c/
+ * \param[in] search
+ * \param[in] replace
+ * \param[in] subject
+ */
+char* clay_string_replace(char *search, char *replace, char *subject) {
+	char  *p = NULL , *old = NULL , *new_subject = NULL ;
+	int c = 0 , search_size;
+	
+	search_size = strlen(search);
+
+	// Count how many occurences
+	for(p = strstr(subject , search) ; p != NULL ; 
+	    p = strstr(p + search_size , search)) {
+		c++;
+	}
+	
+	// Final size
+	c = (strlen(replace) - search_size)*c + strlen(subject) + 1;
+
+	// New subject with new size
+	new_subject = calloc(c, 1);
+
+	// The start position
+	old = subject;
+
+	for(p = strstr(subject, search) ; p != NULL ; 
+	    p = strstr(p + search_size, search)) {
+		// move ahead and copy some text from original subject , from a
+		// certain position
+		strncpy(new_subject + strlen(new_subject), old , p - old);
+
+		// move ahead and copy the replacement text
+		strcpy(new_subject + strlen(new_subject) , replace);
+
+		// The new start position after this search match
+		old = p + search_size;
+	}
+
+	// Copy the part after the last search match
+	strcpy(new_subject + strlen(new_subject) , old);
+
+	return new_subject;
+}
+
+
 /**
  * clay_unroll function:
  * Unroll a loop 
@@ -608,61 +659,163 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty) {
  * \return                  Status
  */
 int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor) {
-  
-  /*
-   *  WIP
-   */  
-  
   if (beta_loop->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if (factor < 1)
     return CLAY_TRANSF_WRONG_FACTOR;
   
   osl_relation_p scattering;
+  osl_relation_p domain;
+  osl_relation_p epilog_domain;
   osl_statement_p statement;
   osl_statement_p newstatement;
+  osl_statement_p original_stmt;
+  osl_statement_p epilog_stmt;
   int column = beta_loop->size*2;
   int precision;
   int row;
   int nb_stmts;
   int i;
-  int max;
+  int max; // vbetamax value casted in int
   int order;
-  int current_stmt = 1;
+  int current_stmt = 0; // counter of statements
   void *vbetamax;
+  void *order_epilog; // order juste after the beta_loop
+  int last_level = -1;
+  int current_level;
+  
+  osl_body_p body;
+  osl_body_p newbody;
+  char *expression;
+  char **iterator;
+  char *substitued;
+  char *newexpression;
+  char *replacement;
+  char substitution[] = "@0@";
+  
+  int iterator_index = beta_loop->size-1;
+  int iterator_size;
   
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
     return CLAY_TRANSF_BETA_NOT_FOUND;
   if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
     return CLAY_TRANSF_NOT_BETA_LOOP;
-
-  nb_stmts = clay_beta_nb_statements(statement, beta_loop);
+  
+  // alloc an array of string, wich will contain the current iterator and NULL
+  // used for osl_util_identifier_substitution with only one variable
+  CLAY_malloc(iterator, char**, sizeof(char*)*2);
+  iterator[1] = NULL;
+  
+  // infos used to reorder cloned statements
+  nb_stmts = clay_beta_nb_parts(statement, beta_loop);
   precision = statement->scattering->precision;  
   vbetamax = clay_beta_max_value(statement, beta_loop);
   max = osl_int_get_si(precision, vbetamax, 0);
   osl_int_free(precision, vbetamax, 0);
   
-  statement = scop->statement;
+  // shift to let the place for the epilog
+  clay_beta_shift(scop->statement, beta_loop, beta_loop->size);
+  order_epilog = beta_loop->data[beta_loop->size-1] + 1;
+  
   while (statement != NULL) {
     scattering = statement->scattering;
+    
+    // TODO NOTE : we can optimize to not check twice this statement
     if (clay_beta_check(statement, beta_loop)) {
-      row = clay_statement_get_line(statement, column);
+      
+      body = (osl_body_p) statement->body->data;
+      expression = body->expression->string[0];
+      iterator[0] = (char*) body->iterators->string[iterator_index];
+      iterator_size = strlen(iterator[0]);
+      substitued = osl_util_identifier_substitution(expression, iterator);
+      CLAY_malloc(replacement, char*, 1 + iterator_size + 1 + 16 + 1 + 1);
+      
+      original_stmt = statement;
+      
+      // set the epilog from the original statement
+      epilog_stmt = osl_statement_nclone(original_stmt, 1);
+      row = clay_statement_get_line(original_stmt, column-2);
+      scattering = epilog_stmt->scattering;
+      osl_int_set_si(precision,
+                     scattering->m[row], scattering->nb_columns-1,
+                     order_epilog);
+      
+      epilog_stmt->next = statement->next;
+      statement->next = epilog_stmt;
+      statement = epilog_stmt;
+      
+      // modify the matrix domain
+      domain        = original_stmt->domain;
+      epilog_domain = epilog_stmt->domain;
+      while (domain != NULL) {
+      
+        for (i = domain->nb_rows-1 ; i >= 0  ; i--) {
+          if (!osl_int_zero(precision, domain->m[i], 0)) {
+          
+            // remove the lower bound on the epilog statement
+            if(osl_int_pos(precision, domain->m[i], iterator_index+1)) {
+              osl_relation_remove_row(epilog_domain, i);
+            }
+            // remove the upper bound on the original statement
+            if (osl_int_neg(precision, domain->m[i], iterator_index+1)) {
+              osl_int_add_si(precision, 
+                             domain->m[i], domain->nb_columns-1,
+                             domain->m[i], domain->nb_columns-1,
+                             -factor);
+            }
+          }
+        }
+        
+        // add local dim on the original statement
+        osl_relation_insert_blank_column(domain, domain->nb_output_dims+1);
+        osl_relation_insert_blank_row(domain, 0);
+        (domain->nb_local_dims)++;
+        osl_int_set_si(precision, domain->m[0], domain->nb_output_dims+1, -factor);
+        osl_int_set_si(precision, domain->m[0], iterator_index+1, 1);
+        
+        domain        = domain->next;
+        epilog_domain = epilog_domain->next;
+      }
+      
+      // clone factor-1 times the original statement
+     
+      row = clay_statement_get_line(original_stmt, column);
+      current_level = osl_int_get_si(scattering->precision, scattering->m[row], 
+                                     scattering->nb_columns-1);
+      if (last_level != current_level) {
+        current_stmt++;
+        last_level = current_level;
+      }
+      
       for (i = 0 ; i < factor-1 ; i++) {
-        order = current_stmt + max + nb_stmts*i;
-        newstatement = osl_statement_nclone(statement, 1);
+        newstatement = osl_statement_nclone(original_stmt, 1);
         scattering = newstatement->scattering;
+        
+        // update the body
+        sprintf(replacement, "(%s+%d)", iterator[0], i+1);
+        newexpression = clay_string_replace(substitution, replacement,
+                                            substitued);
+        newbody = ((osl_body_p) newstatement->body->data);
+        free(newbody->expression->string[0]);
+        newbody->expression->string[0] = newexpression;
+        
+        // reorder
+        order = current_stmt + max + nb_stmts*i;
         osl_int_set_si(precision,
                        scattering->m[row], scattering->nb_columns-1,
                        order);
+        
         newstatement->next = statement->next;
         statement->next = newstatement;
         statement = newstatement;
       }
-      current_stmt++;
+      free(substitued);
+      free(replacement);
     }
     statement = statement->next;
   }
+  free(iterator);
   
   return CLAY_TRANSF_SUCCESS;
 }
@@ -793,17 +946,44 @@ osl_statement_p clay_beta_first_statement(osl_statement_p statement,
 
 
 /**
- * clay_beta_nb_statements function:
+ * clay_beta_nb_parts function:
+ * It doesn't count statements inside sub loops
+ * Example:
+ * for(i) {
+ *   S1(i)
+ *   for(j) {
+ *     S2(i,j)
+ *     S3(i,j)
+ *   }
+ * }
+ * nb_parts in for(i) = 2 (S1 and for(j))
  * \param[in] statement     Statements list
  * \param[in] beta          Vector to search
  * \return
  */
-int clay_beta_nb_statements(osl_statement_p statement, 
-                            clay_array_p beta) {
+int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
   int n = 0;
+  const int column = beta->size*2;
+  int last_level = -1;
+  int current_level;
+  int row;
+  osl_relation_p scattering;
   while (statement != NULL) {
-    if (clay_beta_check(statement, beta))
-      n++;
+    if (clay_beta_check(statement, beta)) {
+      scattering = statement->scattering;
+      if (column < scattering->nb_output_dims) {
+        row = clay_statement_get_line(statement, column);
+        current_level = osl_int_get_si(scattering->precision, scattering->m[row], 
+                                       scattering->nb_columns-1);
+        if (current_level != last_level) {
+          n++;
+          last_level = current_level;
+        }
+      } else if (column-2 == scattering->nb_output_dims-1) {
+        // it's a statement
+        return 1;
+      }
+    }
     statement = statement->next;
   }
   return n;
