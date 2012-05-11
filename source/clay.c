@@ -38,6 +38,9 @@
 #include <string.h>
 #include <time.h>
 #include <osl/scop.h>
+#include <osl/extensions/clay.h>
+#include <osl/generic.h>
+#include <osl/macros.h>
 #include <clay/clay.h>
 #include <clay/transformation.h>
 #include <clay/array.h>
@@ -46,29 +49,34 @@
 
 int main(int argc, char * argv[]) {
   osl_scop_p scop;
+  osl_clay_p clay_tag;
+  osl_generic_p x;
+  osl_generic_p last;
   FILE *input;
   FILE *script = NULL;
-  char *script_string;
+  int read_clay_tag = 0;
   
-  if (argc > 4 || argc == 1 || ((argc == 2) && !strcmp(argv[1], "-h")))  {
-    CLAY_info("usage: clay ((-f SCRIPTFILE) | (STRING)) [SCOPFILE]");
+  if (argc > 4 || ((argc == 2) && !strcmp(argv[1], "-h")))  {
+    CLAY_info("usage: clay [--script SCRIPTFILE] [SCOPFILE]");
     exit(0);
   }
   
-  if (strcmp(argv[1], "-f") == 0) {
-    script = fopen(argv[2], "r");
-    if (script == NULL)
-      CLAY_error("cannot open script file");
-    if (argc == 3)
-      input = stdin;
-    else
-      input = fopen(argv[3], "r");
+  if (argc == 1) {
+    read_clay_tag = 1;
+    input = stdin;
   } else {
-    script_string = argv[1];
-    if (argc == 3)
-      input = fopen(argv[2], "r");
-    else
-      input = stdin;
+    if (strcmp(argv[1], "--script") == 0) {
+      script = fopen(argv[2], "r");
+      if (script == NULL)
+        CLAY_error("cannot open script file");
+      if (argc == 3)
+        input = stdin;
+      else
+        input = fopen(argv[3], "r");
+    } else {
+      read_clay_tag = 1;
+      input = fopen(argv[1], "r");
+    }
   }
   
   if (input == NULL)
@@ -77,15 +85,42 @@ int main(int argc, char * argv[]) {
   srand(time(NULL));
   
   scop = osl_scop_read(input);
-  fclose(input);
   
-  if (script) {
+  if (read_clay_tag) {
+    // equivalent to osl_generic_lookup, but we need the last extension
+    x = scop->extension;
+    last = NULL;
+    while (x != NULL) {
+      if (osl_generic_has_URI(x, OSL_URI_CLAY))
+        break;
+      last = x;
+      x = x->next;
+    }
+    
+    if (x != NULL) {
+      // parse the clay string
+      clay_tag = x->data;
+      clay_parser_string(scop, clay_tag->script);
+
+      // remove the extension clay
+      // we don't use osl_generic_free, because we need to remove only one
+      // extension
+      last->next = x->next;
+      if (x->interface != NULL) {
+        x->interface->free(x->data);
+        osl_interface_free(x->interface);
+      } else if (x->data != NULL) {
+        OSL_warning("unregistered interface, memory leaks are possible");
+        free(x->data);
+      }
+      free(x);
+    }
+  } else {
     clay_parser_file(scop, script);
     fclose(script);
-  } else {
-    clay_parser_string(scop, script_string);
   }
   
+  fclose(input);
   osl_scop_print(stdout, scop);
   osl_scop_free(scop);
   
