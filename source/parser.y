@@ -51,14 +51,17 @@
   // Scanner declarations
   void                clay_scanner_free();
   void                clay_scanner_initialize();
-  extern int          scanner_line;
+  extern int          clay_scanner_line;
   
   
   // Arguments list of the current scanned function
-  clay_prototype_function_p  params;
+  clay_prototype_function_p  clay_params;
   
   // Current scop
-  osl_scop_p          parser_scop;
+  osl_scop_p          clay_parser_scop;
+  
+  // Command line options
+  clay_options_p      clay_parser_options;
   
   // Other
   int                 yyerror();
@@ -82,15 +85,15 @@
   #define CLAY_PROTOTYPE_FUNCTION_STRIPMINE     7
   #define CLAY_PROTOTYPE_FUNCTION_UNROLL        8
 
-  int parser_fission_type[]     =  {ARRAY_T, INTEGER_T};
-  int parser_reorder_type[]     =  {ARRAY_T, ARRAY_T};
-  int parser_interchange_type[] =  {ARRAY_T, INTEGER_T, INTEGER_T};
-  int parser_reversal_type[]    =  {ARRAY_T};
-  int parser_fuse_type[]        =  {ARRAY_T};
-  int parser_skew_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T};
-  int parser_iss_type[]         =  {ARRAY_T, ARRAY_T};
-  int parser_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T};
-  int parser_unroll_type[]      =  {ARRAY_T, INTEGER_T};
+  int clay_parser_fission_type[]     =  {ARRAY_T, INTEGER_T};
+  int clay_parser_reorder_type[]     =  {ARRAY_T, ARRAY_T};
+  int clay_parser_interchange_type[] =  {ARRAY_T, INTEGER_T, INTEGER_T};
+  int clay_parser_reversal_type[]    =  {ARRAY_T};
+  int clay_parser_fuse_type[]        =  {ARRAY_T};
+  int clay_parser_skew_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T};
+  int clay_parser_iss_type[]         =  {ARRAY_T, ARRAY_T};
+  int clay_parser_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T};
+  int clay_parser_unroll_type[]      =  {ARRAY_T, INTEGER_T};
   
   // That is just the prototype of each functions, so there are no 
   // data for args
@@ -98,39 +101,39 @@
     {
       {
         "fission",     "fission(array beta, uint depth)",
-        NULL, parser_fission_type, 2, 2
+        NULL, clay_parser_fission_type, 2, 2
       },
       {
         "reorder",     "retorder(array beta_loop, array order)",
-        NULL, parser_reorder_type, 2, 2
+        NULL, clay_parser_reorder_type, 2, 2
       },
       {
         "interchange", "interchange(array beta, uint depth_1, uint depth_2)",
-        NULL, parser_interchange_type, 3, 3
+        NULL, clay_parser_interchange_type, 3, 3
       },
       {
         "reversal",    "reversal(array beta)",
-        NULL, parser_reversal_type, 1, 1
+        NULL, clay_parser_reversal_type, 1, 1
       },
       {
         "fuse",        "fuse(array beta_loop)",
-        NULL, parser_fuse_type, 1, 1
+        NULL, clay_parser_fuse_type, 1, 1
       },
       {
         "skew",        "skew(array beta, uint depth, int coeff)",
-        NULL, parser_skew_type, 3, 3
+        NULL, clay_parser_skew_type, 3, 3
       },
       {
         "iss",         "iss(array beta, array equation)",
-        NULL, parser_iss_type, 2, 2
+        NULL, clay_parser_iss_type, 2, 2
       },
       {
         "stripmine",   "stripmine(array beta, uint block, bool pretty)",
-        NULL, parser_stripmine_type, 3, 3
+        NULL, clay_parser_stripmine_type, 3, 3
       },
       {
         "unroll",      "unroll(array beta, uint factor)",
-        NULL, parser_unroll_type, 2, 2
+        NULL, clay_parser_unroll_type, 2, 2
       }
     };
   
@@ -178,7 +181,7 @@ args: // epsilon
       int *tmp;
       CLAY_malloc(tmp, int*, sizeof(int));
       *tmp = $3;
-      clay_prototype_function_args_add(params, tmp, INTEGER_T);
+      clay_prototype_function_args_add(clay_params, tmp, INTEGER_T);
       //fprintf(stderr, "INTEGER %d\n", $3);
     }
   |
@@ -187,7 +190,7 @@ args: // epsilon
       int *tmp;
       CLAY_malloc(tmp, int*, sizeof(int));
       *tmp = $1;
-      clay_prototype_function_args_add(params, tmp, INTEGER_T);
+      clay_prototype_function_args_add(clay_params, tmp, INTEGER_T);
       //fprintf(stderr, "INTEGER %d\n", $1);
     }
   |
@@ -203,13 +206,13 @@ array:
 list:
     list ',' INTEGER
     {
-      clay_array_add((clay_array_p) params->args[params->argc-1], $3);
+      clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $3);
       //fprintf(stderr, "ADD IN ARRAY[] %d\n", $3);
     }
   |
     INTEGER
     {
-      clay_array_add((clay_array_p) params->args[params->argc-1], $1);
+      clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $1);
       //fprintf(stderr, "ADD IN ARRAY[] %d\n", $1);
     }
   |
@@ -223,20 +226,23 @@ list:
  */
 int yyerror(void) {
   fprintf(stderr,"[Clay] Error: syntax on line %d, maybe you forgot a `;'\n",
-          scanner_line+1);
+          clay_scanner_line+1);
   exit(1);
 }
 
 
 /**
  * clay_parser_file function:
+ * \param[in] scop
  * \param[in] input    Input file of the script
+ * \param[in] options
  */
-void clay_parser_file(osl_scop_p scop, FILE *input) {
-  parser_scop = scop;
+void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
+  clay_parser_scop = scop;
+  clay_parser_options = options;
   
   // List of parameters of the current scanned function
-  params = clay_prototype_function_malloc();
+  clay_params = clay_prototype_function_malloc();
   
   yyin = input;
   clay_scanner_initialize();
@@ -244,27 +250,30 @@ void clay_parser_file(osl_scop_p scop, FILE *input) {
   
   // Quit
   clay_scanner_free();
-  clay_prototype_function_free(params);
+  clay_prototype_function_free(clay_params);
 }
 
 
 /**
  * clay_parser_string function:
+ * \param[in] scop
  * \param[in] input    Input string 
+ * \param[in] options
  */
-void clay_parser_string(osl_scop_p scop, char *input) {
-  parser_scop = scop;
+void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
+  clay_parser_scop = scop;
+  clay_parser_options = options;
   
   // List of parameters of the current scanned function
-  params = clay_prototype_function_malloc();
+  clay_params = clay_prototype_function_malloc();
   
   yy_scan_string(input);
-  scanner_line = 0;
+  clay_scanner_line = 0;
   yyparse();
   
   // Quit
   clay_scanner_free();
-  clay_prototype_function_free(params);
+  clay_prototype_function_free(clay_params);
 }
 
 
@@ -276,18 +285,18 @@ void clay_parser_exec_function(char *name) {
    
   /*
   fprintf(stderr, "%s\n", $1);
-  fprintf(stderr, "nb args : %d\n", params->argc);
+  fprintf(stderr, "nb args : %d\n", clay_params->argc);
   
-  if (params->argc > 0) {
+  if (clay_params->argc > 0) {
     fprintf(stderr, "args ");
     clay_array_p tmp;
-    for (i = 0 ; i < params->argc ; i++) {
-      switch (params->type[i]) {
+    for (i = 0 ; i < clay_params->argc ; i++) {
+      switch (clay_params->type[i]) {
         case INTEGER_T:
-          fprintf(stderr, "%d,", *(((int**)params->args)[i]));
+          fprintf(stderr, "%d,", *(((int**)clay_params->args)[i]));
           break;
         case ARRAY_T:
-          tmp = (clay_array_p) params->args[i];
+          tmp = (clay_array_p) clay_params->args[i];
           clay_array_print(stderr, tmp);
           fprintf(stderr, ",");
           break;
@@ -307,22 +316,22 @@ void clay_parser_exec_function(char *name) {
   // Undefined function
   if (i == CLAY_PROTOTYPE_FUNCTIONS_TOTAL) {
       fprintf(stderr, "[Clay] Error: line %d, unknown function `%s'\n", 
-              scanner_line, name);
+              clay_scanner_line, name);
       exit(1);
   }
   
   // Different number of parameters
-  if (params->argc != functions[i].argc) {
+  if (clay_params->argc != functions[i].argc) {
       fprintf(stderr, 
         "[Clay] Error: line %d, in `%s' takes %d arguments\n[Clay] \
 prototype is: %s\n", 
-        scanner_line, name, functions[i].argc, functions[i].prototype);
+        clay_scanner_line, name, functions[i].argc, functions[i].prototype);
       exit(1);
   }
   
   j = 0;
   while (j < functions[i].argc) {
-    if (params->type[j] != functions[i].type[j])
+    if (clay_params->type[j] != functions[i].type[j])
       break;
     j++;
   }
@@ -332,7 +341,7 @@ prototype is: %s\n",
       fprintf(stderr, 
         "[Clay] Error: line %d, in function `%s' invalid type on argument \
 %d\n[Clay] prototype is: %s\n", 
-        scanner_line, name, j+1, functions[i].prototype);
+        clay_scanner_line, name, j+1, functions[i].prototype);
       exit(1);
   }
   
@@ -341,105 +350,114 @@ prototype is: %s\n",
   int status_result;
   switch (i) {
     case CLAY_PROTOTYPE_FUNCTION_FISSION:
-      status_result = clay_fission(parser_scop, 
-                                   params->args[0], 
-                                   *((int*)params->args[1]));
+      status_result = clay_fission(clay_parser_scop, 
+                                   clay_params->args[0], 
+                                   *((int*)clay_params->args[1]),
+                                   clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_REORDER:
-      status_result = clay_reorder(parser_scop, 
-                                   params->args[0], 
-                                   params->args[1]);
+      status_result = clay_reorder(clay_parser_scop, 
+                                   clay_params->args[0], 
+                                   clay_params->args[1],
+                                   clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_INTERCHANGE:
-      status_result = clay_interchange(parser_scop, 
-                                       params->args[0], 
-                                       *((int*)params->args[1]),
-                                       *((int*)params->args[2]));
+      status_result = clay_interchange(clay_parser_scop, 
+                                       clay_params->args[0], 
+                                       *((int*)clay_params->args[1]),
+                                       *((int*)clay_params->args[2]),
+                                       clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_REVERSAL:
-      status_result = clay_reversal(parser_scop, 
-                                    params->args[0]);
+      status_result = clay_reversal(clay_parser_scop, 
+                                    clay_params->args[0],
+                                    clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_FUSE:
-      status_result = clay_fuse(parser_scop,
-                                params->args[0]);
+      status_result = clay_fuse(clay_parser_scop,
+                                clay_params->args[0],
+                                clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_SKEW:
-      status_result = clay_skew(parser_scop,
-                                params->args[0], 
-                                *((int*)params->args[1]),
-                                *((int*)params->args[2]));
+      status_result = clay_skew(clay_parser_scop,
+                                clay_params->args[0], 
+                                *((int*)clay_params->args[1]),
+                                *((int*)clay_params->args[2]),
+                                clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_ISS:
-      status_result = clay_iss(parser_scop,
-                               params->args[0], 
-                               params->args[1]);
+      status_result = clay_iss(clay_parser_scop,
+                               clay_params->args[0], 
+                               clay_params->args[1],
+                               clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_STRIPMINE:
-      status_result = clay_stripmine(parser_scop,
-                                     params->args[0], 
-                                     *((int*)params->args[1]),
-                                     *((int*)params->args[2]));
+      status_result = clay_stripmine(clay_parser_scop,
+                                     clay_params->args[0], 
+                                     *((int*)clay_params->args[1]),
+                                     *((int*)clay_params->args[2]),
+                                     clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_UNROLL:
-      status_result = clay_unroll(parser_scop,
-                                  params->args[0], 
-                                  *((int*)params->args[1]));
+      status_result = clay_unroll(clay_parser_scop,
+                                  clay_params->args[0], 
+                                  *((int*)clay_params->args[1]),
+                                  clay_parser_options);
       break;
   }
   
   switch (status_result) {
     case CLAY_TRANSF_BETA_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d: the beta vector was not found\n",
-              scanner_line);
+              clay_scanner_line);
       exit(1);
       break;
     case CLAY_TRANSF_NOT_BETA_LOOP:
       fprintf(stderr,"[Clay] Error: line %d: the beta is not a loop\n",
-              scanner_line);
+              clay_scanner_line);
       exit(2);
       break;
     case CLAY_TRANSF_NOT_BETA_STMT:
       fprintf(stderr,"[Clay] Error: line %d, the beta is not a statement\n", 
-              scanner_line);
+              clay_scanner_line);
       exit(3);
       break;
     case CLAY_TRANSF_REORDER_ARRAY_TOO_SMALL:
       fprintf(stderr,"[Clay] Error: line %d, the order array is too small\n", 
-              scanner_line);
+              clay_scanner_line);
       exit(4);
       break;
     case CLAY_TRANSF_DEPTH_OVERFLOW:
       fprintf(stderr,"[Clay] Error: line %d, depth overflow\n",
-              scanner_line);
+              clay_scanner_line);
       exit(5);
       break;
     case CLAY_TRANSF_WRONG_COEFF:
       fprintf(stderr,"[Clay] Error: line %d, wrong coefficient\n",
-              scanner_line);
+              clay_scanner_line);
       exit(6);
       break;
     case CLAY_TRANSF_BETA_EMPTY:
       fprintf(stderr,"[Clay] Error: line %d, the beta vector is empty\n",
-              scanner_line);
+              clay_scanner_line);
       exit(7);
       break;
     case CLAY_TRANSF_BETA_NOT_IN_A_LOOP:
       fprintf(stderr,"[Clay] Error: line %d, the beta need to be in a loop\n",
-              scanner_line);
+              clay_scanner_line);
       exit(8);
       break;
     case CLAY_TRANSF_WRONG_BLOCK_SIZE:
       fprintf(stderr,"[Clay] Error: line %d, block value is incorrect\n",
-              scanner_line);
+              clay_scanner_line);
       exit(9);
       break;
     case CLAY_TRANSF_WRONG_FACTOR:
       fprintf(stderr,"[Clay] Error: line %d, wrong factor\n",
-              scanner_line);
+              clay_scanner_line);
       exit(10);
       break;
   }
   
-  clay_prototype_function_args_clear(params);
+  clay_prototype_function_args_clear(clay_params);
 }

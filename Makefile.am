@@ -58,6 +58,7 @@ lib_LTLIBRARIES = libclay.la
 pkginclude_HEADERS = \
 	include/clay/clay.h \
 	include/clay/array.h \
+	include/clay/options.h \
   include/clay/prototype_function.h \
 	include/clay/transformation.h
 
@@ -75,6 +76,7 @@ libclay_la_SOURCES  = \
   source/parser.y \
   source/scanner.l \
   source/array.c \
+  source/options.c \
   source/prototype_function.c \
   source/transformation.c
 

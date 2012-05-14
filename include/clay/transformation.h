@@ -40,6 +40,7 @@
 
 #include <osl/statement.h>
 #include <clay/array.h>
+#include <clay/options.h>
 
 
 #ifndef bool
@@ -64,15 +65,15 @@
  *                     Loop transformations                                   *
  `****************************************************************************/
 
-int             clay_fission(osl_scop_p, clay_array_p, int);
-int             clay_reorder(osl_scop_p, clay_array_p, clay_array_p);
-int             clay_interchange(osl_scop_p, clay_array_p, int, int);
-int             clay_reversal(osl_scop_p, clay_array_p);
-int             clay_skew(osl_scop_p, clay_array_p, int, int);
-int             clay_fuse(osl_scop_p, clay_array_p);
-int             clay_iss(osl_scop_p, clay_array_p, clay_array_p);
-int             clay_stripmine(osl_scop_p, clay_array_p, int, int);
-int             clay_unroll(osl_scop_p, clay_array_p, int);
+int        clay_fission(osl_scop_p, clay_array_p, int, clay_options_p);
+int        clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
+int        clay_interchange(osl_scop_p, clay_array_p, int, int, clay_options_p);
+int        clay_reversal(osl_scop_p, clay_array_p, clay_options_p);
+int        clay_skew(osl_scop_p, clay_array_p, int, int, clay_options_p);
+int        clay_fuse(osl_scop_p, clay_array_p, clay_options_p);
+int        clay_iss(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
+int        clay_stripmine(osl_scop_p, clay_array_p, int, int, clay_options_p);
+int        clay_unroll(osl_scop_p, clay_array_p, int, clay_options_p);
 
 
 /*****************************************************************************\

@@ -47,6 +47,7 @@
 #include <clay/transformation.h>
 #include <clay/array.h>
 #include <clay/macros.h>
+#include <clay/options.h>
 
 
 /**
@@ -55,10 +56,12 @@
  * \param[in] scop
  * \param[in] beta_loop     Loop beta vector
  * \param[in] order         Array to reorder the statements
+ * \param[in] options
  * \return                  Status
  */
 int clay_reorder(osl_scop_p scop, 
-                  clay_array_p beta_loop, clay_array_p neworder) {
+                  clay_array_p beta_loop, clay_array_p neworder,
+                  clay_options_p options) {
   osl_relation_p scattering;
   osl_statement_p statement = scop->statement;
   int precision;
@@ -97,9 +100,11 @@ int clay_reorder(osl_scop_p scop,
  * Reverse the direction of the loop
  * \param[in] scop
  * \param[in] beta          Beta vector (loop or statement)
+ * \param[in] options
  * \return                  Status
  */
-int clay_reversal(osl_scop_p scop, clay_array_p beta) {
+int clay_reversal(osl_scop_p scop, clay_array_p beta,
+                  clay_options_p options) {
   if (beta->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
     
@@ -144,10 +149,12 @@ int clay_reversal(osl_scop_p scop, clay_array_p beta) {
  * \param[in] beta          Beta vector (loop or statement)
  * \param[in] depth_1       >= 1
  * \param[in] depth_2       >= 1
+ * \param[in] options
  * \return                  Status
  */
 int clay_interchange(osl_scop_p scop, 
-                      clay_array_p beta, int depth_1, int depth_2) {
+                      clay_array_p beta, int depth_1, int depth_2,
+                      clay_options_p options) {
   if (beta->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if (depth_1 <= 0 || depth_2 <= 0 || 
@@ -208,9 +215,11 @@ int clay_interchange(osl_scop_p scop,
  * \param[in] scop
  * \param[in] beta          Beta vector
  * \param[in] depth         >= 1
+ * \param[in] options
  * \return                  Status
  */
-int clay_fission(osl_scop_p scop, clay_array_p beta, int depth) {
+int clay_fission(osl_scop_p scop, clay_array_p beta, int depth,
+                 clay_options_p options) {
   if (beta->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if (beta->size <= 1 || depth <= 0 || depth >= beta->size)
@@ -232,9 +241,11 @@ int clay_fission(osl_scop_p scop, clay_array_p beta, int depth) {
  * Fuse loop with the first loop after
  * \param[in] scop
  * \param[in] beta_vector   Loop beta vector
+ * \param[in] options
  * \return                  Status
  */
-int clay_fuse(osl_scop_p scop, clay_array_p beta_loop) {
+int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
+              clay_options_p options) {
   if (beta_loop->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   osl_relation_p scattering;
@@ -289,10 +300,12 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop) {
  * \param[in] beta_loop     Loop beta vector
  * \param[in] depth         >= 1
  * \param[in] coeff         != 0
+ * \param[in] options
  * \return                  Status
  */
 int clay_skew(osl_scop_p scop, 
-               clay_array_p beta_loop, int depth, int coeff) {
+              clay_array_p beta_loop, int depth, int coeff,
+              clay_options_p options) {
   if (beta_loop->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if (depth <= 0)
@@ -349,10 +362,12 @@ int clay_skew(osl_scop_p scop,
  * \param[in] scop
  * \param[in] beta          Beta vector (loop or statement)
  * \param[in] equation array
+ * \param[in] options
  * \return                  Status
  */
 int clay_iss(osl_scop_p scop, 
-             clay_array_p beta, clay_array_p equ) {
+             clay_array_p beta, clay_array_p equ,
+             clay_options_p options) {
   if (beta->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if(equ->size <= 1)
@@ -469,9 +484,11 @@ int clay_iss(osl_scop_p scop,
  * \param[in] block         Size of the inner loop
  * \param[in] pretty        If true, clay will keep the variables name
  *                          /!\ It takes much more computing 
+ * \param[in] options
  * \return                  Status
  */
-int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty) {
+int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
+                   clay_options_p options) {
   if (beta->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if (block <= 0)
@@ -600,65 +617,17 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty) {
 }
 
 
-/* 
- * clay_string_replace function:
- * Search and replace a string with another string , in a string
- * Minor modifications from :
- * http://www.binarytides.com/blog/str_replace-for-c/
- * \param[in] search
- * \param[in] replace
- * \param[in] subject
- */
-char* clay_string_replace(char *search, char *replace, char *subject) {
-	char  *p = NULL , *old = NULL , *new_subject = NULL ;
-	int c = 0 , search_size;
-	
-	search_size = strlen(search);
-
-	// Count how many occurences
-	for(p = strstr(subject , search) ; p != NULL ; 
-	    p = strstr(p + search_size , search)) {
-		c++;
-	}
-	
-	// Final size
-	c = (strlen(replace) - search_size)*c + strlen(subject) + 1;
-
-	// New subject with new size
-	new_subject = calloc(c, 1);
-
-	// The start position
-	old = subject;
-
-	for(p = strstr(subject, search) ; p != NULL ; 
-	    p = strstr(p + search_size, search)) {
-		// move ahead and copy some text from original subject , from a
-		// certain position
-		strncpy(new_subject + strlen(new_subject), old , p - old);
-
-		// move ahead and copy the replacement text
-		strcpy(new_subject + strlen(new_subject) , replace);
-
-		// The new start position after this search match
-		old = p + search_size;
-	}
-
-	// Copy the part after the last search match
-	strcpy(new_subject + strlen(new_subject) , old);
-
-	return new_subject;
-}
-
-
 /**
  * clay_unroll function:
  * Unroll a loop 
  * \param[in] scop
  * \param[in] beta_loop     Loop beta vector
  * \param[in] factor        > 0
+ * \param[in] options
  * \return                  Status
  */
-int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor) {
+int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
+               clay_options_p options) {
   if (beta_loop->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if (factor < 1)
@@ -678,9 +647,9 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor) {
   int i;
   int max; // vbetamax value casted in int
   int order;
+  int order_epilog; // order juste after the beta_loop
   int current_stmt = 0; // counter of statements
   void *vbetamax;
-  void *order_epilog; // order juste after the beta_loop
   int last_level = -1;
   int current_level;
   
@@ -818,6 +787,54 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor) {
   free(iterator);
   
   return CLAY_TRANSF_SUCCESS;
+}
+
+
+/* 
+ * clay_string_replace function:
+ * Search and replace a string with another string , in a string
+ * Minor modifications from :
+ * http://www.binarytides.com/blog/str_replace-for-c/
+ * \param[in] search
+ * \param[in] replace
+ * \param[in] subject
+ */
+char* clay_string_replace(char *search, char *replace, char *string) {
+	char  *ptr = NULL , *old = NULL , *new_string = NULL ;
+	int count = 0 , search_size;
+	
+	search_size = strlen(search);
+
+	// Count how many occurences
+	for(ptr = strstr(string , search) ; ptr != NULL ; 
+	    ptr = strstr(ptr + search_size , search)) {
+		count++;
+	}
+	
+	// Final size
+	count = (strlen(replace) - search_size)*count + strlen(string) + 1;
+	new_string = calloc(count, 1);
+
+	// The start position
+	old = string;
+
+	for(ptr = strstr(string, search) ; ptr != NULL ;
+	    ptr = strstr(ptr + search_size, search)) {
+		// move ahead and copy some text from original subject , from a
+		// certain position
+		strncpy(new_string + strlen(new_string), old , ptr - old);
+
+		// move ahead and copy the replacement text
+		strcpy(new_string + strlen(new_string) , replace);
+
+		// The new start position after this search match
+		old = ptr + search_size;
+	}
+
+	// Copy the part after the last search match
+	strcpy(new_string + strlen(new_string) , old);
+
+	return new_string;
 }
 
 

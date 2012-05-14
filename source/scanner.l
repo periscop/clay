@@ -42,9 +42,9 @@
   void        clay_scanner_free();
   void        clay_scanner_initialize();
   
-  int         scanner_line;
+  int         clay_scanner_line;
   
-  extern clay_prototype_function_p  params;
+  extern clay_prototype_function_p  clay_params;
 
 %}
 
@@ -56,29 +56,29 @@ SEPARATOR [ \t]*
 %%
 
 {SEPARATOR}#(.|{SEPARATOR})*
-                    {
-                      return COMMENT;
-                    }
+                   {
+                     return COMMENT;
+                   }
 
--?[0-9]+              {
-                      yylval.ival = atoi(yytext);
-                      return INTEGER;
-                    }
+-?[0-9]+           {
+                     yylval.ival = atoi(yytext);
+                     return INTEGER;
+                   }
 
-[a-z]+              {
-                      yylval.sval = strdup(yytext);
-                      return FUNCNAME;
-                    }
+[a-z]+             {
+                     yylval.sval = strdup(yytext);
+                     return FUNCNAME;
+                   }
 
-{SEPARATOR}         { ; }
-\[                  {
-                      //fprintf(stderr, "NEW ARRAY\n");
-                      clay_array_p tmp = clay_array_malloc();
-                      clay_prototype_function_args_add(params, tmp, ARRAY_T);
-                      return '[';
-                    }
-.                   { return yytext[0]; }
-\n                  { scanner_line++; return '\n'; }
+{SEPARATOR}        { ; }
+\[                 {
+                     //fprintf(stderr, "NEW ARRAY\n");
+                     clay_array_p tmp = clay_array_malloc();
+                     clay_prototype_function_args_add(clay_params, tmp, ARRAY_T);
+                     return '[';
+                   }
+.                  { return yytext[0]; }
+\n                 { clay_scanner_line++; return '\n'; }
 
 %%
 
@@ -101,7 +101,7 @@ void clay_scanner_free() {
  */
 void clay_scanner_initialize() {
   yy_flush_buffer(YY_CURRENT_BUFFER);
-  scanner_line = 0;
+  clay_scanner_line = 0;
 }
 
 
