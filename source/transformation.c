@@ -42,12 +42,18 @@
 #include <osl/strings.h>
 #include <osl/util.h>
 #include <osl/extensions/scatnames.h>
+#include <osl/extensions/scatnames.h>
 #include <osl/statement.h>
 #include <osl/relation.h>
 #include <clay/transformation.h>
 #include <clay/array.h>
 #include <clay/macros.h>
 #include <clay/options.h>
+
+
+/*****************************************************************************\
+ *                     Loop transformations                                   *
+ `****************************************************************************/
 
 
 /**
@@ -99,31 +105,33 @@ int clay_reorder(osl_scop_p scop,
  * clay_reversal function:
  * Reverse the direction of the loop
  * \param[in] scop
- * \param[in] beta          Beta vector (loop or statement)
+ * \param[in] beta_loop     Loop beta vector
  * \param[in] options
  * \return                  Status
  */
-int clay_reversal(osl_scop_p scop, clay_array_p beta,
+int clay_reversal(osl_scop_p scop, clay_array_p beta_loop,
                   clay_options_p options) {
-  if (beta->size == 0)
+  if (beta_loop->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
     
   osl_relation_p scattering;
   osl_statement_p statement = scop->statement;
   int precision;
-  const int column = beta->size*2 - 1; // iterator column
+  const int column = beta_loop->size*2 - 1; // iterator column
   int row;
   int i, begin, end;
   void *matrix_row;
   
-  statement = clay_beta_find(statement, beta);
+  statement = clay_beta_find(statement, beta_loop);
   if (!statement)
     return CLAY_TRANSF_BETA_NOT_FOUND;
-  
+  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
+    return CLAY_TRANSF_NOT_BETA_LOOP;
+
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
-    if (clay_beta_check(statement, beta)) {
+    if (clay_beta_check(statement, beta_loop)) {
       scattering = statement->scattering;
       begin = scattering->nb_output_dims;
       end = begin + scattering->nb_input_dims;
@@ -145,8 +153,10 @@ int clay_reversal(osl_scop_p scop, clay_array_p beta,
  * clay_interchange function:
  * On each statement which belongs to the `beta', the loops that match the
  * `depth_1'th and the `depth_2' are interchanged
+ * /!\ If you want to interchange 2 loops, you must give the inner beta loop
+ * and not the outer !
  * \param[in] scop
- * \param[in] beta          Beta vector (loop or statement)
+ * \param[in] beta          Beta vector (inner loop or statement)
  * \param[in] depth_1       >= 1
  * \param[in] depth_2       >= 1
  * \param[in] options
@@ -157,12 +167,9 @@ int clay_interchange(osl_scop_p scop,
                       clay_options_p options) {
   if (beta->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
-  if (depth_1 <= 0 || depth_2 <= 0 || 
-      depth_1 > beta->size || depth_2 > beta->size)
+  if (depth_1 <= 0 || depth_2 <= 0) 
     return CLAY_TRANSF_DEPTH_OVERFLOW;
-  if (depth_1 == depth_2)
-    return CLAY_TRANSF_SUCCESS;
-    
+
   osl_statement_p statement = scop->statement;
   osl_relation_p scattering;
   int precision;
@@ -176,7 +183,20 @@ int clay_interchange(osl_scop_p scop,
   statement = clay_beta_find(statement, beta);
   if (!statement)
     return CLAY_TRANSF_BETA_NOT_FOUND;
-    
+  if (statement->scattering->nb_output_dims == 1)
+    return CLAY_TRANSF_DEPTH_OVERFLOW;
+  // if it's a statement, the depth must be strictly less than the beta size
+  if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
+      (depth_1 >= beta->size || 
+      depth_2 >= beta->size))
+    return CLAY_TRANSF_DEPTH_OVERFLOW;
+  // else it's a loop, and the depth must be less or equal than the beta size
+  if (depth_1 > beta->size || depth_2 > beta->size)
+    return CLAY_TRANSF_DEPTH_OVERFLOW;
+  // it's not useful to interchange the same line
+  if (depth_1 == depth_2)
+    return CLAY_TRANSF_SUCCESS;
+  
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
@@ -230,7 +250,7 @@ int clay_fission(osl_scop_p scop, clay_array_p beta, int depth,
   if (!statement)
     return CLAY_TRANSF_BETA_NOT_FOUND;
   
-  clay_beta_shift(scop->statement, beta, depth);
+  clay_beta_shift_before(scop->statement, beta, depth);
   
   return CLAY_TRANSF_SUCCESS;
 }
@@ -248,45 +268,58 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
               clay_options_p options) {
   if (beta_loop->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
+ 
   osl_relation_p scattering;
-  osl_statement_p statement = scop->statement;
+  osl_statement_p statement;
+  clay_array_p beta_max;
+  clay_array_p beta_next;
   int precision;
-  const int loop_level = beta_loop->data[beta_loop->size-1];
+  const int depth = beta_loop->size;
   const int column = beta_loop->size*2; // transition column
   int row;
-  void *vbetamax;
+  int restore_size;
   
-  statement = clay_beta_find(statement, beta_loop);
+  statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
     return CLAY_TRANSF_BETA_NOT_FOUND;
   if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
     return CLAY_TRANSF_NOT_BETA_LOOP;
-  
-  precision = statement->scattering->precision;
-  vbetamax = clay_beta_max_value(statement, beta_loop);
-  
-  statement = scop->statement;
-  beta_loop->data[beta_loop->size-1]++; // TODO not ++
-  while (statement != NULL) {
-    if (clay_beta_check(statement, beta_loop)) {
-      scattering = statement->scattering;
-      if (column < scattering->nb_output_dims) {
-        row = clay_statement_get_line(statement, column-2);
-        osl_int_set_si(precision, 
-                       scattering->m[row], scattering->nb_columns-1, 
-                       loop_level);
 
-        row = clay_statement_get_line(statement, column);
-        osl_int_add(precision,
-                    scattering->m[row], scattering->nb_columns-1,
-                    scattering->m[row], scattering->nb_columns-1,
-                    vbetamax, 0);
+  precision = statement->scattering->precision;
+  
+  beta_max = clay_beta_max(statement, beta_loop);
+  beta_next = clay_beta_next(scop->statement, beta_loop);
+  
+  if (beta_next != NULL) {
+    restore_size = beta_next->size;
+    beta_next->size = depth;
+    statement = scop->statement;
+    while (statement != NULL) {
+      if (clay_beta_check(statement, beta_next)) {
+        scattering = statement->scattering;
+        if (column < scattering->nb_output_dims) {
+        
+          // Set the loop level
+          row = clay_statement_get_line(statement, column-2);
+          osl_int_set_si(precision, 
+                         scattering->m[row], scattering->nb_columns-1, 
+                         beta_loop->data[depth-1]);
+
+          // Reorder the statement
+          row = clay_statement_get_line(statement, column);
+          osl_int_add_si(precision,
+                         scattering->m[row], scattering->nb_columns-1,
+                         scattering->m[row], scattering->nb_columns-1,
+                         beta_max->data[depth]+1);
+        }
       }
+      statement = statement->next;
     }
-    statement = statement->next;
+    beta_next->size = restore_size;
+    clay_array_free(beta_next);
   }
-  beta_loop->data[beta_loop->size-1]--;
-  osl_int_free(precision, vbetamax, 0);
+  
+  clay_array_free(beta_max);
   
   return CLAY_TRANSF_SUCCESS;
 }
@@ -294,19 +327,19 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
 
 /**
  * clay_skew function:
- * Skew the loop from the `depth'th loop
+ * Skew the loop (or statement) from the `depth'th loop
  * (i, j) -> (i, j+i*coeff) where `depth' is the loop of i
  * \param[in] scop
- * \param[in] beta_loop     Loop beta vector
+ * \param[in] beta          Beta vector
  * \param[in] depth         >= 1
  * \param[in] coeff         != 0
  * \param[in] options
  * \return                  Status
  */
 int clay_skew(osl_scop_p scop, 
-              clay_array_p beta_loop, int depth, int coeff,
+              clay_array_p beta, int depth, int coeff,
               clay_options_p options) {
-  if (beta_loop->size == 0)
+  if (beta->size == 0)
     return CLAY_TRANSF_BETA_EMPTY;
   if (depth <= 0)
     return CLAY_TRANSF_DEPTH_OVERFLOW;
@@ -317,21 +350,39 @@ int clay_skew(osl_scop_p scop,
   osl_statement_p statement = scop->statement;
   int precision;
   const int column_depth = depth*2 - 1; // iterator column
-  const int column_beta = beta_loop->size*2 - 1; // iterator column
+  int column_beta; // iterator column
   int row_depth, row_beta;
   int i;
   void **matrix;
   
-  statement = clay_beta_find(statement, beta_loop);
+  statement = clay_beta_find(statement, beta);
   if (!statement)
     return CLAY_TRANSF_BETA_NOT_FOUND;
-  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_TRANSF_NOT_BETA_LOOP;
+  
+  if (statement->scattering->nb_output_dims == 1)
+    return CLAY_TRANSF_DEPTH_OVERFLOW;
+  // if it's a statement, the depth must be strictly less than the beta size
+  if (beta->size*2-1 >= statement->scattering->nb_output_dims) {
+      if (depth >= beta->size)
+        return CLAY_TRANSF_DEPTH_OVERFLOW;
+      // not sense
+      if (depth == beta->size-1)
+        return CLAY_TRANSF_SUCCESS;
+      column_beta = beta->size*2 - 3;
+  }
+  // else it's a loop and if the depth is the same as the beta, we change nothing
+  else {
+    if (depth == beta->size)
+      return CLAY_TRANSF_SUCCESS;
+    column_beta = beta->size*2 - 1;
+  }
+  if (depth > beta->size)
+    return CLAY_TRANSF_DEPTH_OVERFLOW;
   
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
-    if (clay_beta_check(statement, beta_loop)) {
+    if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
       if (column_depth >= scattering->nb_output_dims)
         return CLAY_TRANSF_DEPTH_OVERFLOW;
@@ -381,9 +432,9 @@ int clay_iss(osl_scop_p scop,
   int i, j;
   int row;
   int equ_nb_input_dims, equ_nb_parameters;
-  void *order;
+  void *order; // new loop order for the clones
   
-  // we need the first this because we need to get the nb_input_dims and 
+  // we need the first because we need to get the nb_input_dims and the
   // nb_parameters for the equation
   statement = clay_beta_first_statement(scop->statement, beta);
   if (!statement)
@@ -393,8 +444,8 @@ int clay_iss(osl_scop_p scop,
   
   precision = statement->scattering->precision;
   
-  clay_beta_shift(scop->statement, beta, beta->size);
-  
+  clay_beta_shift_after(scop->statement, beta, beta->size);
+
   // init new order
   scattering = statement->scattering;
   row = clay_statement_get_line(statement, column); // parent loop line
@@ -416,6 +467,7 @@ int clay_iss(osl_scop_p scop,
       scattering = statement->scattering;
       if (equ->size <= 1 + scattering->nb_input_dims + 
                                                     scattering->nb_parameters) {
+
         // insert the inequation spliting (local dims are not in the equation)
         // (at the end)
         row = scattering->nb_rows;
@@ -432,7 +484,7 @@ int clay_iss(osl_scop_p scop,
         }
         // affects parameters
         i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
-              scattering->nb_local_dims;
+            scattering->nb_local_dims;
         for (j = equ_nb_input_dims ; j < equ_nb_parameters ; j++) {
           osl_int_set_si(precision,
                          scattering->m[row], i,
@@ -462,16 +514,17 @@ int clay_iss(osl_scop_p scop,
         osl_int_assign(precision,
                  scattering->m[row], scattering->nb_columns-1,
                  order, 0);
-        
+
         // the order is not important in the statements list
         newstatement->next = statement->next;
         statement->next = newstatement;
-        statement = newstatement;
+        statement = statement->next;
       }
     }
     statement = statement->next;
   }
   osl_int_free(precision, order, 0);
+  
   return CLAY_TRANSF_SUCCESS;
 }
 
@@ -502,7 +555,6 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
   int precision;
   int row, row_next;
   int iter_column;
-  int alea; // for generate a new variable name
   int i;
   int nb_strings;
   char buffer[OSL_MAX_STRING];
@@ -526,6 +578,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
   while (statement != NULL) {
     scattering = statement->scattering;
     if (clay_beta_check(statement, beta)) {
+      
       // set the strip mine
       row = clay_statement_get_line(statement, column);
       
@@ -559,7 +612,9 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
       
       osl_int_set_si(precision, scattering->m[row_next],
                      scattering->nb_columns-1, 0);
+    
     } else if (pretty && column < scattering->nb_output_dims) {
+      
       // add 2 empty dimensions
       row = clay_statement_get_line(statement, column);
       
@@ -585,30 +640,43 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
     statement = statement->next;
   }
   
-  // insert the new variable string
+  // get the list of scatnames
   scat = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
   names = scat->names;
   
-  alea = rand();
-  nb_strings = osl_strings_size(names) + 2;
-  
-  sprintf(buffer, "__%s%s%d", names->string[column+1], names->string[column+1], 
-          alea);
+  // generate new variable names
+  i = 0;
+  do {
+    sprintf(buffer, "__%s%s%d", names->string[column+1],
+            names->string[column+1], i);
+    i++;
+  } while (clay_scatnames_exists(scat, buffer));
   new_var_iter = strdup(buffer);
-  sprintf(buffer, "__b%d", alea);
+  
+  i = 0;
+  do {
+    sprintf(buffer, "__b%d", i);
+    i++;
+  } while (clay_scatnames_exists(scat, buffer));
   new_var_beta = strdup(buffer);
   
+  // insert the new variables
+  nb_strings = osl_strings_size(names) + 2;
   osl_strings_p newnames = osl_strings_malloc();
   CLAY_malloc(newnames->string, char**, sizeof(char**) * (nb_strings + 1));
+  
   for (i = 0 ; i < column ; i++) {
     newnames->string[i] = names->string[i];
   }
   newnames->string[i] = new_var_beta;
   newnames->string[i+1] = new_var_iter;
+  
   for (i = i+2 ; i < nb_strings ; i++) {
     newnames->string[i] = names->string[i-2];
   }
-  newnames->string[i] = NULL;
+  newnames->string[i] = NULL; // end of the list
+  
+  // replace the scatnames
   free(names->string);
   free(names);
   scat->names = newnames;
@@ -640,16 +708,16 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   osl_statement_p newstatement;
   osl_statement_p original_stmt;
   osl_statement_p epilog_stmt;
+  clay_array_p beta_max;
   int column = beta_loop->size*2;
   int precision;
   int row;
   int nb_stmts;
   int i;
-  int max; // vbetamax value casted in int
+  int max; // last value of beta_max
   int order;
   int order_epilog; // order juste after the beta_loop
   int current_stmt = 0; // counter of statements
-  void *vbetamax;
   int last_level = -1;
   int current_level;
   
@@ -671,6 +739,8 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
     return CLAY_TRANSF_NOT_BETA_LOOP;
   
+  precision = statement->scattering->precision;
+  
   // alloc an array of string, wich will contain the current iterator and NULL
   // used for osl_util_identifier_substitution with only one variable
   CLAY_malloc(iterator, char**, sizeof(char*)*2);
@@ -678,13 +748,12 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   
   // infos used to reorder cloned statements
   nb_stmts = clay_beta_nb_parts(statement, beta_loop);
-  precision = statement->scattering->precision;  
-  vbetamax = clay_beta_max_value(statement, beta_loop);
-  max = osl_int_get_si(precision, vbetamax, 0);
-  osl_int_free(precision, vbetamax, 0);
+  beta_max = clay_beta_max(statement, beta_loop);
+  max = beta_max->data[beta_max->size-1];
+  clay_array_free(beta_max);
   
-  // shift to let the place for the epilog
-  clay_beta_shift(scop->statement, beta_loop, beta_loop->size);
+  // shift to let the place for the epilog loop
+  clay_beta_shift_after(scop->statement, beta_loop, beta_loop->size);
   order_epilog = beta_loop->data[beta_loop->size-1] + 1;
   
   while (statement != NULL) {
@@ -693,14 +762,15 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
     // TODO NOTE : we can optimize to not check twice this statement
     if (clay_beta_check(statement, beta_loop)) {
       
+      original_stmt = statement;
       body = (osl_body_p) statement->body->data;
       expression = body->expression->string[0];
       iterator[0] = (char*) body->iterators->string[iterator_index];
       iterator_size = strlen(iterator[0]);
       substitued = osl_util_identifier_substitution(expression, iterator);
+      
       CLAY_malloc(replacement, char*, 1 + iterator_size + 1 + 16 + 1 + 1);
       
-      original_stmt = statement;
       
       // set the epilog from the original statement
       epilog_stmt = osl_statement_nclone(original_stmt, 1);
@@ -790,6 +860,11 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
 }
 
 
+/*****************************************************************************\
+ *                     Other operations                                       *
+ `****************************************************************************/
+
+
 /* 
  * clay_string_replace function:
  * Search and replace a string with another string , in a string
@@ -839,65 +914,97 @@ char* clay_string_replace(char *search, char *replace, char *string) {
 
 
 /**
- * clay_beta_max_value function:
+ * clay_beta_max function:
  * Return the last value of the beta max
  * \param[in] statement     List of statements
- * \param[in] beta_loop     Loop beta vector
+ * \param[in] beta          Beta vector
  * \return
  */
-void* clay_beta_max_value(osl_statement_p statement, clay_array_p beta_loop) {
-  if (!statement)
-    return NULL;
-  if (!clay_beta_check(statement, beta_loop))
-    statement = clay_beta_find(statement, beta_loop);
+clay_array_p clay_beta_max(osl_statement_p statement, clay_array_p beta) {
+  statement = clay_beta_find(statement, beta);
   if (!statement)
     return NULL;
   
-  osl_relation_p scattering = statement->scattering;
-  const int column = beta_loop->size*2; // transition column after the beta
-  int precision = scattering->precision;
-  int row;
-  void *tmp;
-  void *vbetamax = osl_int_malloc(precision);
+  clay_array_p beta_max = clay_statement_get_beta(statement);
   
-  row = clay_statement_get_line(statement, column);
-  osl_int_assign(scattering->precision, 
-                 vbetamax, 0,
-                 scattering->m[row], scattering->nb_columns-1);
-  
-  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims) {
-    // it's a statement, return the last value
-    return vbetamax;
-  }
-  
-  tmp = osl_int_malloc(precision);
   while (statement != NULL) {
-    if (clay_beta_check(statement, beta_loop)) {
-      scattering = statement->scattering;
-      // tmp = current_order - vbetamax
-      row = clay_statement_get_line(statement, column);
-      osl_int_sub(precision,
-                  tmp, 0,
-                  scattering->m[row], scattering->nb_columns-1,
-                  vbetamax, 0);
-      // current_order > vbetamax   (-> tmp > 0)
-      if (osl_int_pos(precision, tmp, 0)) {
-        osl_int_assign(precision, 
-                       vbetamax, 0,
-                       scattering->m[row], scattering->nb_columns-1);
-      }
+    if (clay_beta_check(statement, beta) &&
+        clay_statement_is_after(statement, beta_max)) {
+      clay_array_free(beta_max);
+      beta_max = clay_statement_get_beta(statement);
     }
     statement = statement->next;
   }
-  osl_int_free(precision, tmp, 0);
-  return vbetamax;
+  
+  return beta_max;
 }
+
+
+/**
+ * clay_beta_next function:
+ * Return the beta after (strictly) the given beta.
+ * \param[in] statement     List of statements
+ * \param[in] beta          Beta vector
+ * \return
+ */
+clay_array_p clay_beta_next(osl_statement_p statement, clay_array_p beta) {
+  clay_array_p beta_next = NULL;
+  
+  // Search the first statement after the beta
+  while (statement != NULL) {
+    if (clay_statement_is_after(statement, beta)) {
+      beta_next = clay_statement_get_beta(statement);
+      break;
+    }
+    statement = statement->next;
+  }
+  
+  if (beta_next == NULL)
+    return NULL;
+    
+  // Search if there is an another beta before the beta we have found
+  while (statement != NULL) {
+    if (clay_statement_is_after(statement, beta) && 
+        clay_statement_is_before(statement, beta_next)) {
+      clay_array_free(beta_next);
+      beta_next = clay_statement_get_beta(statement);
+    }
+    statement = statement->next;
+  }
+  
+  return beta_next;
+}
+
+
+/**
+ * clay_scatnames_exists_iterator_iterator function:
+ * Return true if the original iterator name is already in the scattering.
+ * \param[in] scattering
+ * \return
+ */
+bool clay_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
+  osl_strings_p names = scatnames->names;
+  if (names == NULL || names->string[0] == NULL)
+    return 0;
+  
+  char **ptr = names->string;
+  
+  while (*ptr != NULL) {
+    if (strcmp(*ptr, iter) == 0)
+      return 1;
+    ptr++;
+  }
+  
+  return 0;
+}
+
 
 /**
  * clay_statement_get_line function:
  * Because the lines in the scattering matrix may have not ordered, we have to
  * search the corresponding line. It returns the first line where the value is
- * different from zero in the `column'
+ * different from zero in the `column'. `column' is between 0 and 
+ * nb_output_dims-1
  * \param[in] statement     Current statement
  * \param[in] column        Line to search
  * \return                  Return the real line
@@ -916,6 +1023,45 @@ int clay_statement_get_line(osl_statement_p statement, int column) {
     }
   }
   return (i == scattering->nb_rows ? -1 : i );
+}
+
+
+/**
+ * clay_statement_get_beta function:
+ * \param[in] statement     Current statement
+ * \return                  Return the real line
+ */
+clay_array_p clay_statement_get_beta(osl_statement_p statement) {
+  if (statement == NULL)
+    return NULL;
+  osl_relation_p scattering = statement->scattering;
+  clay_array_p beta = clay_array_malloc();
+  int i, j,  row, tmp;
+  int last_column = scattering->nb_columns-1;
+  int precision = scattering->precision;
+  
+  for (j = 1 ; j < scattering->nb_output_dims+1 ; j += 2) {
+    
+    // search the first non zero
+    for (i = 0 ; i < scattering->nb_rows ; i++) {
+      // test if the line is an equality
+      if (osl_int_zero(precision, scattering->m[i], 0)) {
+        // non zero on the column
+        if (!osl_int_zero(precision, scattering->m[i], j)) {
+          // line and column are corrects
+          if (clay_scattering_check_zero(statement, i, j)) {
+            row = clay_statement_get_line(statement, i);
+            tmp = osl_int_get_si(scattering->precision, 
+                                 scattering->m[row], last_column);
+            clay_array_add(beta, tmp);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return beta;
 }
 
 
@@ -990,7 +1136,7 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
       scattering = statement->scattering;
       if (column < scattering->nb_output_dims) {
         row = clay_statement_get_line(statement, column);
-        current_level = osl_int_get_si(scattering->precision, scattering->m[row], 
+        current_level = osl_int_get_si(scattering->precision, scattering->m[row],
                                        scattering->nb_columns-1);
         if (current_level != last_level) {
           n++;
@@ -1008,13 +1154,14 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
 
 
 /**
- * clay_beta_shift function:
- * Shift all the statements which are after or on the beta vector
+ * clay_beta_shift_before function:
+ * Shift all the statements that are before or on the beta vector
  * \param[in] statement     Statements list
  * \param[in] beta          Beta vector 
- * \param[in] depth         Depth level to shift
+ * \param[in] depth         Depth level to shift, >= 1
  */
-void clay_beta_shift(osl_statement_p statement, clay_array_p beta, int depth) {
+void clay_beta_shift_before(osl_statement_p statement, clay_array_p beta,
+                           int depth) {
   if (beta->size == 0)
     return;
   osl_relation_p scattering;
@@ -1024,13 +1171,51 @@ void clay_beta_shift(osl_statement_p statement, clay_array_p beta, int depth) {
   int restore_size = beta->size;
   
   clay_array_p beta_parent = clay_array_clone(beta);
-  (beta_parent)->size = depth-1; // beta before the loop at the `depth'th level
+  (beta_parent)->size = depth-1;
   
   while (statement != NULL) {
-    if (clay_beta_check(statement, beta_parent) && 
-        !clay_beta_check(statement, beta)) {
-      if (clay_statement_is_after(statement, beta)) {
+    if (!clay_statement_is_before(statement, beta)) {
+      if (clay_beta_check(statement, beta_parent)) {
         scattering = statement->scattering;
+        if (column < scattering->nb_output_dims) {
+          row = clay_statement_get_line(statement, column);
+          osl_int_increment(precision, 
+                            scattering->m[row], scattering->nb_columns-1, 
+                            scattering->m[row], scattering->nb_columns-1);
+        }
+      }
+    }
+    statement = statement->next;
+  }
+  beta_parent->size = restore_size;
+  clay_array_free(beta_parent);
+}
+
+
+/**
+ * clay_beta_shift_after function:
+ * Shift all the statements that are after or on the beta vector
+ * \param[in] statement     Statements list
+ * \param[in] beta          Beta vector 
+ * \param[in] depth         Depth level to shift, >= 1
+ */
+void clay_beta_shift_after(osl_statement_p statement, clay_array_p beta,
+                           int depth) {
+  if (beta->size == 0)
+    return;
+  osl_relation_p scattering;
+  const int column = (depth-1)*2;  // transition column
+  int row;
+  int precision = statement->scattering->precision;
+  int restore_size = beta->size;
+  
+  clay_array_p beta_parent = clay_array_clone(beta);
+  beta_parent->size = depth-1;
+  
+  while (statement != NULL) {
+    if (clay_statement_is_after(statement, beta)) {
+      scattering = statement->scattering;
+      if (column < scattering->nb_output_dims) {
         row = clay_statement_get_line(statement, column);
         osl_int_increment(precision, 
                           scattering->m[row], scattering->nb_columns-1, 
@@ -1044,22 +1229,25 @@ void clay_beta_shift(osl_statement_p statement, clay_array_p beta, int depth) {
 }
 
 
-
 /**
- * clay_statement_is_after function:
- * Return true if statement is after the beta
+ * clay_statement_is_before function:
+ * Return true if statement is before (strictly) the beta
  * \param[in] statement
  * \param[in] beta
  * \return
  */
-bool clay_statement_is_after(osl_statement_p statement, clay_array_p beta) {
+bool clay_statement_is_before(osl_statement_p statement, clay_array_p beta) {
   osl_relation_p scat = statement->scattering;
   int precision = scat->precision;
   int row;
   int i;
-  int end = (scat->nb_output_dims > beta->size*2+1 ? 
-             beta->size :
-             (scat->nb_output_dims+1)/2);
+  int end;
+  
+  if (scat->nb_output_dims >= beta->size*2+1)
+    end = beta->size;
+  else
+    end = (scat->nb_output_dims+1)/2;
+
   void *tmp;
   tmp = osl_int_malloc(precision);
   
@@ -1071,14 +1259,27 @@ bool clay_statement_is_after(osl_statement_p statement, clay_array_p beta) {
                    -beta->data[i]); // -> substraction
     if (osl_int_pos(precision, tmp, 0)) {
       osl_int_free(precision, tmp, 0);
-      return 1;
+      return 0;
     } else if (osl_int_neg(precision, tmp, 0)) {
       osl_int_free(precision, tmp, 0);
-      return 0;
+      return 1;
     }
   }
   osl_int_free(precision, tmp, 0);
   return 0;
+}
+
+
+/**
+ * clay_statement_is_after function:
+ * Return true if statement is after (strictly) the beta
+ * \param[in] statement
+ * \param[in] beta
+ * \return
+ */
+bool clay_statement_is_after(osl_statement_p statement, clay_array_p beta) {
+  return !clay_statement_is_before(statement, beta) && 
+         !clay_beta_check(statement, beta);
 }
 
 
@@ -1097,45 +1298,31 @@ bool clay_beta_check(osl_statement_p statement, clay_array_p beta) {
   
   osl_relation_p scattering = statement->scattering;
   int last_column = scattering->nb_columns-1;
-  int i, j = 1, k, t;
+  int i, j = 1, k;
   int ok;
   int tmp;
   int precision = scattering->precision;
   
   for (k = 0 ; k < beta->size ; k++) {
     ok = 0;
+    
+    // search the first non zero
     for (i = 0 ; i < scattering->nb_rows ; i++) {
+      
       // test if the line is an equality
       if (osl_int_zero(precision, scattering->m[i], 0)) {
+        
+        // non zero on the column
         if (!osl_int_zero(precision, scattering->m[i], j)) {
           tmp = osl_int_get_si(precision, scattering->m[i], last_column);
           if (tmp != beta->data[k]) {
             return 0;
           }
           
-          // check if the column and the line are correct
-          // errors should not happen
-          for (t = i+1 ; t < scattering->nb_rows ; t++) {
-            if (!osl_int_zero(precision, scattering->m[t], j)) {
-              fprintf(stderr, "[Clay] Warning: the scattering is incorrect (column %d)\n", j);
-              fprintf(stderr, "[Clay] a non-zero value appear\n");
-              osl_statement_p tmp = statement->next;
-              statement->next = NULL;
-              osl_statement_dump(stderr, statement);
-              statement->next = tmp;
-              return 0;
-            }
-          }
-          for (t = j+1 ; t < last_column ; t++) {
-            if (!osl_int_zero(precision, scattering->m[i], t)) {
-              fprintf(stderr, "[Clay] Warning: the scattering is incorrect (line %d)\n", i+1);
-              fprintf(stderr, "[Clay] a non-zero value appear\n");
-              osl_statement_p tmp = statement->next;
-              statement->next = NULL;
-              osl_statement_dump(stderr, statement);
-              statement->next = tmp;
-              return 0;
-            }
+          // line and column are corrects ?
+          if (!clay_scattering_check_zero(statement, i, j)) {
+            // errors should not happen
+            return 0;
           }
           
           ok = 1;
@@ -1149,5 +1336,48 @@ bool clay_beta_check(osl_statement_p statement, clay_array_p beta) {
     
     j += 2;
   }
+  return 1;
+}
+
+
+/**
+ * clay_scattering_check_zero function:
+ * check if the scattering on the first statement contains only zero at line i 
+ * and column j, but not on (i,j), on the first column (equality column), and on
+ * the last column.
+ * Used to check if the line is a line of a beta vector
+ * \param[in] statement
+ * \param[in] i
+ * \param[in] j
+ * \return                  true if correct
+ */
+bool clay_scattering_check_zero(osl_statement_p statement, int i, int j) {
+  osl_relation_p scattering = statement->scattering;
+  int precision = scattering->precision;
+  int t;
+  
+  for (t = i+1 ; t < scattering->nb_rows ; t++) {
+    if (!osl_int_zero(precision, scattering->m[t], j)) {
+      fprintf(stderr, "[Clay] Warning: the scattering is incorrect (column %d)\n", j);
+      fprintf(stderr, "[Clay] a non-zero value appear\n");
+      osl_statement_p tmp = statement->next;
+      statement->next = NULL;
+      osl_statement_dump(stderr, statement);
+      statement->next = tmp;
+      return 0;
+    }
+  }
+  for (t = j+1 ; t < scattering->nb_columns-1 ; t++) {
+    if (!osl_int_zero(precision, scattering->m[i], t)) {
+      fprintf(stderr, "[Clay] Warning: the scattering is incorrect (line %d)\n", i+1);
+      fprintf(stderr, "[Clay] a non-zero value appear\n");
+      osl_statement_p tmp = statement->next;
+      statement->next = NULL;
+      osl_statement_dump(stderr, statement);
+      statement->next = tmp;
+      return 0;
+    }
+  }
+  
   return 1;
 }

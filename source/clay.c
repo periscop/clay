@@ -57,10 +57,6 @@ int main(int argc, char * argv[]) {
   FILE *input = NULL;
   FILE *script = NULL;
   
-  // Random number are used to generate new variables name in the function
-  // clay_stripmine
-  srand(time(NULL));
-  
   // Read command line parameters
   options = clay_options_read(argc, argv);
   if (options->print_infos) {
@@ -78,44 +74,46 @@ int main(int argc, char * argv[]) {
   }
 
   scop = osl_scop_read(input);
-  
-  // Read the script file
-  if (options->input_script) {
-    script = fopen(options->script_name, "r");
-    if (script == NULL)
-      CLAY_error("cannot open the script file");
-    clay_parser_file(scop, script, options);
-    fclose(script);
-  
-  // Read the script from the extension clay
-  } else {
-    // equivalent to osl_generic_lookup, but we need the last extension
-    x = scop->extension;
-    last = NULL;
-    while (x != NULL) {
-      if (osl_generic_has_URI(x, OSL_URI_CLAY))
-        break;
-      last = x;
-      x = x->next;
-    }
-   
-    if (x != NULL) {
-      // parse the clay string
-      clay_tag = x->data;
-      clay_parser_string(scop, clay_tag->script, options);
 
-      // remove the extension clay
-      // we don't use osl_generic_free, because we need to remove only one
-      // extension
-      last->next = x->next;
-      if (x->interface != NULL) {
-        x->interface->free(x->data);
-        osl_interface_free(x->interface);
-      } else if (x->data != NULL) {
-        OSL_warning("unregistered interface, memory leaks are possible");
-        free(x->data);
+  if (scop != NULL) {
+    // Read the script file
+    if (options->input_script) {
+      script = fopen(options->script_name, "r");
+      if (script == NULL)
+        CLAY_error("cannot open the script file");
+      clay_parser_file(scop, script, options);
+      fclose(script);
+    
+    // Read the script from the extension clay
+    } else {
+      // equivalent to osl_generic_lookup, but we need the last extension
+      x = scop->extension;
+      last = NULL;
+      while (x != NULL) {
+        if (osl_generic_has_URI(x, OSL_URI_CLAY))
+          break;
+        last = x;
+        x = x->next;
       }
-      free(x);
+     
+      if (x != NULL) {
+        // parse the clay string
+        clay_tag = x->data;
+        clay_parser_string(scop, clay_tag->script, options);
+
+        // remove the extension clay
+        // we don't use osl_generic_free, because we need to remove only one
+        // extension
+        last->next = x->next;
+        if (x->interface != NULL) {
+          x->interface->free(x->data);
+          osl_interface_free(x->interface);
+        } else if (x->data != NULL) {
+          OSL_warning("unregistered interface, memory leaks are possible");
+          free(x->data);
+        }
+        free(x);
+      }
     }
   }
 

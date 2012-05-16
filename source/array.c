@@ -92,6 +92,10 @@ void clay_array_free(clay_array_p arr) {
  * \param[in] arr
  */
 void clay_array_print(FILE *out, clay_array_p arr) {
+  if (arr == NULL) {
+    fprintf(out, "NULL\n");
+    return;
+  }
   int i;
   fprintf(out, "[");
   for (i = 0 ; i < arr->size-1 ; i++) {
@@ -99,7 +103,7 @@ void clay_array_print(FILE *out, clay_array_p arr) {
   }
   if(arr->size > 0)
     fprintf(out, "%d", arr->data[i]);
-  fprintf(out, "]");
+  fprintf(out, "]\n");
 }
 
 
@@ -108,7 +112,7 @@ void clay_array_print(FILE *out, clay_array_p arr) {
  * \param[in] out   file where to print
  * \param[in] arr
  */
-clay_array_p      clay_array_clone(clay_array_p arr) {
+clay_array_p clay_array_clone(clay_array_p arr) {
   clay_array_p newarr = clay_array_malloc();
   int i;
   for (i = 0 ; i < arr->size ; i++) {

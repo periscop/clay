@@ -104,7 +104,7 @@
         NULL, clay_parser_fission_type, 2, 2
       },
       {
-        "reorder",     "retorder(array beta_loop, array order)",
+        "reorder",     "reorder(array beta_loop, array order)",
         NULL, clay_parser_reorder_type, 2, 2
       },
       {
@@ -112,7 +112,7 @@
         NULL, clay_parser_interchange_type, 3, 3
       },
       {
-        "reversal",    "reversal(array beta)",
+        "reversal",    "reversal(array beta_loop)",
         NULL, clay_parser_reversal_type, 1, 1
       },
       {
@@ -132,7 +132,7 @@
         NULL, clay_parser_stripmine_type, 3, 3
       },
       {
-        "unroll",      "unroll(array beta, uint factor)",
+        "unroll",      "unroll(array beta_loop, uint factor)",
         NULL, clay_parser_unroll_type, 2, 2
       }
     };
