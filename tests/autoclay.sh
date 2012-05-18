@@ -9,7 +9,7 @@ do
   then
     rm -f "$code.scop"
     echo "add $code"
-    data=`clan "$code" | clay`
+    data=`clan "$code" | sed 1d | clay`
     if [ "$data" != "" ]
     then
       echo "$data" >"$code.scop"

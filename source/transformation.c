@@ -49,6 +49,7 @@
 #include <clay/array.h>
 #include <clay/macros.h>
 #include <clay/options.h>
+#include <clay/errors.h>
 
 
 /*****************************************************************************\
@@ -77,16 +78,16 @@ int clay_reorder(osl_scop_p scop,
   
   statement = clay_beta_find(statement, beta_loop);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_TRANSF_NOT_BETA_LOOP;
+    return CLAY_NOT_BETA_LOOP;
   
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
     if (clay_beta_check(statement, beta_loop)) {
       if (i >= neworder->size)
-        return CLAY_TRANSF_REORDER_ARRAY_TOO_SMALL;
+        return CLAY_REORDER_ARRAY_TOO_SMALL;
       row = clay_statement_get_line(statement, column);
       scattering = statement->scattering;
       osl_int_set_si(precision, 
@@ -97,7 +98,7 @@ int clay_reorder(osl_scop_p scop,
     statement = statement->next;
   }
   
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -105,33 +106,39 @@ int clay_reorder(osl_scop_p scop,
  * clay_reversal function:
  * Reverse the direction of the loop
  * \param[in] scop
- * \param[in] beta_loop     Loop beta vector
+ * \param[in] beta          Beta vector
  * \param[in] options
  * \return                  Status
  */
-int clay_reversal(osl_scop_p scop, clay_array_p beta_loop,
+int clay_reversal(osl_scop_p scop, clay_array_p beta, int depth,
                   clay_options_p options) {
-  if (beta_loop->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+  if (beta->size == 0)
+    return CLAY_BETA_EMPTY;
+  if (depth <= 0) 
+    return CLAY_DEPTH_OVERFLOW;
     
   osl_relation_p scattering;
   osl_statement_p statement = scop->statement;
   int precision;
-  const int column = beta_loop->size*2 - 1; // iterator column
+  int column = depth*2 - 1; // iterator column
   int row;
   int i, begin, end;
   void *matrix_row;
   
-  statement = clay_beta_find(statement, beta_loop);
+  statement = clay_beta_find(statement, beta);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
-  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_TRANSF_NOT_BETA_LOOP;
+    return CLAY_BETA_NOT_FOUND;
+  if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
+      depth >= beta->size)
+    return CLAY_DEPTH_OVERFLOW;
+  // else it's a loop, and the depth must be less or equal than the beta size
+  if (depth > beta->size)
+    return CLAY_DEPTH_OVERFLOW;
 
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
-    if (clay_beta_check(statement, beta_loop)) {
+    if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
       begin = scattering->nb_output_dims;
       end = begin + scattering->nb_input_dims;
@@ -145,7 +152,7 @@ int clay_reversal(osl_scop_p scop, clay_array_p beta_loop,
     }
     statement = statement->next;
   }
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -166,9 +173,9 @@ int clay_interchange(osl_scop_p scop,
                       clay_array_p beta, int depth_1, int depth_2,
                       clay_options_p options) {
   if (beta->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+    return CLAY_BETA_EMPTY;
   if (depth_1 <= 0 || depth_2 <= 0) 
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
 
   osl_statement_p statement = scop->statement;
   osl_relation_p scattering;
@@ -182,20 +189,20 @@ int clay_interchange(osl_scop_p scop,
   
   statement = clay_beta_find(statement, beta);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   if (statement->scattering->nb_output_dims == 1)
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
   // if it's a statement, the depth must be strictly less than the beta size
   if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
       (depth_1 >= beta->size || 
       depth_2 >= beta->size))
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
   // else it's a loop, and the depth must be less or equal than the beta size
   if (depth_1 > beta->size || depth_2 > beta->size)
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
   // it's not useful to interchange the same line
   if (depth_1 == depth_2)
-    return CLAY_TRANSF_SUCCESS;
+    return CLAY_SUCCESS;
   
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
@@ -205,7 +212,7 @@ int clay_interchange(osl_scop_p scop,
 
       //nb_rows = scattering->nb_rows;
       //if (column_1 >= nb_rows || column_2 >= nb_rows)
-      //  return CLAY_TRANSF_DEPTH_OVERFLOW;
+      //  return CLAY_DEPTH_OVERFLOW;
       
       matrix = scattering->m;
       
@@ -225,7 +232,7 @@ int clay_interchange(osl_scop_p scop,
       
     statement = statement->next;
   }
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -241,18 +248,18 @@ int clay_interchange(osl_scop_p scop,
 int clay_fission(osl_scop_p scop, clay_array_p beta, int depth,
                  clay_options_p options) {
   if (beta->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+    return CLAY_BETA_EMPTY;
   if (beta->size <= 1 || depth <= 0 || depth >= beta->size)
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
   
   osl_statement_p statement = scop->statement;
   statement = clay_beta_find(statement, beta);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   
   clay_beta_shift_before(scop->statement, beta, depth);
   
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -267,7 +274,7 @@ int clay_fission(osl_scop_p scop, clay_array_p beta, int depth,
 int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
               clay_options_p options) {
   if (beta_loop->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+    return CLAY_BETA_EMPTY;
  
   osl_relation_p scattering;
   osl_statement_p statement;
@@ -281,9 +288,9 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
   
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_TRANSF_NOT_BETA_LOOP;
+    return CLAY_NOT_BETA_LOOP;
 
   precision = statement->scattering->precision;
   
@@ -321,7 +328,7 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
   
   clay_array_free(beta_max);
   
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -340,11 +347,11 @@ int clay_skew(osl_scop_p scop,
               clay_array_p beta, int depth, int coeff,
               clay_options_p options) {
   if (beta->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+    return CLAY_BETA_EMPTY;
   if (depth <= 0)
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
   if (coeff == 0)
-    return CLAY_TRANSF_WRONG_COEFF;
+    return CLAY_WRONG_COEFF;
   
   osl_relation_p scattering;
   osl_statement_p statement = scop->statement;
@@ -357,27 +364,27 @@ int clay_skew(osl_scop_p scop,
   
   statement = clay_beta_find(statement, beta);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   
   if (statement->scattering->nb_output_dims == 1)
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
   // if it's a statement, the depth must be strictly less than the beta size
   if (beta->size*2-1 >= statement->scattering->nb_output_dims) {
       if (depth >= beta->size)
-        return CLAY_TRANSF_DEPTH_OVERFLOW;
+        return CLAY_DEPTH_OVERFLOW;
       // not sense
       if (depth == beta->size-1)
-        return CLAY_TRANSF_SUCCESS;
+        return CLAY_SUCCESS;
       column_beta = beta->size*2 - 3;
   }
   // else it's a loop and if the depth is the same as the beta, we change nothing
   else {
     if (depth == beta->size)
-      return CLAY_TRANSF_SUCCESS;
+      return CLAY_SUCCESS;
     column_beta = beta->size*2 - 1;
   }
   if (depth > beta->size)
-    return CLAY_TRANSF_DEPTH_OVERFLOW;
+    return CLAY_DEPTH_OVERFLOW;
   
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
@@ -385,7 +392,7 @@ int clay_skew(osl_scop_p scop,
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
       if (column_depth >= scattering->nb_output_dims)
-        return CLAY_TRANSF_DEPTH_OVERFLOW;
+        return CLAY_DEPTH_OVERFLOW;
       
       matrix = scattering->m;
       i = depth + scattering->nb_output_dims; // TODO : iterotor column ??
@@ -402,7 +409,7 @@ int clay_skew(osl_scop_p scop,
     }
     statement = statement->next;
   }
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -420,9 +427,9 @@ int clay_iss(osl_scop_p scop,
              clay_array_p beta, clay_array_p equ,
              clay_options_p options) {
   if (beta->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+    return CLAY_BETA_EMPTY;
   if(equ->size <= 1)
-    return CLAY_TRANSF_SUCCESS;
+    return CLAY_SUCCESS;
   
   osl_relation_p scattering;
   osl_statement_p statement;
@@ -438,9 +445,9 @@ int clay_iss(osl_scop_p scop,
   // nb_parameters for the equation
   statement = clay_beta_first_statement(scop->statement, beta);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   if (statement->scattering->nb_input_dims == 0)
-    return CLAY_TRANSF_BETA_NOT_IN_A_LOOP;
+    return CLAY_BETA_NOT_IN_A_LOOP;
   
   precision = statement->scattering->precision;
   
@@ -525,7 +532,7 @@ int clay_iss(osl_scop_p scop,
   }
   osl_int_free(precision, order, 0);
   
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -543,9 +550,9 @@ int clay_iss(osl_scop_p scop,
 int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
                    clay_options_p options) {
   if (beta->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+    return CLAY_BETA_EMPTY;
   if (block <= 0)
-    return CLAY_TRANSF_WRONG_BLOCK_SIZE;
+    return CLAY_WRONG_BLOCK_SIZE;
   
   osl_relation_p scattering;
   osl_statement_p statement = scop->statement;
@@ -563,9 +570,9 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
   
   statement = clay_beta_find(statement, beta);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   if (statement->scattering->nb_output_dims < 3)
-    return CLAY_TRANSF_BETA_NOT_IN_A_LOOP;
+    return CLAY_BETA_NOT_IN_A_LOOP;
   
   if (beta->size*2-1 == statement->scattering->nb_output_dims)
     column -= 2; // loop level
@@ -681,7 +688,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
   free(names);
   scat->names = newnames;
   
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 
@@ -697,9 +704,9 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
 int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
                clay_options_p options) {
   if (beta_loop->size == 0)
-    return CLAY_TRANSF_BETA_EMPTY;
+    return CLAY_BETA_EMPTY;
   if (factor < 1)
-    return CLAY_TRANSF_WRONG_FACTOR;
+    return CLAY_WRONG_FACTOR;
   
   osl_relation_p scattering;
   osl_relation_p domain;
@@ -735,9 +742,9 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
-    return CLAY_TRANSF_BETA_NOT_FOUND;
+    return CLAY_BETA_NOT_FOUND;
   if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_TRANSF_NOT_BETA_LOOP;
+    return CLAY_NOT_BETA_LOOP;
   
   precision = statement->scattering->precision;
   
@@ -856,7 +863,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   }
   free(iterator);
   
-  return CLAY_TRANSF_SUCCESS;
+  return CLAY_SUCCESS;
 }
 
 

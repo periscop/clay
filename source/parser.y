@@ -46,6 +46,7 @@
   #include <clay/transformation.h>
   #include <clay/prototype_function.h>
   #include <parser.h>
+  #include <clay/errors.h>
   
   
   // Scanner declarations
@@ -88,7 +89,7 @@
   int clay_parser_fission_type[]     =  {ARRAY_T, INTEGER_T};
   int clay_parser_reorder_type[]     =  {ARRAY_T, ARRAY_T};
   int clay_parser_interchange_type[] =  {ARRAY_T, INTEGER_T, INTEGER_T};
-  int clay_parser_reversal_type[]    =  {ARRAY_T};
+  int clay_parser_reversal_type[]    =  {ARRAY_T, INTEGER_T};
   int clay_parser_fuse_type[]        =  {ARRAY_T};
   int clay_parser_skew_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T};
   int clay_parser_iss_type[]         =  {ARRAY_T, ARRAY_T};
@@ -112,8 +113,8 @@
         NULL, clay_parser_interchange_type, 3, 3
       },
       {
-        "reversal",    "reversal(array beta_loop)",
-        NULL, clay_parser_reversal_type, 1, 1
+        "reversal",    "reversal(array beta, uint depth)",
+        NULL, clay_parser_reversal_type, 2, 2
       },
       {
         "fuse",        "fuse(array beta_loop)",
@@ -317,7 +318,7 @@ void clay_parser_exec_function(char *name) {
   if (i == CLAY_PROTOTYPE_FUNCTIONS_TOTAL) {
       fprintf(stderr, "[Clay] Error: line %d, unknown function `%s'\n", 
               clay_scanner_line, name);
-      exit(1);
+      exit(CLAY_UNKNOWN_FUNCTION);
   }
   
   // Different number of parameters
@@ -326,7 +327,7 @@ void clay_parser_exec_function(char *name) {
         "[Clay] Error: line %d, in `%s' takes %d arguments\n[Clay] \
 prototype is: %s\n", 
         clay_scanner_line, name, functions[i].argc, functions[i].prototype);
-      exit(1);
+      exit(CLAY_ERROR_NB_ARGS);
   }
   
   j = 0;
@@ -342,7 +343,7 @@ prototype is: %s\n",
         "[Clay] Error: line %d, in function `%s' invalid type on argument \
 %d\n[Clay] prototype is: %s\n", 
         clay_scanner_line, name, j+1, functions[i].prototype);
-      exit(1);
+      exit(CLAY_ERROR_INVALID_TYPE);
   }
   
   //fprintf(stderr, "[Clay] Exec %s\n", function[i].name);
@@ -371,6 +372,7 @@ prototype is: %s\n",
     case CLAY_PROTOTYPE_FUNCTION_REVERSAL:
       status_result = clay_reversal(clay_parser_scop, 
                                     clay_params->args[0],
+                                   *((int*)clay_params->args[1]),
                                     clay_parser_options);
       break;
     case CLAY_PROTOTYPE_FUNCTION_FUSE:
@@ -407,55 +409,55 @@ prototype is: %s\n",
   }
   
   switch (status_result) {
-    case CLAY_TRANSF_BETA_NOT_FOUND:
+    case CLAY_BETA_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d: the beta vector was not found\n",
               clay_scanner_line);
-      exit(1);
+      exit(CLAY_BETA_NOT_FOUND);
       break;
-    case CLAY_TRANSF_NOT_BETA_LOOP:
+    case CLAY_NOT_BETA_LOOP:
       fprintf(stderr,"[Clay] Error: line %d: the beta is not a loop\n",
               clay_scanner_line);
-      exit(2);
+      exit(CLAY_NOT_BETA_LOOP);
       break;
-    case CLAY_TRANSF_NOT_BETA_STMT:
+    case CLAY_NOT_BETA_STMT:
       fprintf(stderr,"[Clay] Error: line %d, the beta is not a statement\n", 
               clay_scanner_line);
       exit(3);
       break;
-    case CLAY_TRANSF_REORDER_ARRAY_TOO_SMALL:
+    case CLAY_REORDER_ARRAY_TOO_SMALL:
       fprintf(stderr,"[Clay] Error: line %d, the order array is too small\n", 
               clay_scanner_line);
-      exit(4);
+      exit(CLAY_REORDER_ARRAY_TOO_SMALL);
       break;
-    case CLAY_TRANSF_DEPTH_OVERFLOW:
+    case CLAY_DEPTH_OVERFLOW:
       fprintf(stderr,"[Clay] Error: line %d, depth overflow\n",
               clay_scanner_line);
-      exit(5);
+      exit(CLAY_DEPTH_OVERFLOW);
       break;
-    case CLAY_TRANSF_WRONG_COEFF:
+    case CLAY_WRONG_COEFF:
       fprintf(stderr,"[Clay] Error: line %d, wrong coefficient\n",
               clay_scanner_line);
-      exit(6);
+      exit(CLAY_WRONG_COEFF);
       break;
-    case CLAY_TRANSF_BETA_EMPTY:
+    case CLAY_BETA_EMPTY:
       fprintf(stderr,"[Clay] Error: line %d, the beta vector is empty\n",
               clay_scanner_line);
-      exit(7);
+      exit(CLAY_BETA_EMPTY);
       break;
-    case CLAY_TRANSF_BETA_NOT_IN_A_LOOP:
+    case CLAY_BETA_NOT_IN_A_LOOP:
       fprintf(stderr,"[Clay] Error: line %d, the beta need to be in a loop\n",
               clay_scanner_line);
-      exit(8);
+      exit(CLAY_BETA_EMPTY);
       break;
-    case CLAY_TRANSF_WRONG_BLOCK_SIZE:
+    case CLAY_WRONG_BLOCK_SIZE:
       fprintf(stderr,"[Clay] Error: line %d, block value is incorrect\n",
               clay_scanner_line);
-      exit(9);
+      exit(CLAY_WRONG_BLOCK_SIZE);
       break;
-    case CLAY_TRANSF_WRONG_FACTOR:
+    case CLAY_WRONG_FACTOR:
       fprintf(stderr,"[Clay] Error: line %d, wrong factor\n",
               clay_scanner_line);
-      exit(10);
+      exit(CLAY_WRONG_FACTOR);
       break;
   }
   

@@ -32,61 +32,28 @@
  | Clay, the Chunky Loop Alteration wizardrY                                |
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
- 
-
-#ifndef CLAY_TRANSFORMATIONS_H
-#define CLAY_TRANSFORMATIONS_H
 
 
-#include <osl/statement.h>
-#include <osl/extensions/scatnames.h>
-#include <clay/array.h>
-#include <clay/options.h>
+#ifndef CLAY_OPTIONS_H
+#define CLAY_OPTIONS_H
 
 
-#ifndef bool
-#define bool short
-#endif
+struct clay_options {
+  char *script_name;/**< Name of the input script file. */
+  char *scop_name;  /**< Name of the input scop file. */
+  int input_scop;   /**< 1 read from scop file, else stdin */
+  int input_script; /**< 1 read from script file, else from extension in scop */
+  int print_infos;  /**< 1 if a --help or --version is given */
+};
 
+typedef struct clay_options  clay_options_t;
+typedef struct clay_options *clay_options_p;
 
+void            clay_options_free(clay_options_p);
+void            clay_options_help();
+void            clay_options_version();
+clay_options_p  clay_options_malloc();
+clay_options_p  clay_options_read(int, char**);
 
-
-/*****************************************************************************\
- *                     Loop transformations                                   *
- `****************************************************************************/
-
-int        clay_fission(osl_scop_p, clay_array_p, int, clay_options_p);
-int        clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int        clay_interchange(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int        clay_reversal(osl_scop_p, clay_array_p, int, clay_options_p);
-int        clay_skew(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int        clay_fuse(osl_scop_p, clay_array_p, clay_options_p);
-int        clay_iss(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int        clay_stripmine(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int        clay_unroll(osl_scop_p, clay_array_p, int, clay_options_p);
-
-
-/*****************************************************************************\
- *                     Other operations                                       *
- `****************************************************************************/
-
-int             clay_statement_get_line(osl_statement_p, int);
-clay_array_p    clay_statement_get_beta(osl_statement_p);
-bool            clay_statement_is_after(osl_statement_p, clay_array_p);
-bool            clay_statement_is_before(osl_statement_p, clay_array_p);
-bool            clay_scattering_check_zero(osl_statement_p, int, int);
-
-bool            clay_scatnames_exists(osl_scatnames_p, char*);
-
-osl_statement_p clay_beta_find(osl_statement_p, clay_array_p);
-osl_statement_p clay_beta_first_statement(osl_statement_p, clay_array_p);
-bool            clay_beta_check(osl_statement_p, clay_array_p);
-clay_array_p    clay_beta_max(osl_statement_p, clay_array_p);
-clay_array_p    clay_beta_next(osl_statement_p statement, clay_array_p beta);
-int             clay_beta_nb_parts(osl_statement_p,clay_array_p);
-void            clay_beta_shift_after(osl_statement_p, clay_array_p, int);
-void            clay_beta_shift_before(osl_statement_p, clay_array_p, int);
-
-char*           clay_string_replace(char*, char*, char*);
 
 #endif
