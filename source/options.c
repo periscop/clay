@@ -38,6 +38,10 @@
 #include <string.h>
 #include <clay/macros.h>
 #include <clay/options.h>
+#include <clay/prototype_function.h>
+#include <clay/functions.h>
+
+extern const clay_prototype_function_t functions[];
 
 
 /**
@@ -47,6 +51,18 @@
  */
 void clay_options_free(clay_options_p options) {
   free(options);
+}
+
+
+/**
+ * clay_options_list_functions function:
+ */
+void clay_options_list_functions() {
+  int i;
+  printf("Available functions:\n\n");
+  for (i = 0 ; i < CLAY_FUNCTIONS_TOTAL ; i++) {
+    printf("  %s\n", functions[i].prototype);
+  }
 }
 
 
@@ -63,6 +79,7 @@ void clay_options_help() {
   "\nGeneral options:\n"
   "  -script <file>        Input script file. If not given the script is\n"
   "                        from the scop structure.\n"
+  "  --list                List all the available functions.\n"
   "  -v, --version         Display the release information.\n"
   "  -h, --help            Display this help.\n\n");
   printf(
@@ -80,7 +97,7 @@ void clay_options_help() {
  * characters limitation of the ISO C 89 compilers.
  */
 void clay_options_version() {
-  printf("clay %s ", CLAY_VERSION);
+  printf("Clay %s ", CLAY_VERSION);
   printf("       Chunky Loop Alteration wizardrY\n");
   printf(
   "For any information, please send an email to the author\n"
@@ -123,6 +140,9 @@ clay_options_p clay_options_read(int argc, char ** argv) {
       i++;
     } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       clay_options_help();
+      options->print_infos = 1;
+    } else if (strcmp(argv[i], "--list") == 0) {
+      clay_options_list_functions();
       options->print_infos = 1;
     } else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
       clay_options_version();

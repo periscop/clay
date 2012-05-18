@@ -33,28 +33,19 @@
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
 
+#ifndef CLAY_FUNCTIONS_H
+#define CLAY_FUNCTIONS_H
 
-#ifndef CLAY_OPTIONS_H
-#define CLAY_OPTIONS_H
-
-
-struct clay_options {
-  char *script_name;/**< Name of the input script file. */
-  char *scop_name;  /**< Name of the input scop file. */
-  int input_scop;   /**< 1 read from scop file, else stdin */
-  int input_script; /**< 1 read from script file, else from extension in scop */
-  int print_infos;  /**< 1 if a --help or --version is given */
-};
-
-typedef struct clay_options  clay_options_t;
-typedef struct clay_options *clay_options_p;
-
-void            clay_options_free(clay_options_p);
-void            clay_options_help();
-void            clay_options_version();
-clay_options_p  clay_options_malloc();
-clay_options_p  clay_options_read(int, char**);
-void            clay_options_list_functions();
-
+  #define CLAY_FUNCTIONS_TOTAL        9
+  
+  #define CLAY_FUNCTION_FISSION       0
+  #define CLAY_FUNCTION_REORDER       1
+  #define CLAY_FUNCTION_INTERCHANGE   2
+  #define CLAY_FUNCTION_REVERSAL      3
+  #define CLAY_FUNCTION_FUSE          4
+  #define CLAY_FUNCTION_SKEW          5
+  #define CLAY_FUNCTION_ISS           6
+  #define CLAY_FUNCTION_STRIPMINE     7
+  #define CLAY_FUNCTION_UNROLL        8
 
 #endif

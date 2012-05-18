@@ -33,7 +33,6 @@
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
 
-
 %{
 
   #include <stdio.h>
@@ -47,6 +46,7 @@
   #include <clay/prototype_function.h>
   #include <parser.h>
   #include <clay/errors.h>
+  #include <clay/functions.h>
   
   
   // Scanner declarations
@@ -72,73 +72,8 @@
   void                clay_parser(osl_scop_p, FILE*);
   void                clay_parser_exec_function(char *name);
   
-  
   // Authorized functions in Clay
-  
-  #define CLAY_PROTOTYPE_FUNCTIONS_TOTAL        9
-  #define CLAY_PROTOTYPE_FUNCTION_FISSION       0
-  #define CLAY_PROTOTYPE_FUNCTION_REORDER       1
-  #define CLAY_PROTOTYPE_FUNCTION_INTERCHANGE   2
-  #define CLAY_PROTOTYPE_FUNCTION_REVERSAL      3
-  #define CLAY_PROTOTYPE_FUNCTION_FUSE          4
-  #define CLAY_PROTOTYPE_FUNCTION_SKEW          5
-  #define CLAY_PROTOTYPE_FUNCTION_ISS           6
-  #define CLAY_PROTOTYPE_FUNCTION_STRIPMINE     7
-  #define CLAY_PROTOTYPE_FUNCTION_UNROLL        8
-
-  int clay_parser_fission_type[]     =  {ARRAY_T, INTEGER_T};
-  int clay_parser_reorder_type[]     =  {ARRAY_T, ARRAY_T};
-  int clay_parser_interchange_type[] =  {ARRAY_T, INTEGER_T, INTEGER_T};
-  int clay_parser_reversal_type[]    =  {ARRAY_T, INTEGER_T};
-  int clay_parser_fuse_type[]        =  {ARRAY_T};
-  int clay_parser_skew_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T};
-  int clay_parser_iss_type[]         =  {ARRAY_T, ARRAY_T};
-  int clay_parser_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T};
-  int clay_parser_unroll_type[]      =  {ARRAY_T, INTEGER_T};
-  
-  // That is just the prototype of each functions, so there are no 
-  // data for args
-  const clay_prototype_function_t functions[CLAY_PROTOTYPE_FUNCTIONS_TOTAL] = 
-    {
-      {
-        "fission",     "fission(array beta, uint depth)",
-        NULL, clay_parser_fission_type, 2, 2
-      },
-      {
-        "reorder",     "reorder(array beta_loop, array order)",
-        NULL, clay_parser_reorder_type, 2, 2
-      },
-      {
-        "interchange", "interchange(array beta, uint depth_1, uint depth_2)",
-        NULL, clay_parser_interchange_type, 3, 3
-      },
-      {
-        "reversal",    "reversal(array beta, uint depth)",
-        NULL, clay_parser_reversal_type, 2, 2
-      },
-      {
-        "fuse",        "fuse(array beta_loop)",
-        NULL, clay_parser_fuse_type, 1, 1
-      },
-      {
-        "skew",        "skew(array beta, uint depth, int coeff)",
-        NULL, clay_parser_skew_type, 3, 3
-      },
-      {
-        "iss",         "iss(array beta, array equation)",
-        NULL, clay_parser_iss_type, 2, 2
-      },
-      {
-        "stripmine",   "stripmine(array beta, uint block, bool pretty)",
-        NULL, clay_parser_stripmine_type, 3, 3
-      },
-      {
-        "unroll",      "unroll(array beta_loop, uint factor)",
-        NULL, clay_parser_unroll_type, 2, 2
-      }
-    };
-  
-  
+  extern const clay_prototype_function_t functions[];
   
 %}
 
@@ -308,14 +243,14 @@ void clay_parser_exec_function(char *name) {
   */
   
   i = 0;
-  while (i < CLAY_PROTOTYPE_FUNCTIONS_TOTAL) {
+  while (i < CLAY_FUNCTIONS_TOTAL) {
     if (strcmp(functions[i].name, name) == 0)
       break;
     i++;
   }
   
   // Undefined function
-  if (i == CLAY_PROTOTYPE_FUNCTIONS_TOTAL) {
+  if (i == CLAY_FUNCTIONS_TOTAL) {
       fprintf(stderr, "[Clay] Error: line %d, unknown function `%s'\n", 
               clay_scanner_line, name);
       exit(CLAY_UNKNOWN_FUNCTION);
@@ -350,57 +285,57 @@ prototype is: %s\n",
   
   int status_result;
   switch (i) {
-    case CLAY_PROTOTYPE_FUNCTION_FISSION:
+    case CLAY_FUNCTION_FISSION:
       status_result = clay_fission(clay_parser_scop, 
                                    clay_params->args[0], 
                                    *((int*)clay_params->args[1]),
                                    clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_REORDER:
+    case CLAY_FUNCTION_REORDER:
       status_result = clay_reorder(clay_parser_scop, 
                                    clay_params->args[0], 
                                    clay_params->args[1],
                                    clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_INTERCHANGE:
+    case CLAY_FUNCTION_INTERCHANGE:
       status_result = clay_interchange(clay_parser_scop, 
                                        clay_params->args[0], 
                                        *((int*)clay_params->args[1]),
                                        *((int*)clay_params->args[2]),
                                        clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_REVERSAL:
+    case CLAY_FUNCTION_REVERSAL:
       status_result = clay_reversal(clay_parser_scop, 
                                     clay_params->args[0],
                                    *((int*)clay_params->args[1]),
                                     clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_FUSE:
+    case CLAY_FUNCTION_FUSE:
       status_result = clay_fuse(clay_parser_scop,
                                 clay_params->args[0],
                                 clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_SKEW:
+    case CLAY_FUNCTION_SKEW:
       status_result = clay_skew(clay_parser_scop,
                                 clay_params->args[0], 
                                 *((int*)clay_params->args[1]),
                                 *((int*)clay_params->args[2]),
                                 clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_ISS:
+    case CLAY_FUNCTION_ISS:
       status_result = clay_iss(clay_parser_scop,
                                clay_params->args[0], 
                                clay_params->args[1],
                                clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_STRIPMINE:
+    case CLAY_FUNCTION_STRIPMINE:
       status_result = clay_stripmine(clay_parser_scop,
                                      clay_params->args[0], 
                                      *((int*)clay_params->args[1]),
                                      *((int*)clay_params->args[2]),
                                      clay_parser_options);
       break;
-    case CLAY_PROTOTYPE_FUNCTION_UNROLL:
+    case CLAY_FUNCTION_UNROLL:
       status_result = clay_unroll(clay_parser_scop,
                                   clay_params->args[0], 
                                   *((int*)clay_params->args[1]),
