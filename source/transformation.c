@@ -229,7 +229,7 @@ int clay_interchange(osl_scop_p scop,
       matrix[row_1] = matrix[row_2];
       matrix[row_2] = tmp;
     }
-      
+    
     statement = statement->next;
   }
   return CLAY_SUCCESS;
@@ -372,8 +372,7 @@ int clay_skew(osl_scop_p scop,
   if (beta->size*2-1 >= statement->scattering->nb_output_dims) {
       if (depth >= beta->size)
         return CLAY_DEPTH_OVERFLOW;
-      // not sense
-      if (depth == beta->size-1)
+      if (depth == beta->size-1) // TODO no sense ?
         return CLAY_SUCCESS;
       column_beta = beta->size*2 - 3;
   }
@@ -393,7 +392,6 @@ int clay_skew(osl_scop_p scop,
       scattering = statement->scattering;
       if (column_depth >= scattering->nb_output_dims)
         return CLAY_DEPTH_OVERFLOW;
-      
       matrix = scattering->m;
       i = depth + scattering->nb_output_dims; // TODO : iterotor column ??
       row_depth = clay_statement_get_line(statement, column_depth);
@@ -428,7 +426,7 @@ int clay_iss(osl_scop_p scop,
              clay_options_p options) {
   if (beta->size == 0)
     return CLAY_BETA_EMPTY;
-  if(equ->size <= 1)
+  if (equ->size == 0)
     return CLAY_SUCCESS;
   
   osl_relation_p scattering;

@@ -1,0 +1,206 @@
+
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 5 0 0 0 3
+
+# Parameters are provided
+1
+<strings>
+N M P
+</strings>
+
+# Number of statements
+3
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+9 8 3 0 0 3
+# e/i|  i    j    k |  N    M    P |  1  
+   1    1    0    0    0    0    0    0    ## i >= 0
+   1   -1    0    0    1    0    0    0    ## -i+N >= 0
+   1    0    0    0    1    0    0    0    ## N >= 0
+   1    0    1    0    0    0    0    0    ## j >= 0
+   1    0   -1    0    0    1    0    0    ## -j+M >= 0
+   1    0    0    0    0    1    0    0    ## M >= 0
+   1    0    0    1    0    0    0    0    ## k >= 0
+   1    0    0   -1    0    0    1    0    ## -k+P >= 0
+   1    0    0    0    0    0    1    0    ## P >= 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+7 15 7 3 0 3
+# e/i| c1   c2   c3   c4   c5   c6   c7 |  i    j    k |  N    M    P |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    0    0    1    0    0    0    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    0    0    1    0    0    0    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    0    0    0    0    0    ## c5 == 0
+   0    0    0    0    0    0   -1    0    0    0    1    0    0    0    0    ## c6 == k
+   0    0    0    0    0    0    0   -1    0    0    0    0    0    0    0    ## c7 == 0
+
+# ----------------------------------------------  1.3 Access
+WRITE
+4 12 4 3 0 3
+# e/i| Arr  [1]  [2]  [3]|  i    j    k |  N    M    P |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    7    ## Arr == a
+   0    0   -1    0    0    1    0    0    0    0    0    0    ## [1] == i
+   0    0    0   -1    0    0    1    0    0    0    0    0    ## [2] == j
+   0    0    0    0   -1    0    0    1    0    0    0    0    ## [3] == k
+
+# ----------------------------------------------  1.4 Body
+# Statement body is provided
+1
+<body>
+# Number of original iterators
+3
+# List of original iterators
+i j k
+# Statement body expression
+a[i][j][k]=0;
+</body>
+
+# =============================================== Statement 2
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+9 8 3 0 0 3
+# e/i|  i    j    k |  N    M    P |  1  
+   1    1    0    0    0    0    0    0    ## i >= 0
+   1   -1    0    0    1    0    0    0    ## -i+N >= 0
+   1    0    0    0    1    0    0    0    ## N >= 0
+   1    0    1    0    0    0    0    0    ## j >= 0
+   1    0   -1    0    0    1    0    0    ## -j+M >= 0
+   1    0    0    0    0    1    0    0    ## M >= 0
+   1    0    0    1    0    0    0    0    ## k >= 0
+   1    0    0   -1    0    0    1    0    ## -k+P >= 0
+   1    0    0    0    0    0    1    0    ## P >= 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+7 15 7 3 0 3
+# e/i| c1   c2   c3   c4   c5   c6   c7 |  i    j    k |  N    M    P |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    0    0    1    0    0    0    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    0    0    1    0    0    0    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    0    0    0    0    0    ## c5 == 0
+   0    0    0    0    0    0   -1    0    0    0    1    0    0    0    0    ## c6 == k
+   0    0    0    0    0    0    0   -1    0    0    0    0    0    0    1    ## c7 == 1
+
+# ----------------------------------------------  2.3 Access
+WRITE
+4 12 4 3 0 3
+# e/i| Arr  [1]  [2]  [3]|  i    j    k |  N    M    P |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    8    ## Arr == b
+   0    0   -1    0    0    1    0    0    0    0    0    0    ## [1] == i
+   0    0    0   -1    0    0    1    0    0    0    0    0    ## [2] == j
+   0    0    0    0   -1    0    0    1    0    0    0    0    ## [3] == k
+
+# ----------------------------------------------  2.4 Body
+# Statement body is provided
+1
+<body>
+# Number of original iterators
+3
+# List of original iterators
+i j k
+# Statement body expression
+b[i][j][k]=0;
+</body>
+
+# =============================================== Statement 3
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  3.1 Domain
+DOMAIN
+9 8 3 0 0 3
+# e/i|  i    j    k |  N    M    P |  1  
+   1    1    0    0    0    0    0    0    ## i >= 0
+   1   -1    0    0    1    0    0    0    ## -i+N >= 0
+   1    0    0    0    1    0    0    0    ## N >= 0
+   1    0    1    0    0    0    0    0    ## j >= 0
+   1    0   -1    0    0    1    0    0    ## -j+M >= 0
+   1    0    0    0    0    1    0    0    ## M >= 0
+   1    0    0    1    0    0    0    0    ## k >= 0
+   1    0    0   -1    0    0    1    0    ## -k+P >= 0
+   1    0    0    0    0    0    1    0    ## P >= 0
+
+# ----------------------------------------------  3.2 Scattering
+SCATTERING
+7 15 7 3 0 3
+# e/i| c1   c2   c3   c4   c5   c6   c7 |  i    j    k |  N    M    P |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    0    0    1    0    0    0    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    0    0    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0   -1    0    0    0    0    1    0    0    0    0    0    ## c4 == j
+   0    0    0    0    0   -1    0    0    0    0    0    0    0    0    0    ## c5 == 0
+   0    0    0    0    0    0   -1    0    0    0    1    0    0    0    0    ## c6 == k
+   0    0    0    0    0    0    0   -1    0    0    0    0    0    0    2    ## c7 == 2
+
+# ----------------------------------------------  3.3 Access
+WRITE
+4 12 4 3 0 3
+# e/i| Arr  [1]  [2]  [3]|  i    j    k |  N    M    P |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    9    ## Arr == c
+   0    0   -1    0    0    1    0    0    0    0    0    0    ## [1] == i
+   0    0    0   -1    0    0    1    0    0    0    0    0    ## [2] == j
+   0    0    0    0   -1    0    0    1    0    0    0    0    ## [3] == k
+
+# ----------------------------------------------  3.4 Body
+# Statement body is provided
+1
+<body>
+# Number of original iterators
+3
+# List of original iterators
+i j k
+# Statement body expression
+c[i][j][k]=0;
+</body>
+
+# =============================================== Extensions
+<scatnames>
+b0 i b1 j b2 k b3
+</scatnames>
+
+<arrays>
+# Number of arrays
+9
+# Mapping array-identifiers/array-names
+1 i
+2 N
+3 j
+4 M
+5 k
+6 P
+7 a
+8 b
+9 c
+</arrays>
+
+<coordinates>
+# File name
+./unitary/interchange_nochanges.c
+# Starting line
+1
+# Ending line
+14
+# Indentation
+0
+</coordinates>
+
+</OpenScop>
+
