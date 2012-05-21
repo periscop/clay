@@ -1,18 +1,38 @@
 #!/bin/sh
 
-list_files=`find | grep -e 'must_fail\/.*\.c$' | sort`
+#   /*--------------------------------------------------------------------+
+#    |                              Clay                                  |
+#    |--------------------------------------------------------------------|
+#    |                             Clay.c                                 |
+#    |--------------------------------------------------------------------|
+#    |                    First version: 03/04/2012                       |
+#    +--------------------------------------------------------------------+
 
-for code in $list_files; do
-  echo "check $code \c"
-  clan "$code" | clay 2>/dev/null 1>/dev/null
-  ret=$?
+# +--------------------------------------------------------------------------+
+# |  / __)(  )    /__\ ( \/ )                                                |
+# | ( (__  )(__  /(__)\ \  /         Chunky Loop Alteration wizardrY         |
+# |  \___)(____)(__)(__)(__)                                                 |
+# +--------------------------------------------------------------------------+
+# | Copyright (C) 2012 University of Paris-Sud                               |
+# |                                                                          |
+# | This library is free software; you can redistribute it and/or modify it  |
+# | under the terms of the GNU Lesser General Public License as published by |
+# | the Free Software Foundation; either version 2.1 of the License, or      |
+# | (at your option) any later version.                                      |
+# |                                                                          |
+# | This library is distributed in the hope that it will be useful but       |
+# | WITHOUT ANY WARRANTY; without even the implied warranty of               |
+# | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser  |
+# | General Public License for more details.                                 |
+# |                                                                          |
+# | You should have received a copy of the GNU Lesser General Public License |
+# | along with this software; if not, write to the Free Software Foundation, |
+# | Inc., 51 Franklin Street, Fifth Floor,                                   |
+# | Boston, MA  02110-1301  USA                                              |
+# |                                                                          |
+# | Clay, the Chunky Loop Alteration wizardrY                                |
+# | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
+# |            Cedric Bastoul <Cedric.Bastoul@u-psud.fr>                     |
+# +--------------------------------------------------------------------------*/
 
-  if [ $ret -eq 0 ]; then
-    echo "\033[33m[INFO] : This program seems to work\033[0m"
-  elif [ $ret -eq 139 ]; then
-    echo "\033[31m[FAIL] : Segmentation fault !\033[0m"
-  else
-    echo "\033[32m[OK]\033[0m"
-  fi
-done
-
+./$CHECKER "Fail tests" "$FAIL_TEST_FILES" 1

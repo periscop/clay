@@ -35,4 +35,17 @@
 # |            Cedric Bastoul <Cedric.Bastoul@u-psud.fr>                     |
 # +--------------------------------------------------------------------------*/
 
-./$CHECKER "Unitary tests" "$UNITARY_TEST_FILES" 0
+# Will regenerate all the .scop in must_fail and unitary
+# -a to force
+
+find -name *.c | while read name
+do
+  if [ ! -f "$name.orig.scop" ] || [ "$1" = "-a" ]
+  then
+    rm -f "$name.orig.scop"
+    rm -f "$name.clayscop"
+    echo "add $name"
+    clan "$name" >"$name.orig.scop"
+    clay "$name.orig.scop" 2>&1 | grep -v "enerated by" >"$name.clay.scop"
+  fi
+done

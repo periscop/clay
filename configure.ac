@@ -140,6 +140,7 @@ AC_CONFIG_FILES([
 	doc/Makefile
 	doc/Doxyfile
 	include/clay/macros.h
+	tests/Makefile
 	],
 	[test -z "$CONFIG_HEADERS" || echo timestamp > source/stamp-h.in])
 

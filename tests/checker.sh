@@ -35,4 +35,32 @@
 # |            Cedric Bastoul <Cedric.Bastoul@u-psud.fr>                     |
 # +--------------------------------------------------------------------------*/
 
-./$CHECKER "Unitary tests" "$UNITARY_TEST_FILES" 0
+
+STRING=$1
+FILES=$2
+CHECK_ERROR=$3
+
+echo "$STRING"
+
+for name in $FILES; do
+  echo "check $name \c"
+  clay "$name.orig.scop" 2>/tmp/clay_scop_stderr | grep -v "enerated by" >/tmp/clay_scop
+  
+  n=0
+  if [ "$CHECK_ERROR" = "0" ]; then
+    n=`diff "$name.clay.scop" /tmp/clay_scop | wc -l`
+  else
+    n=`diff "$name.clay.scop" /tmp/clay_scop_stderr | wc -l`
+  fi
+
+  if [ $n -ne 0 ]; then
+    echo "\n\033[31m[ FAIL ] \c"
+    cat /tmp/clay_scop_stderr
+    echo "\033[0m"
+  else
+    echo "\033[32m[ OK ]\033[0m"
+  fi
+
+  rm -f /tmp/clay_scop_stderr
+  rm -f /tmp/clay_scop
+done

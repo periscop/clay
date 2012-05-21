@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <clay/prototype_function.h>
 #include <clay/macros.h>
+#include <clay/array.h>
 
 
 /**

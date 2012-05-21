@@ -49,6 +49,10 @@
 #include <parser.h>
 
 
+void      clay_parser_string(osl_scop_p, char*, clay_options_p);
+void      clay_parser_file(osl_scop_p, FILE*, clay_options_p);
+
+
 int main(int argc, char * argv[]) {
   osl_scop_p scop;
   osl_generic_p x, last;
@@ -87,6 +91,7 @@ int main(int argc, char * argv[]) {
     // Read the script from the extension clay
     } else {
       // equivalent to osl_generic_lookup, but we need the last extension
+      // to remove the clay extension in the list
       x = scop->extension;
       last = NULL;
       while (x != NULL) {

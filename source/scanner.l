@@ -50,12 +50,14 @@
 
 
 %option noyywrap
+%option noinput
+%option nounput
 SEPARATOR [ \t]*
 
 
 %%
 
-{SEPARATOR}#(.|{SEPARATOR})*
+{SEPARATOR}#(.|{SEPARATOR})*\n
                    {
                      return COMMENT;
                    }
@@ -77,8 +79,8 @@ SEPARATOR [ \t]*
                      clay_prototype_function_args_add(clay_params, tmp, ARRAY_T);
                      return '[';
                    }
+\n                 { clay_scanner_line++; }
 .                  { return yytext[0]; }
-\n                 { clay_scanner_line++; return '\n'; }
 
 %%
 

@@ -37,5 +37,5 @@
 #define CLAY_H
 
 #include <clay/macros.h>
-
+  
 #endif

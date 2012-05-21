@@ -905,7 +905,6 @@ void clay_scop_normalize_beta(osl_scop_p scop) {
   int counter_loops[CLAY_TRANSFORMATIONS_MAX_BETA_SIZE];
   int i;
   int row;
-  int end;
   
   for (i = 0 ; i < CLAY_TRANSFORMATIONS_MAX_BETA_SIZE ; i++) {
     counter_loops[i] = 0;

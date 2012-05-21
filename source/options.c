@@ -137,7 +137,7 @@ clay_options_p clay_options_read(int argc, char ** argv) {
   clay_options_p options = clay_options_malloc();
  
   for (i = 1 ; i < argc ; i++) {
-    if (strcmp(argv[i], "-script") == 0) {
+    if (strcmp(argv[i], "--script") == 0) {
       if (i >= argc-1)
         CLAY_error("no file name for -script option");
       options->script_name  = argv[i+1];

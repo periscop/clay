@@ -44,10 +44,12 @@
   #include <clay/array.h>
   #include <clay/transformation.h>
   #include <clay/prototype_function.h>
-  #include <parser.h>
   #include <clay/errors.h>
   #include <clay/functions.h>
   
+  // Yacc stuff.
+  int                 yylex(void);
+  void                yy_scan_string(char*);
   
   // Scanner declarations
   void                clay_scanner_free();
@@ -69,8 +71,9 @@
   extern              FILE* yyin;
   
   // parser functions
-  void                clay_parser(osl_scop_p, FILE*);
   void                clay_parser_exec_function(char *name);
+  void                clay_parser_string(osl_scop_p, char*, clay_options_p);
+  void                clay_parser_file(osl_scop_p, FILE*, clay_options_p);
   
   // Authorized functions in Clay
   extern const clay_prototype_function_t functions[];
@@ -93,15 +96,8 @@ start:
 	  line start
 	;
 
-line: '\n'
-  | 
-    COMMENT '\n'
-  |
-    FUNCNAME '(' args ')' ';' COMMENT '\n'
-    {
-      clay_parser_exec_function($1);
-      free($1);
-    }
+line:
+    COMMENT
   |
     FUNCNAME '(' args ')' ';'
     {
