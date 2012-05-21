@@ -39,6 +39,7 @@
 
 
 #include <osl/statement.h>
+#include <osl/scop.h>
 #include <osl/extensions/scatnames.h>
 #include <clay/array.h>
 #include <clay/options.h>
@@ -47,6 +48,11 @@
 #ifndef bool
 #define bool short
 #endif
+
+
+
+// used by the normalize function
+#define CLAY_TRANSFORMATIONS_MAX_BETA_SIZE 20
 
 
 
@@ -70,6 +76,8 @@ int        clay_unroll(osl_scop_p, clay_array_p, int, clay_options_p);
  *                     Other operations                                       *
  `****************************************************************************/
 
+void            clay_scop_normalize_beta(osl_scop_p);
+
 int             clay_statement_get_line(osl_statement_p, int);
 clay_array_p    clay_statement_get_beta(osl_statement_p);
 bool            clay_statement_is_after(osl_statement_p, clay_array_p);
@@ -81,8 +89,11 @@ bool            clay_scatnames_exists(osl_scatnames_p, char*);
 osl_statement_p clay_beta_find(osl_statement_p, clay_array_p);
 osl_statement_p clay_beta_first_statement(osl_statement_p, clay_array_p);
 bool            clay_beta_check(osl_statement_p, clay_array_p);
+clay_array_p    clay_beta_min(osl_statement_p, clay_array_p);
 clay_array_p    clay_beta_max(osl_statement_p, clay_array_p);
-clay_array_p    clay_beta_next(osl_statement_p statement, clay_array_p beta);
+clay_array_p    clay_beta_next(osl_statement_p, clay_array_p beta,
+                               osl_statement_p*);
+clay_array_p    clay_beta_next_part(osl_statement_p, clay_array_p beta);
 int             clay_beta_nb_parts(osl_statement_p,clay_array_p);
 void            clay_beta_shift_after(osl_statement_p, clay_array_p, int);
 void            clay_beta_shift_before(osl_statement_p, clay_array_p, int);

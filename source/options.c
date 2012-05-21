@@ -77,8 +77,12 @@ void clay_options_help() {
   "Usage: clay [ options | file ] ...\n");
   printf(
   "\nGeneral options:\n"
-  "  -script <file>        Input script file. If not given the script is\n"
-  "                        from the scop structure.\n"
+  "  --script <file>       Input script file. If not given the script is from\n"
+  "                        the scop structure.\n"
+  "  --normalize           At the end of each function, the scop will be\n"
+  "                        re-normalized.\n"
+  "                        (only for reorder, fission, fuse, iss, strimine, and\n"
+  "                        unroll)\n"
   "  --list                List all the available functions.\n"
   "  -v, --version         Display the release information.\n"
   "  -h, --help            Display this help.\n\n");
@@ -117,6 +121,7 @@ clay_options_p clay_options_malloc() {
   options->script_name  = NULL;
   options->scop_name    = NULL;
   options->print_infos  = 0;
+  options->normalize    = 0;
   return options;
 }
 
@@ -144,6 +149,8 @@ clay_options_p clay_options_read(int argc, char ** argv) {
     } else if (strcmp(argv[i], "--list") == 0) {
       clay_options_list_functions();
       options->print_infos = 1;
+    } else if (strcmp(argv[i], "--normalize") == 0) {
+      options->normalize = 1;
     } else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
       clay_options_version();
       options->print_infos = 1;

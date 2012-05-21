@@ -44,6 +44,7 @@ struct clay_options {
   int input_scop;   /**< 1 read from scop file, else stdin */
   int input_script; /**< 1 read from script file, else from extension in scop */
   int print_infos;  /**< 1 if a --help or --version is given */
+  int normalize;    /**< 1 the scop will be re-normalized */
 };
 
 typedef struct clay_options  clay_options_t;
