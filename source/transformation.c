@@ -124,9 +124,7 @@ int clay_reversal(osl_scop_p scop, clay_array_p beta, int depth,
   osl_statement_p statement = scop->statement;
   int precision;
   int column = depth*2 - 1; // iterator column
-  int row;
-  int i, begin, end;
-  void *matrix_row;
+  int i;
   
   statement = clay_beta_find(statement, beta);
   if (!statement)
@@ -143,14 +141,10 @@ int clay_reversal(osl_scop_p scop, clay_array_p beta, int depth,
   while (statement != NULL) {
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
-      begin = scattering->nb_output_dims;
-      end = begin + scattering->nb_input_dims;
-      for(i = begin ; i <= end ; i++) {
-        row = clay_statement_get_line(statement, column);
-        matrix_row = scattering->m[row];
+      for(i = 0 ; i < scattering->nb_rows ; i++) {
         osl_int_oppose(precision, 
-                       matrix_row, i,
-                       matrix_row, i);
+                       scattering->m[i], column+1,
+                       scattering->m[i], column+1);
       }
     }
     statement = statement->next;
@@ -187,9 +181,7 @@ int clay_interchange(osl_scop_p scop,
   const int column_1 = depth_1*2 - 1; // iterator column
   const int column_2 = depth_2*2 - 1;
   int i;
-  int row_1, row_2;
   void **matrix;
-  void *tmp;
   //int nb_rows;
 
   statement = clay_beta_find(statement, beta);
@@ -219,35 +211,13 @@ int clay_interchange(osl_scop_p scop,
       //if (column_1 >= nb_rows || column_2 >= nb_rows)
       //  return CLAY_DEPTH_OVERFLOW;
       
+      // swap the two columns
       matrix = scattering->m;
-      
-      //row_1 = clay_statement_get_line(statement, column_1);
-      //row_2 = clay_statement_get_line(statement, column_2);
-      
-      //printf("%d %d %d %d\n", column_1, column_2, row_1, row_2);
-      
-      
-      // recreate the -Identity matrix
-      /*osl_int_set_si(precision, matrix[row_1], column_1+1, 0);
-      osl_int_set_si(precision, matrix[row_1], column_2+1, -1);
-      osl_int_set_si(precision, matrix[row_2], column_2+1, 0);
-      osl_int_set_si(precision, matrix[row_2], column_1+1, -1);
-      */
-      
-      /*
-      tmp = matrix[row_1];
-      matrix[row_1] = matrix[row_2];
-      matrix[row_2] = tmp;
-      */
-      
-      //osl_relation_swap_constraints(matrix, column_1, column_2);
-      
       for (i = 0 ; i < scattering->nb_rows ; i++) {
         osl_int_swap(precision, 
                      matrix[i], column_1+1,
                      matrix[i], column_2+1);
       }
-     
     }
     
     statement = statement->next;
@@ -384,8 +354,8 @@ int clay_skew(osl_scop_p scop,
   int precision;
   const int column_depth = depth*2 - 1; // iterator column
   int column_beta; // iterator column
-  int row_depth, row_beta;
-  int i;
+  int row;
+  int iter_column;
   void **matrix;
   
   statement = clay_beta_find(statement, beta);
@@ -418,17 +388,14 @@ int clay_skew(osl_scop_p scop,
       scattering = statement->scattering;
       if (column_depth >= scattering->nb_output_dims)
         return CLAY_DEPTH_OVERFLOW;
+      
       matrix = scattering->m;
-      i = depth + scattering->nb_output_dims; // TODO : iterotor column ??
-      row_depth = clay_statement_get_line(statement, column_depth);
-      row_beta = clay_statement_get_line(statement, column_beta);
-      osl_int_add(precision, 
-                  matrix[row_beta], i,
-                  matrix[row_beta], i,
-                  matrix[row_depth], i);
-      osl_int_mul_si(precision, 
-                     matrix[row_beta], i,
-                     matrix[row_beta], i,
+      iter_column = depth + scattering->nb_output_dims;
+      
+      row = clay_statement_get_line(statement, column_beta);
+      osl_int_add_si(precision, 
+                     matrix[row], iter_column,
+                     matrix[row], iter_column,
                      coeff);
     }
     statement = statement->next;
@@ -440,19 +407,18 @@ int clay_skew(osl_scop_p scop,
 /**
  * clay_iss function:
  * Split the loop (or statement) depending of an inequation
- * (i, j) -> (i, j+i*coeff) where `depth' is the loop of i
  * \param[in] scop
  * \param[in] beta          Beta vector (loop or statement)
- * \param[in] equation array
+ * \param[in] inequation array
  * \param[in] options
  * \return                  Status
  */
 int clay_iss(osl_scop_p scop, 
-             clay_array_p beta, clay_array_p equ,
+             clay_array_p beta, clay_array_p inequ,
              clay_options_p options) {
   if (beta->size == 0)
     return CLAY_BETA_EMPTY;
-  if (equ->size == 0)
+  if (inequ->size == 0)
     return CLAY_SUCCESS;
   
   osl_relation_p scattering;
@@ -462,11 +428,12 @@ int clay_iss(osl_scop_p scop,
   int precision;
   int i, j;
   int row;
-  int equ_nb_input_dims, equ_nb_parameters;
+  int inequ_nb_input_dims, inequ_nb_parameters;
   void *order; // new loop order for the clones
   
   // we need the first because we need to get the nb_input_dims and the
-  // nb_parameters for the equation
+  // nb_parameters of the inequation
+  // and NOT a statement in a sub-loop
   statement = clay_beta_first_statement(scop->statement, beta);
   if (!statement)
     return CLAY_BETA_NOT_FOUND;
@@ -475,9 +442,10 @@ int clay_iss(osl_scop_p scop,
   
   precision = statement->scattering->precision;
   
+  // let the place for the splitted loop
   clay_beta_shift_after(scop->statement, beta, beta->size);
 
-  // init new order
+  // init new order value
   scattering = statement->scattering;
   row = clay_statement_get_line(statement, column); // parent loop line
   order = osl_int_malloc(precision);
@@ -488,44 +456,44 @@ int clay_iss(osl_scop_p scop,
                     order, 0,
                     order, 0);
   
-  equ_nb_input_dims = scattering->nb_input_dims;
-  equ_nb_parameters = scattering->nb_parameters;
+  inequ_nb_input_dims = scattering->nb_input_dims;
+  inequ_nb_parameters = scattering->nb_parameters;
   
   // set the inequation
   statement = scop->statement;
   while (statement != NULL) {
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
-      if (equ->size <= 1 + scattering->nb_input_dims + 
+      if (inequ->size <= 1 + scattering->nb_input_dims + 
                                                     scattering->nb_parameters) {
 
-        // insert the inequation spliting (local dims are not in the equation)
+        // insert the inequation spliting (local dims are not in the inequation)
         // (at the end)
         row = scattering->nb_rows;
         osl_relation_insert_blank_row(scattering, row);
-        osl_int_set_si(precision, scattering->m[row], 0, 1);
+        osl_int_set_si(precision, scattering->m[row], 0, 1); // type inequation
         
         // affects input_dims
         i = scattering->nb_output_dims+1;
-        for (j = 0 ; j < equ_nb_input_dims ; j++) {
+        for (j = 0 ; j < inequ_nb_input_dims ; j++) {
           osl_int_set_si(precision,
                          scattering->m[row], i,
-                         equ->data[j]);
+                         inequ->data[j]);
           i++;
         }
         // affects parameters
         i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
             scattering->nb_local_dims;
-        for (j = equ_nb_input_dims ; j < equ_nb_parameters ; j++) {
+        for (j = inequ_nb_input_dims ; j < inequ_nb_parameters ; j++) {
           osl_int_set_si(precision,
                          scattering->m[row], i,
-                         equ->data[j]);
+                         inequ->data[j]);
           i++;
         }
-        // affects the constant
+        // set the constant
         osl_int_set_si(precision,
                        scattering->m[row], scattering->nb_columns-1,
-                       equ->data[equ->size-1]);
+                       inequ->data[inequ->size-1]);
         
         // insert a new statement with the negation of the inequation
         newstatement = osl_statement_nclone(statement, 1);
@@ -935,11 +903,11 @@ int clay_tile(osl_scop_p scop,
   if (depth_outer > depth)
     return CLAY_DEPTH_OUTER;
   
-  int ret; 
+  int ret;
   ret = clay_stripmine(scop, beta, depth, block, pretty, options);
- /* if (ret == CLAY_SUCCESS) {
+  if (ret == CLAY_SUCCESS) {
     ret = clay_interchange(scop, beta, depth, depth_outer, options);
-  }*/
+  }
 
   return ret;
 }
@@ -1332,7 +1300,7 @@ osl_statement_p clay_beta_find(osl_statement_p statement,
  * clay_beta_first_statement function:
  * Return the first statement (the first checked by the beta and not the first 
  * in the list, use clay_beta_min for this purpose) which is at the same level 
- * of the beta (not in a sub loop)
+ * of the beta (not in a sub loop). That's the difference with clay_beta_find.
  * \param[in] statement     Start statement list
  * \param[in] beta          Vector to search
  * \return                  Return the first corresponding statement
