@@ -151,7 +151,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   stripmine([0], 32, 1);
+   stripmine([0], 1, 32, 1);
 </clay>
 
 </OpenScop>

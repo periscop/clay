@@ -32,7 +32,6 @@
 # |                                                                          |
 # | Clay, the Chunky Loop Alteration wizardrY                                |
 # | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
-# |            Cedric Bastoul <Cedric.Bastoul@u-psud.fr>                     |
 # +--------------------------------------------------------------------------*/
 
 ./$CHECKER "Fail tests" "$FAIL_TEST_FILES" 1

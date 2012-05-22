@@ -47,5 +47,6 @@
   #define CLAY_FUNCTION_ISS           6
   #define CLAY_FUNCTION_STRIPMINE     7
   #define CLAY_FUNCTION_UNROLL        8
+ // #define CLAY_FUNCTION_TILE          9
 
 #endif

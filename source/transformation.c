@@ -558,18 +558,20 @@ int clay_iss(osl_scop_p scop,
  * \param[in] options
  * \return                  Status
  */
-int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
-                   clay_options_p options) {
+int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int block, 
+                   int pretty, clay_options_p options) {
   if (beta->size == 0)
     return CLAY_BETA_EMPTY;
   if (block <= 0)
     return CLAY_WRONG_BLOCK_SIZE;
+  if (depth <= 0)
+    return CLAY_DEPTH_OVERFLOW;
   
   osl_relation_p scattering;
   osl_statement_p statement = scop->statement;
   osl_scatnames_p scat;
   osl_strings_p names;
-  int column = (beta->size-1)*2;
+  int column = (depth-1)*2;
   int precision;
   int row, row_next;
   int iter_column;
@@ -585,8 +587,13 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int block, int pretty,
   if (statement->scattering->nb_output_dims < 3)
     return CLAY_BETA_NOT_IN_A_LOOP;
   
-  if (beta->size*2-1 == statement->scattering->nb_output_dims)
-    column -= 2; // loop level
+  if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
+      depth >= beta->size)
+    return CLAY_DEPTH_OVERFLOW;
+  // else it's a loop, and the depth must be less or equal than the beta size
+  if (depth > beta->size)
+    return CLAY_DEPTH_OVERFLOW;
+  // it's not useful to interchange the same line
   
   precision = statement->scattering->precision;
   if (pretty)

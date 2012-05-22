@@ -329,6 +329,7 @@ prototype is: %s\n",
                                      clay_params->args[0], 
                                      *((int*)clay_params->args[1]),
                                      *((int*)clay_params->args[2]),
+                                     *((int*)clay_params->args[3]),
                                      clay_parser_options);
       break;
     case CLAY_FUNCTION_UNROLL:

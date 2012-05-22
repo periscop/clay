@@ -10,7 +10,8 @@ int clay_function_reversal_type[]    =  {ARRAY_T, INTEGER_T};
 int clay_function_fuse_type[]        =  {ARRAY_T};
 int clay_function_skew_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_iss_type[]         =  {ARRAY_T, ARRAY_T};
-int clay_function_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T};
+int clay_function_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T, 
+                                         INTEGER_T};
 int clay_function_unroll_type[]      =  {ARRAY_T, INTEGER_T};
 
 
@@ -48,11 +49,15 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_iss_type, 2, 2
   },
   {
-    "stripmine",   "stripmine(array beta, uint block, bool pretty)",
-    NULL, clay_function_stripmine_type, 3, 3
+    "stripmine",   "stripmine(array beta, uint depth, uint block, bool pretty)",
+    NULL, clay_function_stripmine_type, 4, 4
   },
   {
     "unroll",      "unroll(array beta_loop, uint factor)",
     NULL, clay_function_unroll_type, 2, 2
-  }
+  }/*,
+  {
+    "tile",      "tile(array beta, uint factor)",
+    NULL, clay_function_unroll_type, 2, 2
+  }*/
 };
