@@ -186,11 +186,12 @@ int clay_interchange(osl_scop_p scop,
   int precision;
   const int column_1 = depth_1*2 - 1; // iterator column
   const int column_2 = depth_2*2 - 1;
+  int i;
   int row_1, row_2;
   void **matrix;
   void *tmp;
   //int nb_rows;
-  
+
   statement = clay_beta_find(statement, beta);
   if (!statement)
     return CLAY_BETA_NOT_FOUND;
@@ -220,18 +221,33 @@ int clay_interchange(osl_scop_p scop,
       
       matrix = scattering->m;
       
-      row_1 = clay_statement_get_line(statement, column_1);
-      row_2 = clay_statement_get_line(statement, column_2);
+      //row_1 = clay_statement_get_line(statement, column_1);
+      //row_2 = clay_statement_get_line(statement, column_2);
+      
+      //printf("%d %d %d %d\n", column_1, column_2, row_1, row_2);
+      
       
       // recreate the -Identity matrix
-      osl_int_set_si(precision, matrix[row_1], column_1+1, 0);
+      /*osl_int_set_si(precision, matrix[row_1], column_1+1, 0);
       osl_int_set_si(precision, matrix[row_1], column_2+1, -1);
       osl_int_set_si(precision, matrix[row_2], column_2+1, 0);
       osl_int_set_si(precision, matrix[row_2], column_1+1, -1);
+      */
       
+      /*
       tmp = matrix[row_1];
       matrix[row_1] = matrix[row_2];
       matrix[row_2] = tmp;
+      */
+      
+      //osl_relation_swap_constraints(matrix, column_1, column_2);
+      
+      for (i = 0 ; i < scattering->nb_rows ; i++) {
+        osl_int_swap(precision, 
+                     matrix[i], column_1+1,
+                     matrix[i], column_2+1);
+      }
+     
     }
     
     statement = statement->next;
@@ -893,6 +909,42 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
 }
 
 
+/**
+ * clay_tile function:
+ * Apply a stripmine then an interchange.
+ * The stripmine is at the `depth'th level. Next interchange the level `depth'
+ * and `depth_outer'
+ * \param[in] scop
+ * \param[in] beta          Beta vector
+ * \param[in] depth         >=1
+ * \param[in] block         >=1
+ * \param[in] depth_outer   >=1
+ * \param[in] pretty        See stripmine
+ * \param[in] options
+ * \return                  Status
+ */
+int clay_tile(osl_scop_p scop, 
+              clay_array_p beta, int depth, int depth_outer, int block,
+              int pretty, clay_options_p options) {
+  if (beta->size == 0)
+    return CLAY_BETA_EMPTY;
+  if (block <= 0)
+    return CLAY_WRONG_BLOCK_SIZE;
+  if (depth <= 0 || depth_outer <= 0)
+    return CLAY_DEPTH_OVERFLOW;
+  if (depth_outer > depth)
+    return CLAY_DEPTH_OUTER;
+  
+  int ret; 
+  ret = clay_stripmine(scop, beta, depth, block, pretty, options);
+ /* if (ret == CLAY_SUCCESS) {
+    ret = clay_interchange(scop, beta, depth, depth_outer, options);
+  }*/
+
+  return ret;
+}
+
+
 /*****************************************************************************\
  *                     Other operations                                       *
  `****************************************************************************/
@@ -1209,10 +1261,8 @@ int clay_statement_get_line(osl_statement_p statement, int column) {
   int i;
   int precision = scattering->precision;
   for (i = 0 ; i < scattering->nb_rows ; i++) {
-    if (osl_int_zero(precision, scattering->m[i], 0)) {
-      if (!osl_int_zero(precision, scattering->m[i], column+1)) {
-        break;
-      }
+    if (!osl_int_zero(precision, scattering->m[i], column+1)) {
+      break;
     }
   }
   return (i == scattering->nb_rows ? -1 : i );

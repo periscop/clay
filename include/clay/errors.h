@@ -50,5 +50,6 @@
 #define CLAY_UNKNOWN_FUNCTION          11
 #define CLAY_ERROR_NB_ARGS             12
 #define CLAY_ERROR_INVALID_TYPE        13
+#define CLAY_DEPTH_OUTER               14
 
 #endif

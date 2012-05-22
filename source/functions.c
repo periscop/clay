@@ -13,6 +13,8 @@ int clay_function_iss_type[]         =  {ARRAY_T, ARRAY_T};
 int clay_function_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T, 
                                          INTEGER_T};
 int clay_function_unroll_type[]      =  {ARRAY_T, INTEGER_T};
+int clay_function_tile_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T,
+                                         INTEGER_T, INTEGER_T};
 
 
 // Authorized functions in Clay
@@ -55,9 +57,9 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
   {
     "unroll",      "unroll(array beta_loop, uint factor)",
     NULL, clay_function_unroll_type, 2, 2
-  }/*,
+  },
   {
-    "tile",      "tile(array beta, uint factor)",
-    NULL, clay_function_unroll_type, 2, 2
-  }*/
+    "tile",      "tile(array beta, uint depth, uint depth_outer, uint block, bool pretty)",
+    NULL, clay_function_tile_type, 5, 5
+  }
 };
