@@ -249,7 +249,7 @@ void clay_parser_exec_function(char *name) {
   if (i == CLAY_FUNCTIONS_TOTAL) {
       fprintf(stderr, "[Clay] Error: line %d, unknown function `%s'\n", 
               clay_scanner_line, name);
-      exit(CLAY_UNKNOWN_FUNCTION);
+      exit(CLAY_ERROR_UNKNOWN_FUNCTION);
   }
   
   // Different number of parameters
@@ -350,60 +350,60 @@ prototype is: %s\n",
   }
   
   switch (status_result) {
-    case CLAY_BETA_NOT_FOUND:
+    case CLAY_ERROR_BETA_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d: the beta vector was not found\n",
               clay_scanner_line);
-      exit(CLAY_BETA_NOT_FOUND);
+      exit(CLAY_ERROR_BETA_NOT_FOUND);
       break;
-    case CLAY_NOT_BETA_LOOP:
+    case CLAY_ERROR_NOT_BETA_LOOP:
       fprintf(stderr,"[Clay] Error: line %d: the beta is not a loop\n",
               clay_scanner_line);
-      exit(CLAY_NOT_BETA_LOOP);
+      exit(CLAY_ERROR_NOT_BETA_LOOP);
       break;
-    case CLAY_NOT_BETA_STMT:
+    case CLAY_ERROR_NOT_BETA_STMT:
       fprintf(stderr,"[Clay] Error: line %d, the beta is not a statement\n", 
               clay_scanner_line);
       exit(3);
       break;
-    case CLAY_REORDER_ARRAY_TOO_SMALL:
+    case CLAY_ERROR_REORDER_ARRAY_TOO_SMALL:
       fprintf(stderr,"[Clay] Error: line %d, the order array is too small\n", 
               clay_scanner_line);
-      exit(CLAY_REORDER_ARRAY_TOO_SMALL);
+      exit(CLAY_ERROR_REORDER_ARRAY_TOO_SMALL);
       break;
-    case CLAY_DEPTH_OVERFLOW:
+    case CLAY_ERROR_DEPTH_OVERFLOW:
       fprintf(stderr,"[Clay] Error: line %d, depth overflow\n",
               clay_scanner_line);
-      exit(CLAY_DEPTH_OVERFLOW);
+      exit(CLAY_ERROR_DEPTH_OVERFLOW);
       break;
-    case CLAY_WRONG_COEFF:
+    case CLAY_ERROR_WRONG_COEFF:
       fprintf(stderr,"[Clay] Error: line %d, wrong coefficient\n",
               clay_scanner_line);
-      exit(CLAY_WRONG_COEFF);
+      exit(CLAY_ERROR_WRONG_COEFF);
       break;
-    case CLAY_BETA_EMPTY:
+    case CLAY_ERROR_BETA_EMPTY:
       fprintf(stderr,"[Clay] Error: line %d, the beta vector is empty\n",
               clay_scanner_line);
-      exit(CLAY_BETA_EMPTY);
+      exit(CLAY_ERROR_BETA_EMPTY);
       break;
-    case CLAY_BETA_NOT_IN_A_LOOP:
+    case CLAY_ERROR_BETA_NOT_IN_A_LOOP:
       fprintf(stderr,"[Clay] Error: line %d, the beta need to be in a loop\n",
               clay_scanner_line);
-      exit(CLAY_BETA_EMPTY);
+      exit(CLAY_ERROR_BETA_EMPTY);
       break;
-    case CLAY_WRONG_BLOCK_SIZE:
+    case CLAY_ERROR_WRONG_BLOCK_SIZE:
       fprintf(stderr,"[Clay] Error: line %d, block value is incorrect\n",
               clay_scanner_line);
-      exit(CLAY_WRONG_BLOCK_SIZE);
+      exit(CLAY_ERROR_WRONG_BLOCK_SIZE);
       break;
-    case CLAY_WRONG_FACTOR:
+    case CLAY_ERROR_WRONG_FACTOR:
       fprintf(stderr,"[Clay] Error: line %d, wrong factor\n",
               clay_scanner_line);
-      exit(CLAY_WRONG_FACTOR);
+      exit(CLAY_ERROR_WRONG_FACTOR);
       break;
-    case CLAY_DEPTH_OUTER:
+    case CLAY_ERROR_DEPTH_OUTER:
       fprintf(stderr,"[Clay] Error: line %d, the depth is not 'outer'\n",
               clay_scanner_line);
-      exit(CLAY_DEPTH_OUTER);
+      exit(CLAY_ERROR_DEPTH_OUTER);
       break;
   }
   
