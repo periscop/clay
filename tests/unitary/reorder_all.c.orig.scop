@@ -261,7 +261,7 @@ b0 i b1 j b2
 </coordinates>
 
 <clay>
-   reorder([], [2,1,1,1,0]);
+   reorder([], [2,1,0]);
 </clay>
 
 </OpenScop>

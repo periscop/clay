@@ -70,30 +70,42 @@ int clay_reorder(osl_scop_p scop,
                   clay_array_p beta_loop, clay_array_p neworder,
                   clay_options_p options) {
   osl_relation_p scattering;
-  osl_statement_p statement = scop->statement;
+  osl_statement_p statement;
   int precision;
   const int column = beta_loop->size * 2; // transition column
   int row;
-  int i = 0;
+  int index;
   
-  statement = clay_beta_find(statement, beta_loop);
+  // important to be sure that the scop normalized first
+  // because we access to the reorder array in function of the beta value
+  clay_scop_normalize_beta(scop);
+  
+  statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
     return CLAY_BETA_NOT_FOUND;
   if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
     return CLAY_NOT_BETA_LOOP;
   
   precision = statement->scattering->precision;
+  
   // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
     if (clay_beta_check(statement, beta_loop)) {
-      if (i >= neworder->size)
-        return CLAY_REORDER_ARRAY_TOO_SMALL;
-      row = clay_statement_get_line(statement, column);
+    
       scattering = statement->scattering;
+      row = clay_statement_get_line(statement, column);
+      
+      // get the beta value
+      index = osl_int_get_si(precision,
+                             scattering->m[row],
+                             scattering->nb_columns-1);
+      
+      if (index >= neworder->size)
+        return CLAY_REORDER_ARRAY_TOO_SMALL;
+      
       osl_int_set_si(precision, 
                      scattering->m[row], scattering->nb_columns-1,
-                     neworder->data[i]);
-      i++;
+                     neworder->data[index]);
     }
     statement = statement->next;
   }
@@ -577,7 +589,6 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int block,
   // else it's a loop, and the depth must be less or equal than the beta size
   if (depth > beta->size)
     return CLAY_DEPTH_OVERFLOW;
-  // it's not useful to interchange the same line
   
   precision = statement->scattering->precision;
   if (pretty)
@@ -824,7 +835,8 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
         osl_relation_insert_blank_column(domain, domain->nb_output_dims+1);
         osl_relation_insert_blank_row(domain, 0);
         (domain->nb_local_dims)++;
-        osl_int_set_si(precision, domain->m[0], domain->nb_output_dims+1, -factor);
+        osl_int_set_si(precision, domain->m[0], domain->nb_output_dims+1,
+                       -factor);
         osl_int_set_si(precision, domain->m[0], iterator_index+1, 1);
         
         domain        = domain->next;
@@ -1350,7 +1362,8 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
       scattering = statement->scattering;
       if (column < scattering->nb_output_dims) {
         row = clay_statement_get_line(statement, column);
-        current_level = osl_int_get_si(scattering->precision, scattering->m[row],
+        current_level = osl_int_get_si(scattering->precision,
+                                       scattering->m[row],
                                        scattering->nb_columns-1);
         if (current_level != last_level) {
           n++;
@@ -1579,7 +1592,8 @@ bool clay_scattering_check_zero(osl_statement_p statement, int i, int j) {
   
   for (t = i+1 ; t < scattering->nb_rows ; t++) {
     if (!osl_int_zero(precision, scattering->m[t], j)) {
-      fprintf(stderr, "[Clay] Warning: the scattering is incorrect (column %d)\n", j);
+      fprintf(stderr, "[Clay] Warning: the scattering is incorrect (column %d)\n",
+              j);
       fprintf(stderr, "[Clay] a non-zero value appear\n");
       osl_statement_p tmp = statement->next;
       statement->next = NULL;
@@ -1590,7 +1604,8 @@ bool clay_scattering_check_zero(osl_statement_p statement, int i, int j) {
   }
   for (t = j+1 ; t < scattering->nb_columns-1 ; t++) {
     if (!osl_int_zero(precision, scattering->m[i], t)) {
-      fprintf(stderr, "[Clay] Warning: the scattering is incorrect (line %d)\n", i+1);
+      fprintf(stderr, "[Clay] Warning: the scattering is incorrect (line %d)\n",
+              i+1);
       fprintf(stderr, "[Clay] a non-zero value appear\n");
       osl_statement_p tmp = statement->next;
       statement->next = NULL;

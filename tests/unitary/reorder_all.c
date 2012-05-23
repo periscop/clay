@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   reorder([], [2,1,1,1,0]);
+   reorder([], [2,1,0]);
 */
 a = 0;
 for(i = 0 ; i <= N ; i++) {
