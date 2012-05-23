@@ -15,6 +15,7 @@ int clay_function_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T,
 int clay_function_unroll_type[]      =  {ARRAY_T, INTEGER_T};
 int clay_function_tile_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T,
                                          INTEGER_T, INTEGER_T};
+int clay_function_shift_type[]       =  {ARRAY_T, INTEGER_T, ARRAY_T};
 
 
 // Authorized functions in Clay
@@ -61,5 +62,9 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
   {
     "tile",      "tile(array beta, uint depth, uint depth_outer, uint block, bool pretty)",
     NULL, clay_function_tile_type, 5, 5
+  },
+  {
+    "shift",      "shift(array beta, uint depth, array vector)",
+    NULL, clay_function_shift_type, 3, 3
   }
 };

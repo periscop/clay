@@ -347,6 +347,13 @@ prototype is: %s\n",
                                 *((int*)clay_params->args[4]),
                                 clay_parser_options);
       break;
+    case CLAY_FUNCTION_SHIFT:
+      status_result = clay_shift(clay_parser_scop,
+                                 clay_params->args[0], 
+                                 *((int*)clay_params->args[1]),
+                                 clay_params->args[2], 
+                                 clay_parser_options);
+      break;
   }
   
   switch (status_result) {
@@ -404,6 +411,11 @@ prototype is: %s\n",
       fprintf(stderr,"[Clay] Error: line %d, the depth is not 'outer'\n",
               clay_scanner_line);
       exit(CLAY_ERROR_DEPTH_OUTER);
+      break;
+    case CLAY_ERROR_VECTOR_EMPTY:
+      fprintf(stderr,"[Clay] Error: line %d, the vector empty\n",
+              clay_scanner_line);
+      exit(CLAY_ERROR_VECTOR_EMPTY);
       break;
   }
   

@@ -381,18 +381,18 @@ int clay_skew(osl_scop_p scop,
   if (beta->size*2-1 >= statement->scattering->nb_output_dims) {
       if (depth >= beta->size)
         return CLAY_ERROR_DEPTH_OVERFLOW;
-      if (depth == beta->size-1) // TODO no sense ?
+      if (depth == beta->size-1) // TODO no sense to skew at the same level ?
         return CLAY_SUCCESS;
       column_beta = beta->size*2 - 3;
   }
   // else it's a loop and if the depth is the same as the beta, we change nothing
   else {
+    if (depth > beta->size)
+      return CLAY_ERROR_DEPTH_OVERFLOW;
     if (depth == beta->size)
       return CLAY_SUCCESS;
     column_beta = beta->size*2 - 1;
   }
-  if (depth > beta->size)
-    return CLAY_ERROR_DEPTH_OVERFLOW;
   
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
@@ -421,10 +421,10 @@ int clay_skew(osl_scop_p scop,
  * clay_iss function:
  * Split the loop (or statement) depending of an inequation
  * \param[in] scop
- * \param[in] beta          Beta vector (loop or statement)
- * \param[in] inequation array
+ * \param[in] beta              Beta vector (loop or statement)
+ * \param[in] inequation array  [iter1, iter2, ..., param1, param2, ..., const]
  * \param[in] options
- * \return                  Status
+ * \return                      Status
  */
 int clay_iss(osl_scop_p scop, 
              clay_array_p beta, clay_array_p inequ,
@@ -473,7 +473,9 @@ int clay_iss(osl_scop_p scop,
   inequ_nb_parameters = scattering->nb_parameters;
   
   // set the inequation
-  statement = scop->statement;
+  statement = scop->statement; // restart beacause we have call 
+                               // clay_beta_first_statement and not
+                               // clay_beta_find
   while (statement != NULL) {
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
@@ -922,6 +924,90 @@ int clay_tile(osl_scop_p scop,
   }
 
   return ret;
+}
+
+
+/**
+ * clay_shift function:
+ * Shift the iteration domain
+ * \param[in] scop
+ * \param[in] beta          Beta vector (loop or statement)
+ * \param[in] depth         >=1
+ * \param[in] vector        [params1, params2, ..., const]
+ * \param[in] options
+ * \return                  Status
+ */
+int clay_shift(osl_scop_p scop, 
+               clay_array_p beta, int depth, clay_array_p vector,
+               clay_options_p options) {
+  if (beta->size == 0)
+    return CLAY_ERROR_BETA_EMPTY;
+  if (vector->size == 0)
+    return CLAY_ERROR_VECTOR_EMPTY;
+  if (depth <= 0)
+    return CLAY_ERROR_DEPTH_OVERFLOW;
+  
+  osl_relation_p scattering;
+  osl_statement_p statement;
+  const int column = depth*2 - 1; // iterator column
+  int precision;
+  int i, j;
+  int row;
+  
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  if (statement->scattering->nb_input_dims == 0)
+    return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+  
+  // if it's a statement, the depth must be strictly less than the beta size
+  if (beta->size*2-1 >= statement->scattering->nb_output_dims) {
+      if (depth >= beta->size)
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+  }
+  // else it's a loop and if the depth is the same as the beta, we change nothing
+  else {
+    if (depth > beta->size)
+      return CLAY_ERROR_DEPTH_OVERFLOW;
+  }
+
+
+
+
+  precision = statement->scattering->precision;
+  
+  // add the vector for each statements
+  while (statement != NULL) {
+    if (clay_beta_check(statement, beta)) {
+      scattering = statement->scattering;
+
+      if (vector->size <= 1 + scattering->nb_parameters) {
+        row = clay_statement_get_line(statement, column);
+        
+        // affects parameters
+        i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
+            scattering->nb_local_dims;
+        for (j = 0 ; j < vector->size-1 ; j++) {
+          osl_int_add_si(precision,
+                         scattering->m[row], i,
+                         scattering->m[row], i,
+                         vector->data[j]);
+          i++;
+        }
+        // set the constant
+        osl_int_add_si(precision,
+                       scattering->m[row], scattering->nb_columns-1,
+                       scattering->m[row], scattering->nb_columns-1,
+                       vector->data[vector->size-1]);
+      }
+    }
+    statement = statement->next;
+  }
+  
+  if (options && options->normalize)
+    clay_scop_normalize_beta(scop);
+    
+  return CLAY_SUCCESS;
 }
 
 

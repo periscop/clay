@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL        10
+  #define CLAY_FUNCTIONS_TOTAL        11
   
   #define CLAY_FUNCTION_FISSION       0
   #define CLAY_FUNCTION_REORDER       1
@@ -48,5 +48,6 @@
   #define CLAY_FUNCTION_STRIPMINE     7
   #define CLAY_FUNCTION_UNROLL        8
   #define CLAY_FUNCTION_TILE          9
+  #define CLAY_FUNCTION_SHIFT         10
 
 #endif
