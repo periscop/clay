@@ -419,7 +419,7 @@ int clay_skew(osl_scop_p scop,
 
 /**
  * clay_iss function:
- * Split the loop (or statement) depending of an inequation
+ * Split the loop (or statement) depending of an inequation.
  * \param[in] scop
  * \param[in] beta              Beta vector (loop or statement)
  * \param[in] inequation array  [iter1, iter2, ..., param1, param2, ..., const]
@@ -439,15 +439,12 @@ int clay_iss(osl_scop_p scop,
   osl_statement_p newstatement;
   const int column = (beta->size-1)*2;
   int precision;
-  int i, j;
   int row;
   int inequ_nb_input_dims, inequ_nb_parameters;
   void *order; // new loop order for the clones
   
-  // we need the first because we need to get the nb_input_dims and the
-  // nb_parameters of the inequation
-  // and NOT a statement in a sub-loop
-  statement = clay_beta_first_statement(scop->statement, beta);
+  // search a statement
+  statement = clay_beta_find(scop->statement, beta);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
   if (statement->scattering->nb_input_dims == 0)
@@ -455,6 +452,14 @@ int clay_iss(osl_scop_p scop,
   
   precision = statement->scattering->precision;
   
+  // decompose the inequation
+  if (beta->size*2-1 == statement->scattering->nb_output_dims)
+    inequ_nb_input_dims = beta->size-1;
+  else
+    inequ_nb_input_dims = beta->size;
+    
+  inequ_nb_parameters = inequ->size - inequ_nb_input_dims - 1;
+
   // let the place for the splitted loop
   clay_beta_shift_after(scop->statement, beta, beta->size);
 
@@ -469,9 +474,6 @@ int clay_iss(osl_scop_p scop,
                     order, 0,
                     order, 0);
   
-  inequ_nb_input_dims = scattering->nb_input_dims;
-  inequ_nb_parameters = scattering->nb_parameters;
-  
   // set the inequation
   statement = scop->statement; // restart beacause we have call 
                                // clay_beta_first_statement and not
@@ -482,52 +484,9 @@ int clay_iss(osl_scop_p scop,
       if (inequ->size <= 1 + scattering->nb_input_dims + 
                                                     scattering->nb_parameters) {
 
-        // insert the inequation spliting (local dims are not in the inequation)
-        // (at the end)
-        row = scattering->nb_rows;
-        osl_relation_insert_blank_row(scattering, row);
-        osl_int_set_si(precision, scattering->m[row], 0, 1); // type inequation
-        
-        // affects input_dims
-        i = scattering->nb_output_dims+1;
-        for (j = 0 ; j < inequ_nb_input_dims ; j++) {
-          osl_int_set_si(precision,
-                         scattering->m[row], i,
-                         inequ->data[j]);
-          i++;
-        }
-        // affects parameters
-        i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
-            scattering->nb_local_dims;
-        for (j = inequ_nb_input_dims ; j < inequ_nb_parameters ; j++) {
-          osl_int_set_si(precision,
-                         scattering->m[row], i,
-                         inequ->data[j]);
-          i++;
-        }
-        // set the constant
-        osl_int_set_si(precision,
-                       scattering->m[row], scattering->nb_columns-1,
-                       inequ->data[inequ->size-1]);
-        
-        // insert a new statement with the negation of the inequation
-        newstatement = osl_statement_nclone(statement, 1);
-        scattering = newstatement->scattering;
-        for (j = scattering->nb_output_dims ; j < scattering->nb_columns ; j++) {
-          osl_int_oppose(precision, 
-                         scattering->m[row], j,
-                         scattering->m[row], j);
-        }
-        osl_int_decrement(precision, 
-                          scattering->m[row], scattering->nb_columns-1,
-                          scattering->m[row], scattering->nb_columns-1);
-      
-        // the first statement is after the new statement
-        scattering = statement->scattering;
-        row = clay_statement_get_line(statement, column);
-        osl_int_assign(precision,
-                 scattering->m[row], scattering->nb_columns-1,
-                 order, 0);
+        newstatement = clay_statement_split_inequation(statement, inequ,
+                           inequ_nb_input_dims, inequ_nb_parameters,
+                           column, order);
 
         // the order is not important in the statements list
         newstatement->next = statement->next;
@@ -537,6 +496,7 @@ int clay_iss(osl_scop_p scop,
     }
     statement = statement->next;
   }
+  
   osl_int_free(precision, order, 0);
   
   if (options && options->normalize)
@@ -971,9 +931,6 @@ int clay_shift(osl_scop_p scop,
       return CLAY_ERROR_DEPTH_OVERFLOW;
   }
 
-
-
-
   precision = statement->scattering->precision;
   
   // add the vector for each statements
@@ -1014,6 +971,79 @@ int clay_shift(osl_scop_p scop,
 /*****************************************************************************\
  *                     Other operations                                       *
  `****************************************************************************/
+
+
+/* 
+ * clay_statement_split_inequation function:
+ * Split a statement. Set the inequation for the given paramater, and set the
+ * opposed inequation on a new statement.
+ * \param[in] statement          Satement to split
+ * \param[in] inequ              [iter1, iter2, ..., param1, param2, ..., const]
+ * \param[in] nb_input_dims      Nb input dims in the array
+ * \param[in] nb_params          Nb params in the array
+ * \param[in] column             Column where we have to set the beta order
+ * \param[in] order              New beta order for the new statement
+ * return
+ */
+osl_statement_p clay_statement_split_inequation(osl_statement_p statement,
+            clay_array_p inequ, int nb_input_dims, int nb_params,
+            int column, void *order) {
+
+  osl_statement_p newstatement;
+  osl_relation_p scattering = statement->scattering;
+  int row = scattering->nb_rows;
+  int precision = scattering->precision;
+  int i, j;
+  
+  // insert the inequation spliting (local dims are not in the inequation)
+  // (at the end)
+  osl_relation_insert_blank_row(scattering, row);
+  osl_int_set_si(precision, scattering->m[row], 0, 1); // type inequation
+  
+  // affects input_dims
+  i = scattering->nb_output_dims+1;
+  for (j = 0 ; j < nb_input_dims ; j++) {
+    osl_int_set_si(precision,
+                   scattering->m[row], i,
+                   inequ->data[j]);
+    i++;
+  }
+  // affects parameters
+  i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
+      scattering->nb_local_dims;
+  for (; j < nb_params + nb_input_dims ; j++) {
+    osl_int_set_si(precision,
+                   scattering->m[row], i,
+                   inequ->data[j]);
+    i++;
+  }
+  // set the constant
+  osl_int_set_si(precision,
+                 scattering->m[row], scattering->nb_columns-1,
+                 inequ->data[inequ->size-1]);
+  
+  // insert a new statement with the negation of the inequation
+  newstatement = osl_statement_nclone(statement, 1);
+  scattering = newstatement->scattering;
+  for (j = scattering->nb_output_dims ; j < scattering->nb_columns ; j++) {
+    osl_int_oppose(precision, 
+                   scattering->m[row], j,
+                   scattering->m[row], j);
+  }
+  osl_int_decrement(precision, 
+                    scattering->m[row], scattering->nb_columns-1,
+                    scattering->m[row], scattering->nb_columns-1);
+
+  // the current statement is after the new statement
+  scattering = statement->scattering;
+  row = clay_statement_get_line(statement, column);
+  osl_int_assign(precision,
+           scattering->m[row], scattering->nb_columns-1,
+           order, 0);
+  
+  return newstatement;
+}
+
 
 /* 
  * clay_scop_normalize_beta function:
@@ -1388,32 +1418,6 @@ osl_statement_p clay_beta_find(osl_statement_p statement,
   while (statement != NULL) {
     if (clay_beta_check(statement, beta))
       break;
-    statement = statement->next;
-  }
-  return statement;
-}
-
-
-/**
- * clay_beta_first_statement function:
- * Return the first statement (the first checked by the beta and not the first 
- * in the list, use clay_beta_min for this purpose) which is at the same level 
- * of the beta (not in a sub loop). That's the difference with clay_beta_find.
- * \param[in] statement     Start statement list
- * \param[in] beta          Vector to search
- * \return                  Return the first corresponding statement
- */
-osl_statement_p clay_beta_first_statement(osl_statement_p statement, 
-                                          clay_array_p beta) {
-  osl_relation_p scattering;
-  while (statement != NULL) {
-    if (clay_beta_check(statement, beta)) {
-      scattering = statement->scattering;
-      if (scattering->nb_output_dims <= beta->size*2-1 || 
-          scattering->nb_output_dims <= beta->size*2+1) {
-        break;
-      }
-    }
     statement = statement->next;
   }
   return statement;

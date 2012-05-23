@@ -87,12 +87,14 @@ int             clay_statement_get_line(osl_statement_p, int);
 clay_array_p    clay_statement_get_beta(osl_statement_p);
 bool            clay_statement_is_after(osl_statement_p, clay_array_p);
 bool            clay_statement_is_before(osl_statement_p, clay_array_p);
+osl_statement_p clay_statement_split_inequation(osl_statement_p, clay_array_p,
+                                                int, int, int, void*);
+
 bool            clay_scattering_check_zero(osl_statement_p, int, int);
 
 bool            clay_scatnames_exists(osl_scatnames_p, char*);
 
 osl_statement_p clay_beta_find(osl_statement_p, clay_array_p);
-osl_statement_p clay_beta_first_statement(osl_statement_p, clay_array_p);
 bool            clay_beta_check(osl_statement_p, clay_array_p);
 clay_array_p    clay_beta_min(osl_statement_p, clay_array_p);
 clay_array_p    clay_beta_max(osl_statement_p, clay_array_p);

@@ -279,7 +279,7 @@ prototype is: %s\n",
   
   //fprintf(stderr, "[Clay] Exec %s\n", function[i].name);
   
-  int status_result;
+  int status_result = 0;
   switch (i) {
     case CLAY_FUNCTION_FISSION:
       status_result = clay_fission(clay_parser_scop, 
