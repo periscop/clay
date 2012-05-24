@@ -95,7 +95,16 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/stripmine_pretty.c \
 	$(top_srcdir)/tests/unitary/stripmine_statement.c \
 	$(top_srcdir)/tests/unitary/unroll1.c \
-	$(top_srcdir)/tests/unitary/unroll2.c
+	$(top_srcdir)/tests/unitary/unroll2.c \
+	$(top_srcdir)/tests/unitary/tile_loop1.c \
+	$(top_srcdir)/tests/unitary/shift_loop1.c \
+	$(top_srcdir)/tests/unitary/shift_loop2.c \
+	$(top_srcdir)/tests/unitary/shift_statement.c \
+	$(top_srcdir)/tests/unitary/peel_before.c \
+	$(top_srcdir)/tests/unitary/peel_before_nochanges.c \
+	$(top_srcdir)/tests/unitary/peel_after.c \
+	$(top_srcdir)/tests/unitary/peel_after_nochanges.c
+	
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \

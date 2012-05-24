@@ -3,6 +3,9 @@
 #include <clay/prototype_function.h>
 
 
+// Authorized functions in Clay
+
+
 int clay_function_fission_type[]     =  {ARRAY_T, INTEGER_T};
 int clay_function_reorder_type[]     =  {ARRAY_T, ARRAY_T};
 int clay_function_interchange_type[] =  {ARRAY_T, INTEGER_T, INTEGER_T};
@@ -16,11 +19,10 @@ int clay_function_unroll_type[]      =  {ARRAY_T, INTEGER_T};
 int clay_function_tile_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T,
                                          INTEGER_T, INTEGER_T};
 int clay_function_shift_type[]       =  {ARRAY_T, INTEGER_T, ARRAY_T};
+int clay_function_peel_type[]        =  {ARRAY_T, ARRAY_T, INTEGER_T};
 
 
-// Authorized functions in Clay
-// That is just the prototype of each functions, so there are no 
-// data for args
+// That is just the prototype of each functions, so there are no data for args
 const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] = 
 {
   {
@@ -60,11 +62,15 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_unroll_type, 2, 2
   },
   {
-    "tile",      "tile(array beta, uint depth, uint depth_outer, uint block, bool pretty)",
+    "tile",        "tile(array beta, uint depth, uint depth_outer, uint block, bool pretty)",
     NULL, clay_function_tile_type, 5, 5
   },
   {
     "shift",      "shift(array beta, uint depth, array vector)",
     NULL, clay_function_shift_type, 3, 3
+  },
+  {
+    "peel",       "peel(array beta_loop, array peeling, bool peel_before)",
+    NULL, clay_function_peel_type, 3, 3
   }
 };

@@ -354,6 +354,13 @@ prototype is: %s\n",
                                  clay_params->args[2], 
                                  clay_parser_options);
       break;
+    case CLAY_FUNCTION_PEEL:
+      status_result = clay_peel(clay_parser_scop,
+                                clay_params->args[0], 
+                                clay_params->args[1],
+                                 *((int*)clay_params->args[2]),
+                                clay_parser_options);
+      break;
   }
   
   switch (status_result) {

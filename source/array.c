@@ -47,9 +47,9 @@
 clay_array_p clay_array_malloc() {
   clay_array_p arr;
   CLAY_malloc(arr, clay_array_p, sizeof(clay_array_t));
-  CLAY_malloc(arr->data, int*, sizeof(int)*10);
+  CLAY_malloc(arr->data, int*, sizeof(int)*CLAY_ARRAY_INIT_SIZE);
   arr->size = 0;
-  arr->available = 10;
+  arr->available = CLAY_ARRAY_INIT_SIZE;
   return arr;
 }
 
@@ -63,7 +63,7 @@ clay_array_p clay_array_malloc() {
  */
 void clay_array_add(clay_array_p arr, int i) {
   if (arr->size >= arr->available) {
-    arr->available += 10;
+    arr->available += CLAY_ARRAY_INIT_SIZE;
     CLAY_realloc(arr->data, int*, sizeof(int) * arr->available);
   }
   arr->data[arr->size] = i;

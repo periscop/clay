@@ -75,6 +75,7 @@ int        clay_tile(osl_scop_p, clay_array_p, int, int, int, int,
                      clay_options_p);
 int        clay_shift(osl_scop_p, clay_array_p, int, clay_array_p,
                       clay_options_p);
+int        clay_peel(osl_scop_p, clay_array_p, clay_array_p, int, clay_options_p);
 
 
 /*****************************************************************************\
@@ -87,8 +88,8 @@ int             clay_statement_get_line(osl_statement_p, int);
 clay_array_p    clay_statement_get_beta(osl_statement_p);
 bool            clay_statement_is_after(osl_statement_p, clay_array_p);
 bool            clay_statement_is_before(osl_statement_p, clay_array_p);
-osl_statement_p clay_statement_split_inequation(osl_statement_p, clay_array_p,
-                                                int, int, int, void*);
+void            clay_statement_insert_inequation(osl_statement_p, clay_array_p,
+                                                 int, int);
 
 bool            clay_scattering_check_zero(osl_statement_p, int, int);
 

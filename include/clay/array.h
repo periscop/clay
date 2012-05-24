@@ -37,6 +37,7 @@
 #ifndef CLAY_ARRAY_H
 #define CLAY_ARRAY_H
 
+#define CLAY_ARRAY_INIT_SIZE 10
 
 struct clay_array {
   int *data;

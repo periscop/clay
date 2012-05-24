@@ -44,7 +44,7 @@ N
 </strings>
 
 # Number of statements
-4
+1
 
 # =============================================== Statement 1
 # Number of relations describing the statement:
@@ -54,9 +54,9 @@ N
 DOMAIN
 3 4 1 0 0 1
 # e/i|  i |  N |  1  
-   1    1    0    0    ## i >= 0
-   1   -1    1    0    ## -i+N >= 0
-   1    0    1    0    ## N >= 0
+   1    1    0  -10    ## i-10 >= 0
+   1   -1    1   -8    ## -i+N-8 >= 0
+   1    0    1  -18    ## N-18 >= 0
 
 # ----------------------------------------------  1.2 Scattering
 SCATTERING
@@ -85,114 +85,6 @@ i
 a[i]=0;
 </body>
 
-# =============================================== Statement 2
-# Number of relations describing the statement:
-3
-
-# ----------------------------------------------  2.1 Domain
-DOMAIN
-3 4 1 0 0 1
-# e/i|  i |  N |  1  
-   1    1    0    0    ## i >= 0
-   1   -1    1    0    ## -i+N >= 0
-   1    0    1    0    ## N >= 0
-
-# ----------------------------------------------  2.2 Scattering
-SCATTERING
-3 7 3 1 0 1
-# e/i| c1   c2   c3 |  i |  N |  1  
-   0   -1    0    0    0    0    0    ## c1 == 0
-   0    0   -1    0    1    0    0    ## c2 == i
-   0    0    0   -1    0    0    1    ## c3 == 1
-
-# ----------------------------------------------  2.3 Access
-WRITE
-2 6 2 1 0 1
-# e/i| Arr  [1]|  i |  N |  1  
-   0   -1    0    0    0    4    ## Arr == b
-   0    0   -1    1    0    0    ## [1] == i
-
-# ----------------------------------------------  2.4 Body
-# Statement body is provided
-1
-<body>
-# Number of original iterators
-1
-# List of original iterators
-i
-# Statement body expression
-b[i]=0;
-</body>
-
-# =============================================== Statement 3
-# Number of relations describing the statement:
-3
-
-# ----------------------------------------------  3.1 Domain
-DOMAIN
-3 4 1 0 0 1
-# e/i|  i |  N |  1  
-   1    1    0    0    ## i >= 0
-   1   -1    1    0    ## -i+N >= 0
-   1    0    1    0    ## N >= 0
-
-# ----------------------------------------------  3.2 Scattering
-SCATTERING
-3 7 3 1 0 1
-# e/i| c1   c2   c3 |  i |  N |  1  
-   0   -1    0    0    0    0    0    ## c1 == 0
-   0    0   -1    0    1    0    0    ## c2 == i
-   0    0    0   -1    0    0    2    ## c3 == 2
-
-# ----------------------------------------------  3.3 Access
-WRITE
-2 6 2 1 0 1
-# e/i| Arr  [1]|  i |  N |  1  
-   0   -1    0    0    0    5    ## Arr == c
-   0    0   -1    1    0    0    ## [1] == i
-
-# ----------------------------------------------  3.4 Body
-# Statement body is provided
-1
-<body>
-# Number of original iterators
-1
-# List of original iterators
-i
-# Statement body expression
-c[i]=0;
-</body>
-
-# =============================================== Statement 4
-# Number of relations describing the statement:
-3
-
-# ----------------------------------------------  4.1 Domain
-DOMAIN
-0 3 0 0 0 1
-
-# ----------------------------------------------  4.2 Scattering
-SCATTERING
-1 4 1 0 0 1
-# e/i| c1 |  N |  1  
-   0   -1    0    1    ## c1 == 1
-
-# ----------------------------------------------  4.3 Access
-WRITE
-1 4 1 0 0 1
-# e/i| Arr|  N |  1  
-   0   -1    0    6    ## Arr == d
-
-# ----------------------------------------------  4.4 Body
-# Statement body is provided
-1
-<body>
-# Number of original iterators
-0
-# Statement body expression
-d=0;
-</body>
-
 # =============================================== Extensions
 <scatnames>
 b0 i b1
@@ -200,29 +92,26 @@ b0 i b1
 
 <arrays>
 # Number of arrays
-6
+3
 # Mapping array-identifiers/array-names
 1 i
 2 N
 3 a
-4 b
-5 c
-6 d
 </arrays>
 
 <coordinates>
 # File name
-./unitary/iss_loop1.c
+./unitary/peel_before.c
 # Starting line
 1
 # Ending line
-11
+8
 # Indentation
 0
 </coordinates>
 
 <clay>
-   iss([0], [1,0,-1]);
+   peel([0], [0,-5], 1);
 </clay>
 
 </OpenScop>
