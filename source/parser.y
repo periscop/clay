@@ -46,6 +46,7 @@
   #include <clay/prototype_function.h>
   #include <clay/errors.h>
   #include <clay/functions.h>
+  #include <clay/ident.h>
   
   // Yacc stuff.
   int                 yylex(void);
@@ -63,6 +64,9 @@
   // Current scop
   osl_scop_p          clay_parser_scop;
   
+  // If we need to search a beta
+  clay_array_p        clay_parser_beta;
+  
   // Command line options
   clay_options_p      clay_parser_options;
   
@@ -74,6 +78,7 @@
   void                clay_parser_exec_function(char *name);
   void                clay_parser_string(osl_scop_p, char*, clay_options_p);
   void                clay_parser_file(osl_scop_p, FILE*, clay_options_p);
+  void                clay_parser_print_error(int);
   
   // Authorized functions in Clay
   extern const clay_prototype_function_t functions[];
@@ -84,7 +89,8 @@
 %union { char *sval; }
 
 %token <ival> INTEGER
-%token <sval> FUNCNAME 
+%token <sval> IDENT_NAME 
+%token <ival> IDENT_STMT
 %token COMMENT
 
 %start start
@@ -99,22 +105,21 @@ start:
 line:
     COMMENT
   |
-    FUNCNAME '(' args ')' ';'
+    IDENT_NAME '(' args ')' ';'
     {
       clay_parser_exec_function($1);
       free($1);
     }
   ;
 
-args: // epsilon
-  | 
+args:
+  | // integer
     args ',' INTEGER 
     {
       int *tmp;
       CLAY_malloc(tmp, int*, sizeof(int));
       *tmp = $3;
       clay_prototype_function_args_add(clay_params, tmp, INTEGER_T);
-      //fprintf(stderr, "INTEGER %d\n", $3);
     }
   |
     INTEGER
@@ -123,11 +128,47 @@ args: // epsilon
       CLAY_malloc(tmp, int*, sizeof(int));
       *tmp = $1;
       clay_prototype_function_args_add(clay_params, tmp, INTEGER_T);
-      //fprintf(stderr, "INTEGER %d\n", $1);
+    }
+  | // Snum
+    IDENT_STMT
+    {
+      clay_parser_beta = clay_ident_find_stmt(clay_parser_scop, $1);
+      if (!clay_parser_beta) {
+        clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+      }
+      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
     }
   |
+    args ',' IDENT_STMT
+    {
+      clay_parser_beta = clay_ident_find_stmt(clay_parser_scop, $3);
+      if (!clay_parser_beta) {
+        clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+      }
+      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
+    }
+  | // iterator name
+    IDENT_NAME
+    {
+      clay_parser_beta = clay_ident_find_iterator(clay_parser_scop, $1);
+      if (!clay_parser_beta) {
+        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+      }
+      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
+    }
+  |
+    args ',' IDENT_NAME
+    {
+      clay_parser_beta = clay_ident_find_iterator(clay_parser_scop, $3);
+      if (!clay_parser_beta) {
+        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+      }
+      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
+    }
+  | // default beta vector
     args ',' array
-  | array
+  |
+    array
   ;
 
 array:
@@ -139,13 +180,11 @@ list:
     list ',' INTEGER
     {
       clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $3);
-      //fprintf(stderr, "ADD IN ARRAY[] %d\n", $3);
     }
   |
     INTEGER
     {
       clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $1);
-      //fprintf(stderr, "ADD IN ARRAY[] %d\n", $1);
     }
   |
   ;
@@ -158,7 +197,7 @@ list:
  */
 int yyerror(void) {
   fprintf(stderr,"[Clay] Error: syntax on line %d, maybe you forgot a `;'\n",
-          clay_scanner_line+1);
+          clay_scanner_line-1);
   exit(1);
 }
 
@@ -200,7 +239,7 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
   clay_params = clay_prototype_function_malloc();
   
   yy_scan_string(input);
-  clay_scanner_line = 0;
+  clay_scanner_line = 1;
   yyparse();
   
   // Quit
@@ -363,6 +402,22 @@ prototype is: %s\n",
       break;
   }
   
+  if (status_result != CLAY_SUCCESS) {
+    clay_parser_print_error(status_result);
+  }
+
+  clay_prototype_function_args_clear(clay_params);
+}
+
+
+/**
+ * clay_ident_find_loop function:
+ * Search the corresponding beta of the `ident'th loop
+ * \param[in] scop
+ * \param[in] ident       >= 1
+ * \return
+ */
+void clay_parser_print_error(int status_result) {
   switch (status_result) {
     case CLAY_ERROR_BETA_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d: the beta vector was not found\n",
@@ -424,7 +479,15 @@ prototype is: %s\n",
               clay_scanner_line);
       exit(CLAY_ERROR_VECTOR_EMPTY);
       break;
+    case CLAY_ERROR_IDENT_NAME_NOT_FOUND:
+      fprintf(stderr,"[Clay] Error: line %d, the iterator name was not found\n",
+              clay_scanner_line);
+      exit(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+      break;
+    case CLAY_ERROR_IDENT_STMT_NOT_FOUND:
+      fprintf(stderr,"[Clay] Error: line %d, the statement was not found\n",
+              clay_scanner_line);
+      exit(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+      break;
   }
-  
-  clay_prototype_function_args_clear(clay_params);
 }

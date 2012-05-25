@@ -59,6 +59,8 @@ pkginclude_HEADERS = \
 	include/clay/clay.h \
 	include/clay/array.h \
 	include/clay/options.h \
+	include/clay/ident.h \
+	include/clay/beta.h \
 	include/clay/errors.h \
 	include/clay/functions.h \
   include/clay/prototype_function.h \
@@ -78,7 +80,9 @@ libclay_la_SOURCES  = \
   source/parser.y \
   source/scanner.l \
   source/array.c \
+  source/ident.c \
   source/options.c \
+  source/beta.c \
   source/functions.c \
   source/prototype_function.c \
   source/transformation.c

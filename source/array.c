@@ -59,11 +59,10 @@ clay_array_p clay_array_malloc() {
  * Push i at the end of arr
  * \param[in] arr
  * \param[in] i
- * \return     new struct array
  */
 void clay_array_add(clay_array_p arr, int i) {
   if (arr->size >= arr->available) {
-    arr->available += CLAY_ARRAY_INIT_SIZE;
+    arr->available *= 2;
     CLAY_realloc(arr->data, int*, sizeof(int) * arr->available);
   }
   arr->data[arr->size] = i;

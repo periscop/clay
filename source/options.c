@@ -59,7 +59,15 @@ void clay_options_free(clay_options_p options) {
  */
 void clay_options_list_functions() {
   int i;
-  printf("Available functions:\n\n");
+  printf(
+  "Available functions:\n\n"
+  "  ident syntax:\n"
+  "    array:   [n1, n2, ...]\n"
+  "             Refers to a beta vector, loop or statement\n"
+  "    Sn:      where n >= 1\n"
+  "             Refers to the `n'th statement\n"
+  "    string:  Iterator name of loop\n\n");
+  
   for (i = 0 ; i < CLAY_FUNCTIONS_TOTAL ; i++) {
     printf("  %s\n", functions[i].prototype);
   }

@@ -46,6 +46,7 @@
 #include <clay/transformation.h>
 #include <clay/options.h>
 #include <clay/array.h>
+#include <clay/ident.h>
 #include <parser.h>
 
 
@@ -78,7 +79,7 @@ int main(int argc, char * argv[]) {
   }
 
   scop = osl_scop_read(input);
-
+  
   if (scop != NULL) {
     // Read the script file
     if (options->input_script) {

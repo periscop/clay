@@ -34,58 +34,40 @@
  +--------------------------------------------------------------------------*/
  
 
-#ifndef CLAY_TRANSFORMATIONS_H
-#define CLAY_TRANSFORMATIONS_H
-
+#ifndef CLAY_BETA_H
+#define CLAY_BETA_H
 
 #include <osl/statement.h>
-#include <osl/scop.h>
-#include <osl/extensions/scatnames.h>
 #include <clay/array.h>
-#include <clay/options.h>
-
 
 #ifndef bool
 #define bool short
 #endif
 
+#define CLAY_MAX_BETA_SIZE 20
 
 
-// used by the normalize function
-#define CLAY_TRANSFORMATIONS_MAX_BETA_SIZE 20
+// NOTE : a beta is just a clay_array_p
 
 
+int              clay_statement_get_line(osl_statement_p, int);
+bool             clay_statement_is_after(osl_statement_p, clay_array_p);
+bool             clay_statement_is_before(osl_statement_p, clay_array_p);
 
+void             clay_beta_normalize(osl_scop_p);
+clay_array_p     clay_beta_get(osl_statement_p);
+osl_statement_p  clay_beta_find(osl_statement_p, clay_array_p);
+bool             clay_beta_check(osl_statement_p, clay_array_p);
+clay_array_p     clay_beta_min(osl_statement_p, clay_array_p);
+clay_array_p     clay_beta_max(osl_statement_p, clay_array_p);
+clay_array_p     clay_beta_next(osl_statement_p, clay_array_p beta,
+                                osl_statement_p*);
+clay_array_p     clay_beta_next_part(osl_statement_p, clay_array_p beta);
+int              clay_beta_nb_parts(osl_statement_p,clay_array_p);
+void             clay_beta_shift_after(osl_statement_p, clay_array_p, int);
+void             clay_beta_shift_before(osl_statement_p, clay_array_p, int);
 
-/*****************************************************************************\
- *                     Loop transformations                                   *
- `****************************************************************************/
-
-int      clay_fission(osl_scop_p, clay_array_p, int, clay_options_p);
-int      clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int      clay_interchange(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int      clay_reversal(osl_scop_p, clay_array_p, int, clay_options_p);
-int      clay_skew(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int      clay_fuse(osl_scop_p, clay_array_p, clay_options_p);
-int      clay_iss(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int      clay_stripmine(osl_scop_p, clay_array_p, int, int, int,
-                        clay_options_p);
-int      clay_unroll(osl_scop_p, clay_array_p, int, clay_options_p);
-int      clay_tile(osl_scop_p, clay_array_p, int, int, int, int,
-                   clay_options_p);
-int      clay_shift(osl_scop_p, clay_array_p, int, clay_array_p,
-                    clay_options_p);
-int      clay_peel(osl_scop_p, clay_array_p, clay_array_p, int, clay_options_p);
-
-
-/*****************************************************************************\
- *                     Other operations                                       *
- `****************************************************************************/
-
-void  clay_statement_insert_inequation(osl_statement_p, clay_array_p, int, int);
-bool  clay_scatnames_exists(osl_scatnames_p, char*);
-char* clay_string_replace(char*, char*, char*);
-int   clay_statement_iterator_find(osl_statement_p, char*);
+bool             clay_scattering_check_zeros(osl_statement_p, int, int);
 
 
 #endif

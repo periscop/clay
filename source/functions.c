@@ -26,51 +26,51 @@ int clay_function_peel_type[]        =  {ARRAY_T, ARRAY_T, INTEGER_T};
 const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] = 
 {
   {
-    "fission",     "fission(array beta, uint depth)",
+    "fission",     "fission(ident, uint depth)",
     NULL, clay_function_fission_type, 2, 2
   },
   {
-    "reorder",     "reorder(array beta_loop, array order)",
+    "reorder",     "reorder(ident_loop, array order)",
     NULL, clay_function_reorder_type, 2, 2
   },
   {
-    "interchange", "interchange(array beta, uint depth_1, uint depth_2)",
+    "interchange", "interchange(ident, uint depth_1, uint depth_2)",
     NULL, clay_function_interchange_type, 3, 3
   },
   {
-    "reversal",    "reversal(array beta, uint depth)",
+    "reversal",    "reversal(ident, uint depth)",
     NULL, clay_function_reversal_type, 2, 2
   },
   {
-    "fuse",        "fuse(array beta_loop)",
+    "fuse",        "fuse(ident_loop)",
     NULL, clay_function_fuse_type, 1, 1
   },
   {
-    "skew",        "skew(array beta, uint depth, int coeff)",
+    "skew",        "skew(ident, uint depth, int coeff)",
     NULL, clay_function_skew_type, 3, 3
   },
   {
-    "iss",         "iss(array beta, array equation)",
+    "iss",         "iss(ident, array equation)",
     NULL, clay_function_iss_type, 2, 2
   },
   {
-    "stripmine",   "stripmine(array beta, uint depth, uint block, bool pretty)",
+    "stripmine",   "stripmine(ident, uint depth, uint block, bool pretty)",
     NULL, clay_function_stripmine_type, 4, 4
   },
   {
-    "unroll",      "unroll(array beta_loop, uint factor)",
+    "unroll",      "unroll(ident_loop, uint factor)",
     NULL, clay_function_unroll_type, 2, 2
   },
   {
-    "tile",        "tile(array beta, uint depth, uint depth_outer, uint block, bool pretty)",
+    "tile",        "tile(ident, uint depth, uint depth_outer, uint block, bool pretty)",
     NULL, clay_function_tile_type, 5, 5
   },
   {
-    "shift",      "shift(array beta, uint depth, array vector)",
+    "shift",      "shift(ident, uint depth, array vector)",
     NULL, clay_function_shift_type, 3, 3
   },
   {
-    "peel",       "peel(array beta_loop, array peeling, bool peel_before)",
+    "peel",       "peel(ident_loop, array peeling, bool peel_before)",
     NULL, clay_function_peel_type, 3, 3
   }
 };

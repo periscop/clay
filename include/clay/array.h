@@ -52,8 +52,8 @@ typedef struct clay_array* clay_array_p;
 clay_array_p      clay_array_malloc();
 void              clay_array_add(clay_array_p, int);
 void              clay_array_free(clay_array_p);
-void              clay_array_print(FILE *out, clay_array_p arr);
-clay_array_p      clay_array_clone(clay_array_p arr);
+void              clay_array_print(FILE*, clay_array_p);
+clay_array_p      clay_array_clone(clay_array_p);
 
 
 #endif

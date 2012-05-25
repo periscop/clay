@@ -54,11 +54,10 @@
 %option nounput
 SEPARATOR [ \t]*
 
-
 %%
 
-{SEPARATOR}#(.|{SEPARATOR})*\n
-                   {
+{SEPARATOR}#(.|{SEPARATOR})*\n {
+                     clay_scanner_line++;
                      return COMMENT;
                    }
 
@@ -67,18 +66,23 @@ SEPARATOR [ \t]*
                      return INTEGER;
                    }
 
-[a-z]+             {
+S[0-9]+            {
+                     yylval.ival = atoi(yytext+1);
+                     return IDENT_STMT;
+                   }
+
+[a-zA-Z_][a-zA-Z0-9_]* {
                      yylval.sval = strdup(yytext);
-                     return FUNCNAME;
+                     return IDENT_NAME;
                    }
 
 {SEPARATOR}        { ; }
 \[                 {
-                     //fprintf(stderr, "NEW ARRAY\n");
                      clay_array_p tmp = clay_array_malloc();
                      clay_prototype_function_args_add(clay_params, tmp, ARRAY_T);
                      return '[';
                    }
+                   
 \n                 { clay_scanner_line++; }
 .                  { return yytext[0]; }
 
@@ -103,7 +107,7 @@ void clay_scanner_free() {
  */
 void clay_scanner_initialize() {
   yy_flush_buffer(YY_CURRENT_BUFFER);
-  clay_scanner_line = 0;
+  clay_scanner_line = 1;
 }
 
 

@@ -32,60 +32,109 @@
  | Clay, the Chunky Loop Alteration wizardrY                                |
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
- 
 
-#ifndef CLAY_TRANSFORMATIONS_H
-#define CLAY_TRANSFORMATIONS_H
-
-
-#include <osl/statement.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <osl/scop.h>
-#include <osl/extensions/scatnames.h>
+#include <clay/macros.h>
 #include <clay/array.h>
-#include <clay/options.h>
+#include <clay/beta.h>
+#include <clay/transformation.h>
 
 
-#ifndef bool
-#define bool short
-#endif
+/**
+ * clay_ident_find_stmt function:
+ * Search the corresponding beta of the `ident'th statement
+ * \param[in] scop
+ * \param[in] ident       >= 1
+ * \return
+ */
+clay_array_p clay_ident_find_stmt(osl_scop_p scop, int ident) {
+  
+  if (ident <= 0)
+    return NULL;
+  
+  osl_statement_p sout;
+  clay_array_p beta;
+  clay_array_p beta_last;
+  int i = 1;
+  
+  beta_last = clay_array_malloc(); // empty beta
+  beta = clay_beta_next(scop->statement, beta_last, &sout);
+  
+  while (i < ident) {
+    clay_array_free(beta_last);
+    beta_last = beta;
+    beta = clay_beta_next(scop->statement, beta_last, &sout);
+    
+    if (beta == NULL) {
+      clay_array_free(beta_last);
+      return NULL;
+    }
+    
+    i++;
+  }
+  
+  clay_array_free(beta_last);
+  
+  return beta;
+}
 
 
+/**
+ * clay_ident_find_iterator function:
+ * Search the first loop which has the `iter' in original iterator
+ * \param[in] scop
+ * \param[in] iter       name of the original iterator we want to search
+ * \return
+ */
+clay_array_p clay_ident_find_iterator(osl_scop_p scop, char *iter) {
+  
+  osl_statement_p sout;
+  clay_array_p beta;
+  clay_array_p beta_last;
+  int i = -1;
+  
+  beta_last = clay_array_malloc(); // empty beta
+  beta = clay_beta_next(scop->statement, beta_last, &sout);
+  
+  if (beta == NULL) {
+    clay_array_free(beta_last);
+    return NULL;
+  }
+  
+  while ((i = clay_statement_iterator_find(sout, iter)) == -1) {
+    clay_array_free(beta_last);
+    beta_last = beta;
+    beta = clay_beta_next(scop->statement, beta_last, &sout);
+    
+    if (beta == NULL) {
+      clay_array_free(beta_last);
+      return NULL;
+    }
+  }
+  
+  clay_array_free(beta_last);
+  
+  if (i == -1) {
+    clay_array_free(beta);
+  } else {
+    beta->size = i+1;
+  }
+  
+  return beta;
+}
 
-// used by the normalize function
-#define CLAY_TRANSFORMATIONS_MAX_BETA_SIZE 20
 
-
-
-
-/*****************************************************************************\
- *                     Loop transformations                                   *
- `****************************************************************************/
-
-int      clay_fission(osl_scop_p, clay_array_p, int, clay_options_p);
-int      clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int      clay_interchange(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int      clay_reversal(osl_scop_p, clay_array_p, int, clay_options_p);
-int      clay_skew(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int      clay_fuse(osl_scop_p, clay_array_p, clay_options_p);
-int      clay_iss(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int      clay_stripmine(osl_scop_p, clay_array_p, int, int, int,
-                        clay_options_p);
-int      clay_unroll(osl_scop_p, clay_array_p, int, clay_options_p);
-int      clay_tile(osl_scop_p, clay_array_p, int, int, int, int,
-                   clay_options_p);
-int      clay_shift(osl_scop_p, clay_array_p, int, clay_array_p,
-                    clay_options_p);
-int      clay_peel(osl_scop_p, clay_array_p, clay_array_p, int, clay_options_p);
-
-
-/*****************************************************************************\
- *                     Other operations                                       *
- `****************************************************************************/
-
-void  clay_statement_insert_inequation(osl_statement_p, clay_array_p, int, int);
-bool  clay_scatnames_exists(osl_scatnames_p, char*);
-char* clay_string_replace(char*, char*, char*);
-int   clay_statement_iterator_find(osl_statement_p, char*);
-
-
-#endif
+/**
+ * clay_ident_find_loop function:
+ * Search the corresponding beta of the `ident'th loop
+ * \param[in] scop
+ * \param[in] ident       >= 1
+ * \return
+ */
+clay_array_p clay_ident_find_loop(osl_scop_p scop, int ident) {
+  
+  return NULL;
+}
