@@ -80,6 +80,10 @@ int main(int argc, char * argv[]) {
 
   scop = osl_scop_read(input);
   
+  if (options->normalize) {
+    clay_beta_normalize(scop);
+  }
+  
   if (scop != NULL) {
     // Read the script file
     if (options->input_script) {
