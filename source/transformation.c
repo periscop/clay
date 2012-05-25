@@ -282,6 +282,8 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
  
+ 
+ 
   osl_relation_p scattering;
   osl_statement_p statement;
   clay_array_p beta_max;
@@ -526,17 +528,17 @@ int clay_iss(osl_scop_p scop,
  * Decompose a single loop into two nested loop
  * \param[in] scop
  * \param[in] beta          Beta vector (loop or statement)
- * \param[in] block         Size of the inner loop
+ * \param[in] size          Block size of the inner loop
  * \param[in] pretty        If true, clay will keep the variables name
  *                          /!\ It takes much more computing 
  * \param[in] options
  * \return                  Status
  */
-int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int block, 
+int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size, 
                    int pretty, clay_options_p options) {
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
-  if (block <= 0)
+  if (size <= 0)
     return CLAY_ERROR_WRONG_BLOCK_SIZE;
   if (depth <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
@@ -588,10 +590,10 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int block,
       osl_relation_insert_blank_row(scattering, column);
       
       osl_int_set_si(precision, scattering->m[row+0], column+1, -1);
-      osl_int_set_si(precision, scattering->m[row+1], column+2, -block);
-      osl_int_set_si(precision, scattering->m[row+2], column+2, block);
+      osl_int_set_si(precision, scattering->m[row+1], column+2, -size);
+      osl_int_set_si(precision, scattering->m[row+2], column+2, size);
       osl_int_set_si(precision, scattering->m[row+2], scattering->nb_columns-1, 
-                     block-1);
+                     size-1);
                      
       osl_int_set_si(precision, scattering->m[row+1], 0, 1);
       osl_int_set_si(precision, scattering->m[row+2], 0, 1);
@@ -875,18 +877,18 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
  * \param[in] scop
  * \param[in] beta          Beta vector
  * \param[in] depth         >=1
- * \param[in] block         >=1
+ * \param[in] size          >=1
  * \param[in] depth_outer   >=1
  * \param[in] pretty        See stripmine
  * \param[in] options
  * \return                  Status
  */
 int clay_tile(osl_scop_p scop, 
-              clay_array_p beta, int depth, int depth_outer, int block,
+              clay_array_p beta, int depth, int depth_outer, int size,
               int pretty, clay_options_p options) {
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
-  if (block <= 0)
+  if (size <= 0)
     return CLAY_ERROR_WRONG_BLOCK_SIZE;
   if (depth <= 0 || depth_outer <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
@@ -894,7 +896,7 @@ int clay_tile(osl_scop_p scop,
     return CLAY_ERROR_DEPTH_OUTER;
   
   int ret;
-  ret = clay_stripmine(scop, beta, depth, block, pretty, options);
+  ret = clay_stripmine(scop, beta, depth, size, pretty, options);
   if (ret == CLAY_SUCCESS) {
     ret = clay_interchange(scop, beta, depth, depth_outer, options);
   }

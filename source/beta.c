@@ -124,6 +124,7 @@ void clay_beta_normalize(osl_scop_p scop) {
 clay_array_p clay_beta_get(osl_statement_p statement) {
   if (statement == NULL)
     return NULL;
+
   osl_relation_p scattering = statement->scattering;
   clay_array_p beta = clay_array_malloc();
   int i, j,  row, tmp;
@@ -131,7 +132,6 @@ clay_array_p clay_beta_get(osl_statement_p statement) {
   int precision = scattering->precision;
   
   for (j = 1 ; j < scattering->nb_output_dims+1 ; j += 2) {
-    
     // search the first non zero
     for (i = 0 ; i < scattering->nb_rows ; i++) {
       // test if the line is an equality
@@ -278,6 +278,7 @@ clay_array_p clay_beta_next(osl_statement_p statement, clay_array_p beta,
 clay_array_p clay_beta_next_part(osl_statement_p statement, clay_array_p beta) {
   if(!statement)
     return NULL;
+    
   clay_array_p beta_next = NULL;
   
   // Search the first statement after the beta
@@ -619,7 +620,7 @@ bool clay_scattering_check_zeros(osl_statement_p statement, int i, int j) {
  */
 int clay_statement_get_line(osl_statement_p statement, int column) {
   osl_relation_p scattering = statement->scattering;
-  if (column < 0 || column >= scattering->nb_output_dims)
+  if (column < 0 || column > scattering->nb_output_dims)
     return -1;
   int i;
   int precision = scattering->precision;

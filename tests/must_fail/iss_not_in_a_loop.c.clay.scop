@@ -1,2 +1,2 @@
-[Clay] Error: line 0, in `iss' takes 2 arguments
-[Clay] prototype is: iss(array beta, array equation)
+[Clay] Error: line 1, in `iss' takes 2 arguments
+[Clay] prototype is: iss(ident, array equation)

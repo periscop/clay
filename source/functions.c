@@ -54,7 +54,7 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_iss_type, 2, 2
   },
   {
-    "stripmine",   "stripmine(ident, uint depth, uint block, bool pretty)",
+    "stripmine",   "stripmine(ident, uint depth, uint size, bool pretty)",
     NULL, clay_function_stripmine_type, 4, 4
   },
   {
@@ -62,7 +62,7 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_unroll_type, 2, 2
   },
   {
-    "tile",        "tile(ident, uint depth, uint depth_outer, uint block, bool pretty)",
+    "tile",        "tile(ident, uint depth, uint depth_outer, uint size, bool pretty)",
     NULL, clay_function_tile_type, 5, 5
   },
   {

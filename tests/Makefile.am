@@ -45,7 +45,7 @@ TESTS_ENVIRONMENT       = top_builddir=$(top_builddir) SRCDIR=$(srcdir)
 
 #############################################################################
 
-check_SCRIPTS		= check_unitary.sh check_fail.sh
+check_SCRIPTS		= check_unitary.sh check_fail.sh check_tests.sh
 
 EXTRA_DIST              = checker.sh
 
@@ -53,6 +53,10 @@ EXTRA_DIST              = checker.sh
 # check_PROGRAMS = ...
 TESTS			= $(check_SCRIPTS)
 
+TEST_FILES = \
+	$(top_srcdir)/tests/tests/ax-do1.c \
+	$(top_srcdir)/tests/tests/ax-do3.c
+	
 UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/empty_code.c \
 	$(top_srcdir)/tests/unitary/empty_script.c \
@@ -122,11 +126,13 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement.c \
 	$(top_srcdir)/tests/must_fail/stripmine_not_in_a_loop.c
 
+TEST_FILES_REF = $(TEST_FILES:.c=.c.scop)
 UNITARY_TEST_FILES_REF = $(UNITARY_TEST_FILES:.c=.c.scop)
 FAIL_TEST_FILES_REF = $(FAIL_TEST_FILES:.c=.c.scop)
 
 EXTRA_DIST += \
 	$(UNITARY_TEST_FILES) \
+	$(TEST_FILES) \
 	$(FAIL_TEST_FILES) \
 	$(check_SCRIPTS)
 
@@ -134,5 +140,6 @@ CLEANFILES = ""
 
 TESTS_ENVIRONMENT += \
 	CHECKER="$(top_srcdir)/tests/checker.sh" \
+	TEST_FILES="$(TEST_FILES)" \
 	UNITARY_TEST_FILES="$(UNITARY_TEST_FILES)" \
 	FAIL_TEST_FILES="$(FAIL_TEST_FILES)"
