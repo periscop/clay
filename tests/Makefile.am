@@ -78,6 +78,7 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/iss_loop1.c \
 	$(top_srcdir)/tests/unitary/iss_loop2.c \
 	$(top_srcdir)/tests/unitary/iss_loop3.c \
+	$(top_srcdir)/tests/unitary/iss_loop4.c \
 	$(top_srcdir)/tests/unitary/iss_remove_condition.c \
 	$(top_srcdir)/tests/unitary/iss_statement1.c \
 	$(top_srcdir)/tests/unitary/iss_statement2.c \
@@ -107,7 +108,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/peel_before.c \
 	$(top_srcdir)/tests/unitary/peel_before_nochanges.c \
 	$(top_srcdir)/tests/unitary/peel_after.c \
-	$(top_srcdir)/tests/unitary/peel_after_nochanges.c
+	$(top_srcdir)/tests/unitary/peel_after_nochanges.c \
+	$(top_srcdir)/tests/unitary/context.c
 	
 
 FAIL_TEST_FILES = \
@@ -124,7 +126,8 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/skew_overflow_loop.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement2.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement.c \
-	$(top_srcdir)/tests/must_fail/stripmine_not_in_a_loop.c
+	$(top_srcdir)/tests/must_fail/stripmine_not_in_a_loop.c \
+	$(top_srcdir)/tests/must_fail/context.c
 
 TEST_FILES_REF = $(TEST_FILES:.c=.c.scop)
 UNITARY_TEST_FILES_REF = $(UNITARY_TEST_FILES:.c=.c.scop)

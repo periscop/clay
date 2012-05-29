@@ -155,6 +155,7 @@ args:
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
       }
       clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
+      free($1);
     }
   |
     args ',' IDENT_NAME
@@ -164,6 +165,7 @@ args:
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
       }
       clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
+      free($3);
     }
   | // default beta vector
     args ',' array
@@ -171,6 +173,7 @@ args:
     array
   ;
 
+// the array is allocated in the scanner.l
 array:
     '[' list ']'
   ;
@@ -209,7 +212,7 @@ int yyerror(void) {
  * \param[in] options
  */
 void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
-  clay_parser_scop = scop;
+  clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
   
   // List of parameters of the current scanned function
@@ -232,7 +235,7 @@ void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
  * \param[in] options
  */
 void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
-  clay_parser_scop = scop;
+  clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
   
   // List of parameters of the current scanned function
@@ -250,33 +253,14 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
 
 /**
  * clay_parser_exec_function:
+ * \param[in] name        function name
  */
 void clay_parser_exec_function(char *name) {
-  int i, j;
-   
-  /*
-  fprintf(stderr, "%s\n", $1);
-  fprintf(stderr, "nb args : %d\n", clay_params->argc);
+  int i, j, k;
+  int val;
+  clay_array_p tmp;
   
-  if (clay_params->argc > 0) {
-    fprintf(stderr, "args ");
-    clay_array_p tmp;
-    for (i = 0 ; i < clay_params->argc ; i++) {
-      switch (clay_params->type[i]) {
-        case INTEGER_T:
-          fprintf(stderr, "%d,", *(((int**)clay_params->args)[i]));
-          break;
-        case ARRAY_T:
-          tmp = (clay_array_p) clay_params->args[i];
-          clay_array_print(stderr, tmp);
-          fprintf(stderr, ",");
-          break;
-      }
-    }
-    fprintf(stderr, "\n");
-  }
-  */
-  
+  // search the function name
   i = 0;
   while (i < CLAY_FUNCTIONS_TOTAL) {
     if (strcmp(functions[i].name, name) == 0)
@@ -300,10 +284,34 @@ prototype is: %s\n",
       exit(CLAY_ERROR_NB_ARGS);
   }
   
+  // check types
   j = 0;
   while (j < functions[i].argc) {
-    if (clay_params->type[j] != functions[i].type[j])
+    
+    if (functions[i].type[j] == ARRAY_OR_INTEGER_T) {
+      
+      // convert INTEGER_T to ARRAY_T
+      switch(clay_params->type[j]) {
+        case INTEGER_T:
+          tmp = clay_array_malloc();
+          for (k = 0 ; k < clay_parser_scop->context->nb_parameters ; k++) {
+            clay_array_add(tmp, 0);
+          }
+          
+          val = *((int*)clay_params->args[j]);
+          clay_array_add(tmp, val);
+          
+          free(clay_params->args[j]);
+          clay_params->args[j] = tmp;
+          
+          clay_params->type[j] = ARRAY_T;
+          break;
+      }
+      
+    } else if (clay_params->type[j] != functions[i].type[j]) {
       break;
+    }
+    
     j++;
   }
   
@@ -315,9 +323,8 @@ prototype is: %s\n",
         clay_scanner_line, name, j+1, functions[i].prototype);
       exit(CLAY_ERROR_INVALID_TYPE);
   }
-  
-  //fprintf(stderr, "[Clay] Exec %s\n", function[i].name);
-  
+
+  // exec function  
   int status_result = 0;
   switch (i) {
     case CLAY_FUNCTION_FISSION:
@@ -422,6 +429,7 @@ prototype is: %s\n",
       break;
   }
   
+  // check errors
   if (status_result != CLAY_SUCCESS) {
     clay_parser_print_error(status_result);
   }
@@ -495,7 +503,7 @@ void clay_parser_print_error(int status_result) {
       exit(CLAY_ERROR_DEPTH_OUTER);
       break;
     case CLAY_ERROR_VECTOR_EMPTY:
-      fprintf(stderr,"[Clay] Error: line %d, the vector empty\n",
+      fprintf(stderr,"[Clay] Error: line %d, the vector is empty\n",
               clay_scanner_line);
       exit(CLAY_ERROR_VECTOR_EMPTY);
       break;

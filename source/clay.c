@@ -84,6 +84,7 @@ int main(int argc, char * argv[]) {
     clay_beta_normalize(scop);
   }
   
+  // do nothing if the scop is NULL
   if (scop != NULL) {
     // Read the script file
     if (options->input_script) {

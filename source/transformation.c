@@ -1271,8 +1271,10 @@ int clay_peel(osl_scop_p scop,
  */
 int clay_context(osl_scop_p scop, clay_array_p vector, 
                  clay_options_p options) {
-  if (scop->context->nb_parameters != vector->size-1)
-      return CLAY_ERROR_VECTOR;
+  if (vector->size < 2)
+    return CLAY_ERROR_VECTOR;
+  if (scop->context->nb_parameters != vector->size-2)
+    return CLAY_ERROR_VECTOR;
   
   osl_relation_p context;
   int row;
@@ -1284,8 +1286,13 @@ int clay_context(osl_scop_p scop, clay_array_p vector,
   row = context->nb_rows;
   osl_relation_insert_blank_row(context, row);
   
-  j = 1 + context->nb_output_dims + context->nb_input_dims;
-  for (i = 0 ; i < vector->size ; i++) {
+  osl_int_set_si(precision,
+                 context->m[row], 0,
+                 vector->data[0]);
+  
+  j = 1 + context->nb_output_dims + context->nb_input_dims +
+      context->nb_local_dims;
+  for (i = 1 ; i < vector->size ; i++) {
     osl_int_set_si(precision,
                    context->m[row], j,
                    vector->data[i]);
