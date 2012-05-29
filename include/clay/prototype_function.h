@@ -38,8 +38,9 @@
 #define CLAY_PROTOTYPE_FUNCTION_H
 
 
-#define ARRAY_T     0
-#define INTEGER_T   1
+#define ARRAY_T               0
+#define INTEGER_T             1
+#define ARRAY_OR_INTEGER_T    2
 
 struct clay_prototype_function {
   char *name;

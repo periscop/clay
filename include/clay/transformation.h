@@ -76,6 +76,7 @@ int      clay_tile(osl_scop_p, clay_array_p, int, int, int, int,
 int      clay_shift(osl_scop_p, clay_array_p, int, clay_array_p,
                     clay_options_p);
 int      clay_peel(osl_scop_p, clay_array_p, clay_array_p, int, clay_options_p);
+int      clay_context(osl_scop_p, clay_array_p, clay_options_p);
 
 
 /*****************************************************************************\

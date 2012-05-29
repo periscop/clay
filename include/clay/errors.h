@@ -55,5 +55,6 @@
 #define CLAY_ERROR_IDENT_STMT_NOT_FOUND      16
 #define CLAY_ERROR_IDENT_NAME_NOT_FOUND      17
 #define CLAY_ERROR_INEQU                     18
+#define CLAY_ERROR_VECTOR                    19
 
 #endif

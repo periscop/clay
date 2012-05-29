@@ -939,7 +939,7 @@ int clay_shift(osl_scop_p scop,
   if (depth <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
   if (scop->context->nb_parameters != vector->size-1)
-      return CLAY_ERROR_INEQU;
+      return CLAY_ERROR_VECTOR;
   
   osl_relation_p scattering;
   osl_statement_p statement;
@@ -1099,7 +1099,6 @@ int clay_peel(osl_scop_p scop,
             // an inequation
             if (!osl_int_zero(precision, domain->m[i], 0)) {
             
-            
               // if before : search all the lower bounds
               if((peel_before &&
                   osl_int_pos(precision, domain->m[i], beta_loop->size)) ||
@@ -1108,13 +1107,12 @@ int clay_peel(osl_scop_p scop,
                 
                 // TODO : optimization...
                 
-                scattering = statement->scattering;
                 newscattering = newstatement->scattering;
                 
                 // add an empty line
                 row = scattering->nb_rows;
-                osl_relation_insert_blank_row(scattering, row);
                 osl_relation_insert_blank_row(newscattering, row);
+                osl_relation_insert_blank_row(scattering, row);
                 
                 // copy the current line of the domain into the new line
                 
@@ -1204,7 +1202,7 @@ int clay_peel(osl_scop_p scop,
                 // because we re-oppose after
                 if (!peel_before) {
                     j = 1 + scattering->nb_output_dims;
-                    while (j < 1 + scattering->nb_columns) {
+                    while (j < scattering->nb_columns) {
                       osl_int_oppose(precision,
                                      scattering->m[row], j,
                                      scattering->m[row], j);
@@ -1261,6 +1259,42 @@ int clay_peel(osl_scop_p scop,
     
   return CLAY_SUCCESS;
 }
+
+
+/**
+ * clay_context function:
+ * Add a line to the context
+ * \param[in] scop
+ * \param[in] vector        [param1, param2, ..., 1]
+ * \param[in] options
+ * \return                  Status
+ */
+int clay_context(osl_scop_p scop, clay_array_p vector, 
+                 clay_options_p options) {
+  if (scop->context->nb_parameters != vector->size-1)
+      return CLAY_ERROR_VECTOR;
+  
+  osl_relation_p context;
+  int row;
+  int i, j;
+  int precision;
+  
+  context = scop->context;
+  precision = context->precision;
+  row = context->nb_rows;
+  osl_relation_insert_blank_row(context, row);
+  
+  j = 1 + context->nb_output_dims + context->nb_input_dims;
+  for (i = 0 ; i < vector->size ; i++) {
+    osl_int_set_si(precision,
+                   context->m[row], j,
+                   vector->data[i]);
+    j++;
+  }
+  
+  return CLAY_SUCCESS;
+}  
+
 
 
 /*****************************************************************************\

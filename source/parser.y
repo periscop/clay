@@ -415,6 +415,11 @@ prototype is: %s\n",
                                 0,
                                 clay_parser_options);
       break;
+    case CLAY_FUNCTION_CONTEXT:
+      status_result = clay_context(clay_parser_scop,
+                                   clay_params->args[0], 
+                                   clay_parser_options);
+      break;
   }
   
   if (status_result != CLAY_SUCCESS) {
@@ -508,7 +513,12 @@ void clay_parser_print_error(int status_result) {
       fprintf(stderr,"[Clay] Error: line %d, the inequality or equality seems \
 to be wrong\n",
               clay_scanner_line);
-      exit(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+      exit(CLAY_ERROR_INEQU);
+      break;
+    case CLAY_ERROR_VECTOR:
+      fprintf(stderr,"[Clay] Error: line %d, the vector seems to be wrong\n",
+              clay_scanner_line);
+      exit(CLAY_ERROR_VECTOR);
       break;
   }
 }

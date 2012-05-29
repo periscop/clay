@@ -112,17 +112,9 @@ int main(int argc, char * argv[]) {
         clay_parser_string(scop, clay_tag->script, options);
 
         // remove the extension clay
-        // we don't use osl_generic_free, because we need to remove only one
-        // extension
         last->next = x->next;
-        if (x->interface != NULL) {
-          x->interface->free(x->data);
-          osl_interface_free(x->interface);
-        } else if (x->data != NULL) {
-          OSL_warning("unregistered interface, memory leaks are possible");
-          free(x->data);
-        }
-        free(x);
+        x->next = NULL;
+        osl_generic_free(x);
       }
     }
   }
