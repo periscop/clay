@@ -375,6 +375,14 @@ prototype is: %s\n",
       status_result = clay_unroll(clay_parser_scop,
                                   clay_params->args[0], 
                                   *((int*)clay_params->args[1]),
+                                  1,
+                                  clay_parser_options);
+      break;
+    case CLAY_FUNCTION_UNROLL_NOEPILOG:
+      status_result = clay_unroll(clay_parser_scop,
+                                  clay_params->args[0], 
+                                  *((int*)clay_params->args[1]),
+                                  0,
                                   clay_parser_options);
       break;
     case CLAY_FUNCTION_TILE:
@@ -486,6 +494,12 @@ void clay_parser_print_error(int status_result) {
       break;
     case CLAY_ERROR_IDENT_STMT_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d, the statement was not found\n",
+              clay_scanner_line);
+      exit(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+      break;
+    case CLAY_ERROR_INEQU:
+      fprintf(stderr,"[Clay] Error: line %d, the inequality or equality seems \
+to be wrong\n",
               clay_scanner_line);
       exit(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
       break;

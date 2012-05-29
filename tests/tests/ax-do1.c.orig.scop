@@ -176,8 +176,8 @@ b0 i1 b1 j b2
 </coordinates>
 
 <clay>
-fission(j, 1);
-tile([1, 1], 2, 1, 32, 1);
+fission(S1, 1);
+tile([1, 0], 2, 1, 32, 1);
 fuse([0]);
 </clay>
 

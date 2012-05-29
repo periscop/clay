@@ -43,7 +43,7 @@
 #include <osl/interface.h>
 #include <osl/extensions/clay.h>
 #include <clay/clay.h>
-#include <clay/transformation.h>
+#include <clay/beta.h>
 #include <clay/options.h>
 #include <clay/array.h>
 #include <clay/ident.h>

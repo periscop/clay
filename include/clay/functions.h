@@ -36,19 +36,20 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL        12
+  #define CLAY_FUNCTIONS_TOTAL        13
   
-  #define CLAY_FUNCTION_FISSION       0
-  #define CLAY_FUNCTION_REORDER       1
-  #define CLAY_FUNCTION_INTERCHANGE   2
-  #define CLAY_FUNCTION_REVERSAL      3
-  #define CLAY_FUNCTION_FUSE          4
-  #define CLAY_FUNCTION_SKEW          5
-  #define CLAY_FUNCTION_ISS           6
-  #define CLAY_FUNCTION_STRIPMINE     7
-  #define CLAY_FUNCTION_UNROLL        8
-  #define CLAY_FUNCTION_TILE          9
-  #define CLAY_FUNCTION_SHIFT         10
-  #define CLAY_FUNCTION_PEEL          11
+  #define CLAY_FUNCTION_FISSION         0
+  #define CLAY_FUNCTION_REORDER         1
+  #define CLAY_FUNCTION_INTERCHANGE     2
+  #define CLAY_FUNCTION_REVERSAL        3
+  #define CLAY_FUNCTION_FUSE            4
+  #define CLAY_FUNCTION_SKEW            5
+  #define CLAY_FUNCTION_ISS             6
+  #define CLAY_FUNCTION_STRIPMINE       7
+  #define CLAY_FUNCTION_UNROLL          8
+  #define CLAY_FUNCTION_UNROLL_NOEPILOG 9
+  #define CLAY_FUNCTION_TILE           10
+  #define CLAY_FUNCTION_SHIFT          11
+  #define CLAY_FUNCTION_PEEL           12
 
 #endif

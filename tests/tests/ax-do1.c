@@ -8,8 +8,8 @@ int main()
   /* ax-do kernel */
 #pragma scop
 /* Clay
-fission(j, 1);
-tile([1, 1], 2, 1, 32, 1);
+fission(S1, 1);
+tile([1, 0], 2, 1, 32, 1);
 fuse([0]);
 */
   for (i1=1;i1<=n;i1++) {                 

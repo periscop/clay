@@ -260,7 +260,7 @@ int clay_fission(osl_scop_p scop, clay_array_p beta, int depth,
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
   
-  clay_beta_shift_before(scop->statement, beta, depth);
+  clay_beta_shift_after(scop->statement, beta, depth);
   
   if (options && options->normalize)
     clay_beta_normalize(scop);
@@ -281,8 +281,6 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
               clay_options_p options) {
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
- 
- 
  
   osl_relation_p scattering;
   osl_statement_p statement;
@@ -453,12 +451,16 @@ int clay_iss(osl_scop_p scop,
   precision = statement->scattering->precision;
   
   // decompose the inequation
-  if (beta->size*2-1 == statement->scattering->nb_output_dims)
-    inequ_nb_input_dims = beta->size-1;
-  else
-    inequ_nb_input_dims = beta->size;
-    
-  inequ_nb_parameters = inequ->size - inequ_nb_input_dims - 1;
+  inequ_nb_parameters = scop->context->nb_parameters;
+  inequ_nb_input_dims = inequ->size - 1 - inequ_nb_parameters;
+  
+  if (beta->size*2-1 == statement->scattering->nb_output_dims) {
+    if (inequ_nb_input_dims != beta->size-1)
+      return CLAY_ERROR_INEQU;
+  } else {
+    if (inequ_nb_input_dims != beta->size)
+      return CLAY_ERROR_INEQU;
+  }
 
   // let the place for the splitted loop
   clay_beta_shift_after(scop->statement, beta, beta->size);
@@ -695,11 +697,12 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
  * \param[in] scop
  * \param[in] beta_loop     Loop beta vector
  * \param[in] factor        > 0
+ * \param[in] setepilog     if true the epilog will be added
  * \param[in] options
  * \return                  Status
  */
 int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
-               clay_options_p options) {
+                int setepilog, clay_options_p options) {
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (factor < 1)
@@ -709,7 +712,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   
   osl_relation_p scattering;
   osl_relation_p domain;
-  osl_relation_p epilog_domain;
+  osl_relation_p epilog_domain = NULL;
   osl_statement_p statement;
   osl_statement_p newstatement;
   osl_statement_p original_stmt;
@@ -722,7 +725,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   int i;
   int max; // last value of beta_max
   int order;
-  int order_epilog; // order juste after the beta_loop
+  int order_epilog = 0; // order juste after the beta_loop
   int current_stmt = 0; // counter of statements
   int last_level = -1;
   int current_level;
@@ -758,10 +761,12 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   max = beta_max->data[beta_max->size-1];
   clay_array_free(beta_max);
   
-  // shift to let the place for the epilog loop
-  clay_beta_shift_after(scop->statement, beta_loop, beta_loop->size);
-  order_epilog = beta_loop->data[beta_loop->size-1] + 1;
-  
+  if (setepilog) {
+    // shift to let the place for the epilog loop
+    clay_beta_shift_after(scop->statement, beta_loop, beta_loop->size);
+    order_epilog = beta_loop->data[beta_loop->size-1] + 1;
+  }
+      
   while (statement != NULL) {
     scattering = statement->scattering;
     
@@ -777,28 +782,35 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
       
       CLAY_malloc(replacement, char*, 1 + iterator_size + 1 + 16 + 1 + 1);
       
-      // set the epilog from the original statement
-      epilog_stmt = osl_statement_nclone(original_stmt, 1);
-      row = clay_statement_get_line(original_stmt, column-2);
-      scattering = epilog_stmt->scattering;
-      osl_int_set_si(precision,
-                     scattering->m[row], scattering->nb_columns-1,
-                     order_epilog);
-      
-      epilog_stmt->next = statement->next;
-      statement->next = epilog_stmt;
-      statement = epilog_stmt;
+      if (setepilog) {
+        // set the epilog from the original statement
+        epilog_stmt = osl_statement_nclone(original_stmt, 1);
+        row = clay_statement_get_line(original_stmt, column-2);
+        scattering = epilog_stmt->scattering;
+        osl_int_set_si(precision,
+                       scattering->m[row], scattering->nb_columns-1,
+                       order_epilog);
+        
+        epilog_stmt->next = statement->next;
+        statement->next = epilog_stmt;
+        statement = epilog_stmt;
+      }
       
       // modify the matrix domain
       domain        = original_stmt->domain;
-      epilog_domain = epilog_stmt->domain;
+      
+      if (setepilog) {
+        epilog_domain = epilog_stmt->domain;
+      }
+      
       while (domain != NULL) {
       
         for (i = domain->nb_rows-1 ; i >= 0  ; i--) {
           if (!osl_int_zero(precision, domain->m[i], 0)) {
           
             // remove the lower bound on the epilog statement
-            if(osl_int_pos(precision, domain->m[i], iterator_index+1)) {
+            if(setepilog &&
+               osl_int_pos(precision, domain->m[i], iterator_index+1)) {
               osl_relation_remove_row(epilog_domain, i);
             }
             // remove the upper bound on the original statement
@@ -820,7 +832,9 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
         osl_int_set_si(precision, domain->m[0], iterator_index+1, 1);
         
         domain        = domain->next;
-        epilog_domain = epilog_domain->next;
+        
+        if (setepilog)
+          epilog_domain = epilog_domain->next;
       }
       
       // clone factor-1 times the original statement
@@ -924,6 +938,8 @@ int clay_shift(osl_scop_p scop,
     return CLAY_ERROR_VECTOR_EMPTY;
   if (depth <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
+  if (scop->context->nb_parameters != vector->size-1)
+      return CLAY_ERROR_INEQU;
   
   osl_relation_p scattering;
   osl_statement_p statement;
@@ -1020,6 +1036,8 @@ int clay_peel(osl_scop_p scop,
     return CLAY_ERROR_BETA_EMPTY;
   if (peeling->size == 0)
     return CLAY_SUCCESS;
+  if (scop->context->nb_parameters != peeling->size-1)
+      return CLAY_ERROR_INEQU;
   
   osl_relation_p scattering, domain, newscattering;
   osl_statement_p statement;

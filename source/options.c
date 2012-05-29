@@ -61,7 +61,7 @@ void clay_options_list_functions() {
   int i;
   printf(
   "Available functions:\n\n"
-  "  ident syntax:\n"
+  "  ident type:\n"
   "    array:   [n1, n2, ...]\n"
   "             Refers to a beta vector, loop or statement\n"
   "    Sn:      where n >= 1\n"

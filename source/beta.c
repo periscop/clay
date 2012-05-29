@@ -49,6 +49,8 @@
  * \param[in] scop
  */
 void clay_beta_normalize(osl_scop_p scop) {
+  if (!scop)
+    return;
   
   osl_statement_p sout;
   osl_relation_p scattering;
