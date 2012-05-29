@@ -111,7 +111,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   peel([0], [0,-5], 1);
+   peel_before([0], [0,-5]);
 </clay>
 
 </OpenScop>

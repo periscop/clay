@@ -19,7 +19,7 @@ int clay_function_unroll_type[]          =  {ARRAY_T, INTEGER_T};
 int clay_function_tile_type[]            =  {ARRAY_T, INTEGER_T, INTEGER_T,
                                              INTEGER_T, INTEGER_T};
 int clay_function_shift_type[]           =  {ARRAY_T, INTEGER_T, ARRAY_T};
-int clay_function_peel_type[]            =  {ARRAY_T, ARRAY_T, INTEGER_T};
+int clay_function_peel_type[]            =  {ARRAY_T, ARRAY_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -74,7 +74,11 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_shift_type, 3, 3
   },
   {
-    "peel",       "peel(ident_loop, array peeling, bool peel_before)",
-    NULL, clay_function_peel_type, 3, 3
+    "peel_before", "peel_before(ident_loop, array peeling)",
+    NULL, clay_function_peel_type, 2, 2
+  },
+  {
+    "peel_after", "peel_after(ident_loop, array peeling)",
+    NULL, clay_function_peel_type, 2, 2
   }
 };
