@@ -44,6 +44,7 @@
 #include <osl/extensions/clay.h>
 #include <clay/clay.h>
 #include <clay/beta.h>
+#include <clay/betatree.h>
 #include <clay/options.h>
 #include <clay/array.h>
 #include <clay/ident.h>
@@ -119,7 +120,7 @@ int main(int argc, char * argv[]) {
       }
     }
   }
-
+  
   osl_scop_print(stdout, scop);
   osl_scop_free(scop);
   clay_options_free(options);

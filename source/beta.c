@@ -129,7 +129,7 @@ clay_array_p clay_beta_get(osl_statement_p statement) {
 
   osl_relation_p scattering = statement->scattering;
   clay_array_p beta = clay_array_malloc();
-  int i, j,  row, tmp;
+  int i, j, row, tmp;
   int last_column = scattering->nb_columns-1;
   int precision = scattering->precision;
   
@@ -142,9 +142,11 @@ clay_array_p clay_beta_get(osl_statement_p statement) {
         if (!osl_int_zero(precision, scattering->m[i], j)) {
           // line and column are corrects
           if (clay_scattering_check_zeros(statement, i, j)) {
-            row = clay_statement_get_line(statement, i);
+            row = clay_statement_get_line(statement, j-1);
+           
             tmp = osl_int_get_si(scattering->precision, 
                                  scattering->m[row], last_column);
+
             clay_array_add(beta, tmp);
             break;
           }
@@ -561,6 +563,7 @@ bool clay_beta_check(osl_statement_p statement, clay_array_p beta) {
     
     j += 2;
   }
+
   return 1;
 }
 

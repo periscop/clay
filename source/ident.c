@@ -40,7 +40,9 @@
 #include <clay/macros.h>
 #include <clay/array.h>
 #include <clay/beta.h>
-#include <clay/transformation.h>
+#include <clay/betatree.h>
+#include <clay/util.h>
+#include <clay/ident.h>
 
 
 /**
@@ -104,7 +106,7 @@ clay_array_p clay_ident_find_iterator(osl_scop_p scop, char *iter) {
     return NULL;
   }
   
-  while ((i = clay_statement_iterator_find(sout, iter)) == -1) {
+  while ((i = clay_util_statement_find_iterator(sout, iter)) == -1) {
     clay_array_free(beta_last);
     beta_last = beta;
     beta = clay_beta_next(scop->statement, beta_last, &sout);
@@ -129,12 +131,78 @@ clay_array_p clay_ident_find_iterator(osl_scop_p scop, char *iter) {
 
 /**
  * clay_ident_find_loop function:
- * Search the corresponding beta of the `ident'th loop
+ * Search the `ident'th loop
+ * /!\ Assume that all nodes are sorted in ascending order 
  * \param[in] scop
  * \param[in] ident       >= 1
  * \return
  */
-clay_array_p clay_ident_find_loop(osl_scop_p scop, int ident) {
+clay_array_p clay_ident_find_loop(clay_betatree_p tree, int ident) {
+  int *count;
+  clay_array_p beta;
+  
+  CLAY_malloc(count, int*, sizeof(int));
+  *count = 0;
+  
+  beta = clay_ident_find_loop_aux(tree, ident, count);
+  free(count);
+  
+  return beta;
+}
+
+
+/**
+ * clay_ident_find_loop_aux function:
+ * Required by clay_ident_find_loop
+ */
+clay_array_p clay_ident_find_loop_aux(clay_betatree_p tree, int ident,
+                                      int *count) {
+  
+  if (tree->nbnodes == 0 || ident < 0)
+    return NULL;
+  
+  if (*count > ident) {
+    free(count);
+    return NULL;
+  }
+  
+  int i;
+  clay_betatree_p node;
+  clay_array_p beta;
+  clay_array_p beta_rest;
+  
+  beta = clay_array_malloc();
+  
+  // if we are not at the root (the root has no value)
+  if (*count != 0)
+    clay_array_add(beta, tree->value);
+
+  // OK the beta is found
+  if (*count == ident)
+    return beta;
+  
+  (*count)++;
+  
+  // TODO : we need to sort the nodes before
+  // No problems for now because when we create a tree from a scop, the nodes
+  // are sorted by ascending order
+  for (i = 0 ; i < tree->nbnodes ; i++) {
+    node = tree->nodes[i];
+    
+    // get the rest of the branch
+    // if not null, we have found the `ident'th loop
+    beta_rest = clay_ident_find_loop_aux(node, ident, count);
+    
+    if (beta_rest != NULL) {
+      clay_array_concat(beta, beta_rest);
+      clay_array_free(beta_rest);
+      return beta;
+    }
+    
+    clay_array_free(beta_rest);
+  }
+  
+  clay_array_free(beta);
   
   return NULL;
 }

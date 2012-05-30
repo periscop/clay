@@ -39,6 +39,8 @@
 
 #define CLAY_ARRAY_INIT_SIZE 10
 
+#include <stdio.h>
+
 struct clay_array {
   int *data;
   int size; // memory used
@@ -54,6 +56,7 @@ void              clay_array_add(clay_array_p, int);
 void              clay_array_free(clay_array_p);
 void              clay_array_print(FILE*, clay_array_p);
 clay_array_p      clay_array_clone(clay_array_p);
+void              clay_array_concat(clay_array_p, clay_array_p);
 
 
 #endif

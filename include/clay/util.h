@@ -32,87 +32,23 @@
  | Clay, the Chunky Loop Alteration wizardrY                                |
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
- 
-
-%{
-  #include <parser.h>
-  #include <clay/array.h>
-  #include <clay/prototype_function.h>
-
-  void        clay_scanner_free();
-  void        clay_scanner_initialize();
-  
-  int         clay_scanner_line;
-  
-  extern clay_prototype_function_p  clay_params;
-
-%}
 
 
-%option noyywrap
-%option noinput
-%option nounput
-SEPARATOR [ \t]*
+#ifndef CLAY_UTIL_H
+#define CLAY_UTIL_H
 
-%%
+#ifndef bool
+#define bool short
+#endif
 
-{SEPARATOR}#(.|{SEPARATOR})*\n {
-                     clay_scanner_line++;
-                     return COMMENT;
-                   }
+#include <clay/array.h>
+#include <osl/statement.h>
+#include <osl/extensions/scatnames.h>
 
--?[0-9]+           {
-                     yylval.ival = atoi(yytext);
-                     return INTEGER;
-                   }
+void  clay_util_statement_insert_inequation(osl_statement_p, clay_array_p,
+                                            int, int);
+bool  clay_util_scatnames_exists(osl_scatnames_p, char*);
+char* clay_util_string_replace(char*, char*, char*);
+int   clay_util_statement_find_iterator(osl_statement_p, char*);
 
-S[0-9]+            {
-                     yylval.ival = atoi(yytext+1);
-                     return IDENT_STMT;
-                   }
-
-L[0-9]+            {
-                     yylval.ival = atoi(yytext+1);
-                     return IDENT_LOOP;
-                   }
-
-[a-zA-Z_][a-zA-Z0-9_]* {
-                     yylval.sval = strdup(yytext);
-                     return IDENT_NAME;
-                   }
-
-{SEPARATOR}        { ; }
-\[                 {
-                     clay_array_p tmp = clay_array_malloc();
-                     clay_prototype_function_args_add(clay_params, tmp, ARRAY_T);
-                     return '[';
-                   }
-                   
-\n                 { clay_scanner_line++; }
-.                  { return yytext[0]; }
-
-%%
-
-
-/**
- * clay_scanner_free function:
- * this function frees the memory allocated for the scanner. It frees
- * flex's buffer (it supposes there is only one buffer) since flex does
- * never free it itself.
- * WARNING: this is probably *not* portable...
- */
-void clay_scanner_free() {
-  yy_delete_buffer(YY_CURRENT_BUFFER);
-  free(yy_buffer_stack);
-}
-
-/**
- * clay_scanner_initialize function:
- * this function initialises the scanner global variables with default values.
- */
-void clay_scanner_initialize() {
-  yy_flush_buffer(YY_CURRENT_BUFFER);
-  clay_scanner_line = 1;
-}
-
-
+#endif

@@ -45,22 +45,6 @@
 #include <clay/options.h>
 
 
-#ifndef bool
-#define bool short
-#endif
-
-
-
-// used by the normalize function
-#define CLAY_TRANSFORMATIONS_MAX_BETA_SIZE 20
-
-
-
-
-/*****************************************************************************\
- *                     Loop transformations                                   *
- `****************************************************************************/
-
 int      clay_fission(osl_scop_p, clay_array_p, int, clay_options_p);
 int      clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
 int      clay_interchange(osl_scop_p, clay_array_p, int, int, clay_options_p);
@@ -77,16 +61,6 @@ int      clay_shift(osl_scop_p, clay_array_p, int, clay_array_p,
                     clay_options_p);
 int      clay_peel(osl_scop_p, clay_array_p, clay_array_p, int, clay_options_p);
 int      clay_context(osl_scop_p, clay_array_p, clay_options_p);
-
-
-/*****************************************************************************\
- *                     Other operations                                       *
- `****************************************************************************/
-
-void  clay_statement_insert_inequation(osl_statement_p, clay_array_p, int, int);
-bool  clay_scatnames_exists(osl_scatnames_p, char*);
-char* clay_string_replace(char*, char*, char*);
-int   clay_statement_iterator_find(osl_statement_p, char*);
 
 
 #endif

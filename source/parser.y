@@ -91,6 +91,7 @@
 %token <ival> INTEGER
 %token <sval> IDENT_NAME 
 %token <ival> IDENT_STMT
+%token <ival> IDENT_LOOP
 %token COMMENT
 
 %start start
@@ -166,6 +167,32 @@ args:
       }
       clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
       free($3);
+    }
+  | // Lnum
+    IDENT_LOOP
+    {
+      // create the tree
+      // we need to recompute it because after each function the tree changes
+      clay_betatree_p tree = clay_betatree_create(clay_parser_scop);
+      clay_parser_beta = clay_ident_find_loop(tree, $1);
+      if (!clay_parser_beta) {
+        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+      }
+      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
+      clay_betatree_free(tree);
+    }
+  |
+    args ',' IDENT_LOOP
+    {
+      // create the tree
+      // we need to recompute it because after each function the tree changes
+      clay_betatree_p tree = clay_betatree_create(clay_parser_scop);
+      clay_parser_beta = clay_ident_find_loop(tree, $3);
+      if (!clay_parser_beta) {
+        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+      }
+      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
+      clay_betatree_free(tree);
     }
   | // default beta vector
     args ',' array

@@ -120,3 +120,17 @@ clay_array_p clay_array_clone(clay_array_p arr) {
   return newarr;
 }
 
+
+/**
+ * clay_array_concat function: 
+ * a1 = a1 + a2
+ * \param[in] a1
+ * \param[in] a2
+ */
+void clay_array_concat(clay_array_p a1, clay_array_p a2) {
+  int i;
+  for (i = 0 ; i < a2->size ; i++) {
+    clay_array_add(a1, a2->data[i]);
+  }
+}
+

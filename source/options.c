@@ -66,6 +66,9 @@ void clay_options_list_functions() {
   "             Refers to a beta vector, loop or statement\n"
   "    Sn:      where n >= 1\n"
   "             Refers to the `n'th statement\n"
+  "    Ln:      where n >= 0\n"
+  "             Refers to the `n'th loop\n"
+  "             Special case : L0 <=> []\n"
   "    string:  Iterator name of loop\n\n");
   
   for (i = 0 ; i < CLAY_FUNCTIONS_TOTAL ; i++) {

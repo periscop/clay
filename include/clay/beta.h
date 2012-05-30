@@ -37,6 +37,7 @@
 #ifndef CLAY_BETA_H
 #define CLAY_BETA_H
 
+#include <osl/scop.h>
 #include <osl/statement.h>
 #include <clay/array.h>
 

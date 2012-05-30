@@ -41,7 +41,6 @@
 #include <osl/body.h>
 #include <osl/strings.h>
 #include <osl/util.h>
-#include <osl/extensions/scatnames.h>
 #include <osl/statement.h>
 #include <osl/relation.h>
 #include <clay/transformation.h>
@@ -50,6 +49,7 @@
 #include <clay/options.h>
 #include <clay/errors.h>
 #include <clay/beta.h>
+#include <clay/util.h>
 
 
 /*****************************************************************************\
@@ -201,7 +201,7 @@ int clay_interchange(osl_scop_p scop,
     return CLAY_ERROR_BETA_NOT_FOUND;
   if (statement->scattering->nb_output_dims == 1)
     return CLAY_ERROR_DEPTH_OVERFLOW;
-    
+  
   // if it's a statement, the depth must be strictly less than the beta size
   if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
       (depth_1 >= beta->size || 
@@ -217,6 +217,7 @@ int clay_interchange(osl_scop_p scop,
   precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
+  
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
 
@@ -483,8 +484,8 @@ int clay_iss(osl_scop_p scop,
       if (inequ->size <= 1 + scattering->nb_input_dims + 
                                                     scattering->nb_parameters) {
 
-        clay_statement_insert_inequation(statement, inequ, inequ_nb_input_dims,
-                                         inequ_nb_parameters);
+        clay_util_statement_insert_inequation(statement, inequ,
+                  inequ_nb_input_dims, inequ_nb_parameters);
         
         row = scattering->nb_rows-1; // last inserted line
         
@@ -538,6 +539,12 @@ int clay_iss(osl_scop_p scop,
  */
 int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size, 
                    int pretty, clay_options_p options) {
+  
+  // WIP : bug with 2 stripmines at the following
+  
+  
+  //printf("____\n");
+  
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (size <= 0)
@@ -559,11 +566,32 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
   char *new_var_iter;
   char *new_var_beta;
   
+  
+  
+ // printf("depth %d column %d\n", depth, column);
+  
+  
+  
   statement = clay_beta_find(statement, beta);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
   if (statement->scattering->nb_output_dims < 3)
     return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+  
+  
+  
+ // osl_statement_p tmp ;
+  
+  /*
+  tmp= statement->next;
+  statement->next = NULL;
+  osl_statement_dump(stdout, statement);
+  statement->next = tmp;
+  
+  */
+  
+  
+  
   
   if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
       depth >= beta->size)
@@ -584,6 +612,8 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       // set the strip mine
       row = clay_statement_get_line(statement, column);
       
+  //    printf("%d %d\n", column, row);
+      
       osl_relation_insert_blank_column(scattering, column+1);
       osl_relation_insert_blank_column(scattering, column+1);
 
@@ -596,12 +626,28 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       osl_int_set_si(precision, scattering->m[row+2], column+2, size);
       osl_int_set_si(precision, scattering->m[row+2], scattering->nb_columns-1, 
                      size-1);
-                     
+      
       osl_int_set_si(precision, scattering->m[row+1], 0, 1);
       osl_int_set_si(precision, scattering->m[row+2], 0, 1);
       
       iter_column = CLAY_min(beta->size, scattering->nb_input_dims) + 
                     scattering->nb_output_dims + 2;
+
+  /*    printf("%d %d\n", beta->size, scattering->nb_input_dims);
+      printf("%d\n", scattering->nb_output_dims);
+ 
+      printf("iter : %d\n", iter_column);
+     */
+/*   tmp = statement->next;
+  statement->next = NULL;
+  osl_statement_dump(stdout, statement);
+  statement->next = tmp;
+  */
+  
+//  printf("123\n");
+  
+  
+  
       osl_int_set_si(precision, scattering->m[row+1], iter_column, 1);
       osl_int_set_si(precision, scattering->m[row+2], iter_column, -1);
       
@@ -616,7 +662,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
                      scattering->nb_columns-1, 0);
     
     } else if (pretty && column < scattering->nb_output_dims) {
-      
+    //  printf("other\n");
       // add 2 empty dimensions
       row = clay_statement_get_line(statement, column);
       
@@ -642,6 +688,9 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
     statement = statement->next;
   }
   
+  
+  
+  
   // get the list of scatnames
   scat = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
   names = scat->names;
@@ -652,7 +701,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
     sprintf(buffer, "__%s%s%d", names->string[column+1],
             names->string[column+1], i);
     i++;
-  } while (clay_scatnames_exists(scat, buffer));
+  } while (clay_util_scatnames_exists(scat, buffer));
   new_var_iter = strdup(buffer);
   
   // generate beta variable name
@@ -660,7 +709,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
   do {
     sprintf(buffer, "__b%d", i);
     i++;
-  } while (clay_scatnames_exists(scat, buffer));
+  } while (clay_util_scatnames_exists(scat, buffer));
   new_var_beta = strdup(buffer);
   
   // insert the two variables
@@ -853,7 +902,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
         
         // update the body
         sprintf(replacement, "(%s+%d)", iterator[0], i+1);
-        newexpression = clay_string_replace(substitution, replacement,
+        newexpression = clay_util_string_replace(substitution, replacement,
                                             substitued);
         newbody = ((osl_body_p) newstatement->body->data);
         free(newbody->expression->string[0]);
@@ -911,6 +960,7 @@ int clay_tile(osl_scop_p scop,
   
   int ret;
   ret = clay_stripmine(scop, beta, depth, size, pretty, options);
+  
   if (ret == CLAY_SUCCESS) {
     ret = clay_interchange(scop, beta, depth, depth_outer, options);
   }
@@ -1301,148 +1351,3 @@ int clay_context(osl_scop_p scop, clay_array_p vector,
   
   return CLAY_SUCCESS;
 }  
-
-
-
-/*****************************************************************************\
- *                     Other operations                                       *
- `****************************************************************************/
-
-
-/* 
- * clay_statement_insert_inequation function:
- * Insert a new inequation at the end of the scattering
- * \param[in] statement          Satement to split
- * \param[in] inequ              [iter1, iter2, ..., param1, param2, ..., const]
- * \param[in] nb_input_dims      Nb input dims in the array
- * \param[in] nb_params          Nb params in the array
- */
-void clay_statement_insert_inequation(osl_statement_p statement,
-            clay_array_p inequ, int nb_input_dims, int nb_params) {
-  
-  osl_relation_p scattering = statement->scattering;
-  int row = scattering->nb_rows;
-  int i, j;
-  int precision = scattering->precision;
-  
-  // insert the inequation spliting (local dims are not in the inequation)
-  // (at the end)
-  osl_relation_insert_blank_row(scattering, row);
-  osl_int_set_si(precision, scattering->m[row], 0, 1); // type inequation
-  
-  // affects input_dims
-  i = scattering->nb_output_dims+1;
-  for (j = 0 ; j < nb_input_dims ; j++) {
-    osl_int_set_si(precision,
-                   scattering->m[row], i,
-                   inequ->data[j]);
-    i++;
-  }
-  // affects parameters
-  i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
-      scattering->nb_local_dims;
-  for (; j < nb_params + nb_input_dims ; j++) {
-    osl_int_set_si(precision,
-                   scattering->m[row], i,
-                   inequ->data[j]);
-    i++;
-  }
-  // set the constant
-  osl_int_set_si(precision,
-                 scattering->m[row], scattering->nb_columns-1,
-                 inequ->data[inequ->size-1]);
-}
-
-
-/* 
- * clay_string_replace function:
- * Search and replace a string with another string , in a string
- * Minor modifications from :
- * http://www.binarytides.com/blog/str_replace-for-c/
- * \param[in] search
- * \param[in] replace
- * \param[in] subject
- */
-char* clay_string_replace(char *search, char *replace, char *string) {
-	char  *ptr = NULL , *old = NULL , *new_string = NULL ;
-	int count = 0 , search_size;
-	
-	search_size = strlen(search);
-
-	// Count how many occurences
-	for(ptr = strstr(string , search) ; ptr != NULL ; 
-	    ptr = strstr(ptr + search_size , search)) {
-		count++;
-	}
-	
-	// Final size
-	count = (strlen(replace) - search_size)*count + strlen(string) + 1;
-	new_string = calloc(count, 1);
-
-	// The start position
-	old = string;
-
-	for(ptr = strstr(string, search) ; ptr != NULL ;
-	    ptr = strstr(ptr + search_size, search)) {
-		// move ahead and copy some text from original subject , from a
-		// certain position
-		strncpy(new_string + strlen(new_string), old , ptr - old);
-
-		// move ahead and copy the replacement text
-		strcpy(new_string + strlen(new_string) , replace);
-
-		// The new start position after this search match
-		old = ptr + search_size;
-	}
-
-	// Copy the part after the last search match
-	strcpy(new_string + strlen(new_string) , old);
-
-	return new_string;
-}
-
-
-/**
- * clay_scatnames_exists_iterator_iterator function:
- * Return true if the iterator name is already in the scattering.
- * \param[in] scattering
- * \return
- */
-bool clay_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
-  osl_strings_p names = scatnames->names;
-  if (names == NULL || names->string[0] == NULL)
-    return 0;
-  
-  char **ptr = names->string;
-  
-  while (*ptr != NULL) {
-    if (strcmp(*ptr, iter) == 0)
-      return 1;
-    ptr++;
-  }
-  
-  return 0;
-}
-
-
-/**
- * clay_statement_iterator_find function:
- * Return the index if iter is found in the original iterators list.
- * \param[in] scop
- * \param[in] iter       name of the original iterator we want to search
- * \return
- */
-int clay_statement_iterator_find(osl_statement_p statement, char *iter) {
-  osl_body_p body = (osl_body_p) statement->body->data;
-  char **ptr = body->iterators->string;
-  int i = 0;
-  
-  while (*ptr != NULL) {
-    if (strcmp(*ptr, iter) == 0)
-      return i;
-    ptr++;
-    i++;
-  }
-
-  return -1;
-}
