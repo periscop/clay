@@ -101,7 +101,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./unitary/peel_after.c
+./unitary/peel_last_nochanges.c
 # Starting line
 1
 # Ending line
@@ -111,7 +111,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   peel_after([0], [0,5]);
+   peel_last([0], [0,-5]);
 </clay>
 
 </OpenScop>

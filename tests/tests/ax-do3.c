@@ -8,7 +8,7 @@ int main()
   /* ax-do kernel */
 #pragma scop
 /* Clay
-fission(j, 1);
+split(j, 1);
 stripmine(j, 2, 32, 1);
 */
   for (i1=1;i1<=n;i1++) {                 

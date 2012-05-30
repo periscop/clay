@@ -60,11 +60,11 @@ TEST_FILES = \
 UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/empty_code.c \
 	$(top_srcdir)/tests/unitary/empty_script.c \
-	$(top_srcdir)/tests/unitary/fission_loop1.c \
-	$(top_srcdir)/tests/unitary/fission_nothing_before.c \
-	$(top_srcdir)/tests/unitary/fission_statement1.c \
-	$(top_srcdir)/tests/unitary/fission_statement2.c \
-	$(top_srcdir)/tests/unitary/fission_statement3.c \
+	$(top_srcdir)/tests/unitary/split_loop1.c \
+	$(top_srcdir)/tests/unitary/split_nothing_before.c \
+	$(top_srcdir)/tests/unitary/split_statement1.c \
+	$(top_srcdir)/tests/unitary/split_statement2.c \
+	$(top_srcdir)/tests/unitary/split_statement3.c \
 	$(top_srcdir)/tests/unitary/fuse.c \
 	$(top_srcdir)/tests/unitary/fuse_diff_domain.c \
 	$(top_srcdir)/tests/unitary/fuse_nothing_after.c \
@@ -105,17 +105,17 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/shift_loop1.c \
 	$(top_srcdir)/tests/unitary/shift_loop2.c \
 	$(top_srcdir)/tests/unitary/shift_statement.c \
-	$(top_srcdir)/tests/unitary/peel_before.c \
-	$(top_srcdir)/tests/unitary/peel_before_nochanges.c \
-	$(top_srcdir)/tests/unitary/peel_after.c \
-	$(top_srcdir)/tests/unitary/peel_after_nochanges.c \
+	$(top_srcdir)/tests/unitary/peel_first.c \
+	$(top_srcdir)/tests/unitary/peel_first_nochanges.c \
+	$(top_srcdir)/tests/unitary/peel_last.c \
+	$(top_srcdir)/tests/unitary/peel_last_nochanges.c \
 	$(top_srcdir)/tests/unitary/context.c
 	
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \
-	$(top_srcdir)/tests/must_fail/fission_overflow_loop.c \
-	$(top_srcdir)/tests/must_fail/fission_overflow_statement.c \
+	$(top_srcdir)/tests/must_fail/split_overflow_loop.c \
+	$(top_srcdir)/tests/must_fail/split_overflow_statement.c \
 	$(top_srcdir)/tests/must_fail/interchange_overflow_loop.c \
 	$(top_srcdir)/tests/must_fail/interchange_overflow_statement2.c \
 	$(top_srcdir)/tests/must_fail/interchange_overflow_statement.c \

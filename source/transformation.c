@@ -241,7 +241,7 @@ int clay_interchange(osl_scop_p scop,
 
 
 /**
- * clay_fission function:
+ * clay_split function:
  * Split the loop in two parts at the `depth'th level from the statement
  * \param[in] scop
  * \param[in] beta          Beta vector
@@ -249,8 +249,8 @@ int clay_interchange(osl_scop_p scop,
  * \param[in] options
  * \return                  Status
  */
-int clay_fission(osl_scop_p scop, clay_array_p beta, int depth,
-                 clay_options_p options) {
+int clay_split(osl_scop_p scop, clay_array_p beta, int depth,
+               clay_options_p options) {
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (beta->size <= 1 || depth <= 0 || depth >= beta->size)

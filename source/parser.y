@@ -295,11 +295,19 @@ void clay_parser_exec_function(char *name) {
     i++;
   }
   
-  // Undefined function
   if (i == CLAY_FUNCTIONS_TOTAL) {
+    // check if an alias exists
+    if (strcmp(name, "fission") == 0) {
+      i = CLAY_FUNCTION_SPLIT;
+    } else if (strcmp(name, "distribute") == 0) {
+      i = CLAY_FUNCTION_SPLIT;
+    } else if (strcmp(name, "merge") == 0) {
+      i = CLAY_FUNCTION_FUSE;
+    } else { // Undefined function
       fprintf(stderr, "[Clay] Error: line %d, unknown function `%s'\n", 
               clay_scanner_line, name);
       exit(CLAY_ERROR_UNKNOWN_FUNCTION);
+    }
   }
   
   // Different number of parameters
@@ -354,11 +362,11 @@ prototype is: %s\n",
   // exec function  
   int status_result = 0;
   switch (i) {
-    case CLAY_FUNCTION_FISSION:
-      status_result = clay_fission(clay_parser_scop, 
-                                   clay_params->args[0], 
-                                   *((int*)clay_params->args[1]),
-                                   clay_parser_options);
+    case CLAY_FUNCTION_SPLIT:
+      status_result = clay_split(clay_parser_scop, 
+                                 clay_params->args[0], 
+                                 *((int*)clay_params->args[1]),
+                                 clay_parser_options);
       break;
     case CLAY_FUNCTION_REORDER:
       status_result = clay_reorder(clay_parser_scop, 
@@ -435,14 +443,14 @@ prototype is: %s\n",
                                  clay_params->args[2], 
                                  clay_parser_options);
       break;
-    case CLAY_FUNCTION_PEEL_BEFORE:
+    case CLAY_FUNCTION_PEEL_FIRST:
       status_result = clay_peel(clay_parser_scop,
                                 clay_params->args[0], 
                                 clay_params->args[1],
                                 1,
                                 clay_parser_options);
       break;
-    case CLAY_FUNCTION_PEEL_AFTER:
+    case CLAY_FUNCTION_PEEL_LAST:
       status_result = clay_peel(clay_parser_scop,
                                 clay_params->args[0], 
                                 clay_params->args[1],

@@ -6,7 +6,7 @@
 // Authorized functions in Clay
 
 
-int clay_function_fission_type[]         =  {ARRAY_T, INTEGER_T};
+int clay_function_split_type[]           =  {ARRAY_T, INTEGER_T};
 int clay_function_reorder_type[]         =  {ARRAY_T, ARRAY_T};
 int clay_function_interchange_type[]     =  {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_reversal_type[]        =  {ARRAY_T, INTEGER_T};
@@ -28,8 +28,8 @@ int clay_function_context_type[]         =  {ARRAY_T};
 const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] = 
 {
   {
-    "fission",     "fission(ident, uint depth)",
-    NULL, clay_function_fission_type, 2, 2
+    "split",       "split(ident, uint depth)",
+    NULL, clay_function_split_type, 2, 2
   },
   {
     "reorder",     "reorder(ident_loop, array order)",
@@ -76,11 +76,11 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_shift_type, 3, 3
   },
   {
-    "peel_before", "peel_before(ident_loop, array|int peeling)",
+    "peel_first", "peel_first(ident_loop, array|int peeling)",
     NULL, clay_function_peel_type, 2, 2
   },
   {
-    "peel_after", "peel_after(ident_loop, array|int peeling)",
+    "peel_last",  "peel_last(ident_loop, array|int peeling)",
     NULL, clay_function_peel_type, 2, 2
   },
   {

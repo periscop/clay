@@ -45,7 +45,7 @@
 #include <clay/options.h>
 
 
-int      clay_fission(osl_scop_p, clay_array_p, int, clay_options_p);
+int      clay_split(osl_scop_p, clay_array_p, int, clay_options_p);
 int      clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
 int      clay_interchange(osl_scop_p, clay_array_p, int, int, clay_options_p);
 int      clay_reversal(osl_scop_p, clay_array_p, int, clay_options_p);

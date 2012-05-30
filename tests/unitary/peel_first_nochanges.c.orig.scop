@@ -54,9 +54,9 @@ N
 DOMAIN
 3 4 1 0 0 1
 # e/i|  i |  N |  1  
-   1    1    0    0    ## i >= 0
-   1   -1    1    0    ## -i+N >= 0
-   1    0    1    0    ## N >= 0
+   1    1    0  -10    ## i-10 >= 0
+   1   -1    1   -8    ## -i+N-8 >= 0
+   1    0    1  -18    ## N-18 >= 0
 
 # ----------------------------------------------  1.2 Scattering
 SCATTERING
@@ -101,7 +101,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./unitary/fission_nothing_before.c
+./unitary/peel_first_nochanges.c
 # Starting line
 1
 # Ending line
@@ -111,7 +111,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   fission([0,0], 1);
+   peel_first([0], [0,5]);
 </clay>
 
 </OpenScop>

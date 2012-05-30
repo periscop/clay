@@ -306,7 +306,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/fission_loop1.c
+./unitary/split_statement3.c
 # Starting line
 1
 # Ending line
@@ -316,7 +316,7 @@ b0 i b1 j b2
 </coordinates>
 
 <clay>
-   fission([0,1], 1);
+   split([0,1,1], 2);
 </clay>
 
 </OpenScop>

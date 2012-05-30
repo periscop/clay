@@ -94,7 +94,7 @@ a=0;
 </coordinates>
 
 <clay>
-   iss([0,0], 3, 1);
+   iss(S1, [3]);
 </clay>
 
 </OpenScop>

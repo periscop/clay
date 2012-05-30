@@ -278,7 +278,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/fission_statement2.c
+./unitary/split_statement2.c
 # Starting line
 1
 # Ending line

@@ -181,7 +181,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./must_fail/fission_overflow_statement.c
+./must_fail/split_overflow_statement.c
 # Starting line
 1
 # Ending line
@@ -191,7 +191,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   fission([0,1], 2);
+   split([0,1], 2);
 </clay>
 
 </OpenScop>

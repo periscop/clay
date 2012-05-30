@@ -163,9 +163,9 @@ DOMAIN
 SCATTERING
 3 8 3 1 0 2
 # e/i| c1   c2   c3 |  i |  N    M |  1  
-   0   -1    0    0    0    0    0    1    ## c1 == 1
+   0   -1    0    0    0    0    0    0    ## c1 == 0
    0    0   -1    0    1    0    0    0    ## c2 == i
-   0    0    0   -1    0    0    0    0    ## c3 == 0
+   0    0    0   -1    0    0    0    2    ## c3 == 2
 
 # ----------------------------------------------  4.3 Access
 WRITE
@@ -204,7 +204,7 @@ SCATTERING
 # e/i| c1   c2   c3 |  i |  N    M |  1  
    0   -1    0    0    0    0    0    1    ## c1 == 1
    0    0   -1    0    1    0    0    0    ## c2 == i
-   0    0    0   -1    0    0    0    1    ## c3 == 1
+   0    0    0   -1    0    0    0    0    ## c3 == 0
 
 # ----------------------------------------------  5.3 Access
 WRITE
@@ -278,7 +278,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/fission_loop1.c
+./unitary/split_statement1.c
 # Starting line
 1
 # Ending line

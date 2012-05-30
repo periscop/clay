@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   fission([0,1], 2);
+   split([0,1,1], 2);
 */
 for(i = 0 ; i <= N ; i++) {
   a[i] = 0;
@@ -9,5 +9,7 @@ for(i = 0 ; i <= N ; i++) {
     c[i][j] = 0;
   }
   d[i] = 0;
+  e[i] = 0;
 }
+f = 0;
 #pragma endscop

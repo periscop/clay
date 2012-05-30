@@ -176,7 +176,7 @@ b0 i1 b1 j b2
 </coordinates>
 
 <clay>
-fission(j, 1);
+split(j, 1);
 stripmine(j, 2, 32, 1);
 </clay>
 
