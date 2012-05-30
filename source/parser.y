@@ -474,10 +474,8 @@ prototype is: %s\n",
 
 
 /**
- * clay_ident_find_loop function:
- * Search the corresponding beta of the `ident'th loop
- * \param[in] scop
- * \param[in] ident       >= 1
+ * clay_parser_print_error function:
+ * \param[in] status
  * \return
  */
 void clay_parser_print_error(int status_result) {

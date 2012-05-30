@@ -540,11 +540,6 @@ int clay_iss(osl_scop_p scop,
 int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size, 
                    int pretty, clay_options_p options) {
   
-  // WIP : bug with 2 stripmines at the following
-  
-  
-  //printf("____\n");
-  
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (size <= 0)
@@ -559,39 +554,17 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
   int column = (depth-1)*2;
   int precision;
   int row, row_next;
-  int iter_column;
   int i;
   int nb_strings;
   char buffer[OSL_MAX_STRING];
   char *new_var_iter;
   char *new_var_beta;
   
-  
-  
- // printf("depth %d column %d\n", depth, column);
-  
-  
-  
   statement = clay_beta_find(statement, beta);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
   if (statement->scattering->nb_output_dims < 3)
     return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
-  
-  
-  
- // osl_statement_p tmp ;
-  
-  /*
-  tmp= statement->next;
-  statement->next = NULL;
-  osl_statement_dump(stdout, statement);
-  statement->next = tmp;
-  
-  */
-  
-  
-  
   
   if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
       depth >= beta->size)
@@ -612,8 +585,6 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       // set the strip mine
       row = clay_statement_get_line(statement, column);
       
-  //    printf("%d %d\n", column, row);
-      
       osl_relation_insert_blank_column(scattering, column+1);
       osl_relation_insert_blank_column(scattering, column+1);
 
@@ -621,35 +592,20 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       osl_relation_insert_blank_row(scattering, column);
       osl_relation_insert_blank_row(scattering, column);
       
+      // stripmine
       osl_int_set_si(precision, scattering->m[row+0], column+1, -1);
       osl_int_set_si(precision, scattering->m[row+1], column+2, -size);
       osl_int_set_si(precision, scattering->m[row+2], column+2, size);
       osl_int_set_si(precision, scattering->m[row+2], scattering->nb_columns-1, 
                      size-1);
       
+      // inequality
       osl_int_set_si(precision, scattering->m[row+1], 0, 1);
       osl_int_set_si(precision, scattering->m[row+2], 0, 1);
       
-      iter_column = CLAY_min(beta->size, scattering->nb_input_dims) + 
-                    scattering->nb_output_dims + 2;
-
-  /*    printf("%d %d\n", beta->size, scattering->nb_input_dims);
-      printf("%d\n", scattering->nb_output_dims);
- 
-      printf("iter : %d\n", iter_column);
-     */
-/*   tmp = statement->next;
-  statement->next = NULL;
-  osl_statement_dump(stdout, statement);
-  statement->next = tmp;
-  */
-  
-//  printf("123\n");
-  
-  
-  
-      osl_int_set_si(precision, scattering->m[row+1], iter_column, 1);
-      osl_int_set_si(precision, scattering->m[row+2], iter_column, -1);
+      // iterator dependance
+      osl_int_set_si(precision, scattering->m[row+1], column+4, 1);
+      osl_int_set_si(precision, scattering->m[row+2], column+4, -1);
       
       scattering->nb_output_dims += 2;
       
@@ -662,7 +618,6 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
                      scattering->nb_columns-1, 0);
     
     } else if (pretty && column < scattering->nb_output_dims) {
-    //  printf("other\n");
       // add 2 empty dimensions
       row = clay_statement_get_line(statement, column);
       
@@ -672,6 +627,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       osl_relation_insert_blank_row(scattering, column);
       osl_relation_insert_blank_row(scattering, column);
       
+      // -Identity
       osl_int_set_si(precision, scattering->m[row], column+1, -1);
       osl_int_set_si(precision, scattering->m[row+1], column+2, -1);
       
@@ -687,9 +643,6 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
     }
     statement = statement->next;
   }
-  
-  
-  
   
   // get the list of scatnames
   scat = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
@@ -1058,7 +1011,7 @@ int clay_shift(osl_scop_p scop,
  * \param[in] scop
  * \param[in] beta_loop         Loop beta vector
  * \param[in] peeling array     [param1, param2, ..., const]
- * \param[in] peel_before       1 : peel before
+ * \param[in] peel_first        1 : peel first
 
                                     // new cloned loop
                                     for (i= 0 ; i <= start + peeling - 1 ; i++)
@@ -1067,7 +1020,7 @@ int clay_shift(osl_scop_p scop,
                                     for (i = start + peeling ; i <= N ; i++) 
                                       S(i);
 
-                                0 : peel after  
+                                0 : peel last  
 
                                     // new cloned loop
                                     for (i = 0 ; i <= end - peeling - 1 ; i++)
@@ -1079,7 +1032,7 @@ int clay_shift(osl_scop_p scop,
  * \return                      Status
  */
 int clay_peel(osl_scop_p scop, 
-              clay_array_p beta_loop, clay_array_p peeling, int peel_before,
+              clay_array_p beta_loop, clay_array_p peeling, int peel_first,
               clay_options_p options) {
 
   if (beta_loop->size == 0)
@@ -1124,7 +1077,7 @@ int clay_peel(osl_scop_p scop,
                     order, 0);
   
   // oppose the vector if we want to peel after the loop
-  if (!peel_before) {
+  if (!peel_first) {
     for (i = 0 ; i < peeling->size ; i++) {
       peeling->data[i] = -peeling->data[i];
     }
@@ -1150,9 +1103,9 @@ int clay_peel(osl_scop_p scop,
             if (!osl_int_zero(precision, domain->m[i], 0)) {
             
               // if before : search all the lower bounds
-              if((peel_before &&
+              if((peel_first &&
                   osl_int_pos(precision, domain->m[i], beta_loop->size)) ||
-                 (!peel_before &&
+                 (!peel_first &&
                   osl_int_neg(precision, domain->m[i], beta_loop->size))) {
                 
                 // TODO : optimization...
@@ -1250,7 +1203,7 @@ int clay_peel(osl_scop_p scop,
                 // and we want : i >= N, so we oppose the line
                 // TODO : not optimized, we can copy first on the newstatement
                 // because we re-oppose after
-                if (!peel_before) {
+                if (!peel_first) {
                     j = 1 + scattering->nb_output_dims;
                     while (j < scattering->nb_columns) {
                       osl_int_oppose(precision,

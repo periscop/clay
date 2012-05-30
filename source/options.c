@@ -69,7 +69,7 @@ void clay_options_list_functions() {
   "    Ln:      where n >= 0\n"
   "             Refers to the `n'th loop\n"
   "             Special case : L0 <=> []\n"
-  "    string:  Iterator name of loop\n\n");
+  "    string:  Original iterator name of a loop\n\n");
   
   for (i = 0 ; i < CLAY_FUNCTIONS_TOTAL ; i++) {
     printf("  %s\n", functions[i].prototype);
