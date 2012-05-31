@@ -90,10 +90,10 @@ void clay_options_help() {
   "\nGeneral options:\n"
   "  --script <file>       Input script file. If not given the script is from\n"
   "                        the scop structure.\n"
-  "  --nonormalize         Specify to not normalize after each functions\n"
-  "                        The normalization is done at the beginning and at the"
-  "                        end of the following functions : reorder, fission,\n"
-  "                        fuse, iss, strimine, and unroll\n"
+  "  --nonormalize         Don't normalize the scop.\n"
+  "                        The normalization is done when clay begins and at the\n"
+  "                        end of the following functions : reorder, split,\n"
+  "                        fuse, iss, strimine, and unroll.\n"
   "  --list                List all the available functions.\n"
   "  -v, --version         Display the release information.\n"
   "  -h, --help            Display this help.\n\n");
@@ -108,12 +108,11 @@ void clay_options_help() {
 /**
  * clay_options_version function:
  * This function displays some version informations when the user set the
- * option -version while calling clay. Prints are cut to respect the 509
+ * option --version while calling clay. Prints are cut to respect the 509
  * characters limitation of the ISO C 89 compilers.
  */
 void clay_options_version() {
-  printf("Clay %s ", CLAY_VERSION);
-  printf("       Chunky Loop Alteration wizardrY\n");
+  printf("Clay %s       Chunky Loop Alteration wizardrY\n", CLAY_VERSION);
   printf(
   "For any information, please send an email to the author\n"
   "Joel Poudroux <joel.poudroux@u-psud.fr>.\n");
