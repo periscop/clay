@@ -69,6 +69,11 @@
 int clay_reorder(osl_scop_p scop, 
                   clay_array_p beta_loop, clay_array_p neworder,
                   clay_options_p options) {
+
+  /* Description:
+   * Modify the beta in function of the values in the neworder array.
+   */
+
   osl_relation_p scattering;
   osl_statement_p statement;
   int precision;
@@ -127,6 +132,11 @@ int clay_reorder(osl_scop_p scop,
  */
 int clay_reversal(osl_scop_p scop, clay_array_p beta, int depth,
                   clay_options_p options) {
+ 
+  /* Description:
+   * Oppose the output_dims column at the `depth'th level.
+   */
+  
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (depth <= 0) 
@@ -182,6 +192,10 @@ int clay_reversal(osl_scop_p scop, clay_array_p beta, int depth,
 int clay_interchange(osl_scop_p scop, 
                       clay_array_p beta, int depth_1, int depth_2,
                       clay_options_p options) {
+  /* Description:
+   * Swap the two output_dims columns.
+   */
+
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (depth_1 <= 0 || depth_2 <= 0) 
@@ -251,6 +265,11 @@ int clay_interchange(osl_scop_p scop,
  */
 int clay_split(osl_scop_p scop, clay_array_p beta, int depth,
                clay_options_p options) {
+
+  /* Description:
+   * Add one on the beta at the `depth'th level.
+   */
+
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (beta->size <= 1 || depth <= 0 || depth >= beta->size)
@@ -274,12 +293,17 @@ int clay_split(osl_scop_p scop, clay_array_p beta, int depth,
  * clay_fuse function:
  * Fuse loop with the first loop after
  * \param[in] scop
- * \param[in] beta_vector   Loop beta vector
+ * \param[in] beta_loop     Loop beta vector
  * \param[in] options
  * \return                  Status
  */
 int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
               clay_options_p options) {
+
+  /* Description:
+   * Set the same beta (only at the level of the beta_loop) on the next loop.
+   */
+
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
  
@@ -353,6 +377,12 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
 int clay_skew(osl_scop_p scop, 
               clay_array_p beta, int depth, int coeff,
               clay_options_p options) {
+
+  /* Description:
+   * Add a dependance (with the loop at the `depth' level) on an output_dim
+   * column.
+   */
+
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (depth <= 0)
@@ -427,6 +457,11 @@ int clay_skew(osl_scop_p scop,
 int clay_iss(osl_scop_p scop, 
              clay_array_p beta, clay_array_p inequ,
              clay_options_p options) {
+
+  /* Description:
+   * Add the inequality for each statements corresponding to the beta.
+   */
+
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (inequ->size == 0)
@@ -533,13 +568,19 @@ int clay_iss(osl_scop_p scop,
  * \param[in] beta          Beta vector (loop or statement)
  * \param[in] size          Block size of the inner loop
  * \param[in] pretty        If true, clay will keep the variables name
- *                          /!\ It takes much more computing 
  * \param[in] options
  * \return                  Status
  */
 int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size, 
                    int pretty, clay_options_p options) {
   
+  /* Description:
+   * Add two inequality for the stripmining.
+   * The new dependance with the loop is done on an output_dim.
+   * If pretty is true, we add for each statements (not only the beta) two
+   * output_dims (one for the iterator and one for the 2*n+1).
+   */
+
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (size <= 0)
@@ -705,6 +746,12 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
  */
 int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
                 int setepilog, clay_options_p options) {
+
+  /* Description:
+   * Clone statements in the beta_loop, and recreate the body.
+   * Generate an epilog where the lower bound was removed.
+   */
+
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (factor < 1)
@@ -902,6 +949,11 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
 int clay_tile(osl_scop_p scop, 
               clay_array_p beta, int depth, int depth_outer, int size,
               int pretty, clay_options_p options) {
+
+  /* Description:
+   * stripmine + interchange
+   */
+
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (size <= 0)
@@ -935,6 +987,11 @@ int clay_tile(osl_scop_p scop,
 int clay_shift(osl_scop_p scop, 
                clay_array_p beta, int depth, clay_array_p vector,
                clay_options_p options) {
+
+  /* Description:
+   * Add a vector on each statements.
+   */
+
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
   if (vector->size == 0)
@@ -942,7 +999,7 @@ int clay_shift(osl_scop_p scop,
   if (depth <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
   if (scop->context->nb_parameters != vector->size-1)
-      return CLAY_ERROR_VECTOR;
+    return CLAY_ERROR_VECTOR;
   
   osl_relation_p scattering;
   osl_statement_p statement;
@@ -1034,6 +1091,11 @@ int clay_shift(osl_scop_p scop,
 int clay_peel(osl_scop_p scop, 
               clay_array_p beta_loop, clay_array_p peeling, int peel_first,
               clay_options_p options) {
+
+  /* Description:
+   * The peeling function looks like the iss function.
+   * We add or substract the vector on the lower or upper bound.
+   */
 
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
@@ -1274,6 +1336,11 @@ int clay_peel(osl_scop_p scop,
  */
 int clay_context(osl_scop_p scop, clay_array_p vector, 
                  clay_options_p options) {
+
+  /* Description:
+   * Add a new line in the context matrix.
+   */
+
   if (vector->size < 2)
     return CLAY_ERROR_VECTOR;
   if (scop->context->nb_parameters != vector->size-2)
