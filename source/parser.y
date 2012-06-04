@@ -283,9 +283,9 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
  * \param[in] name        function name
  */
 void clay_parser_exec_function(char *name) {
-  int i, j, k;
-  int val;
-  clay_array_p tmp;
+  int i, j;
+  int scop_nb_params = clay_parser_scop->context->nb_parameters;
+  int peel_first; // special variable for PEEL_AUTO
   
   // search the function name
   i = 0;
@@ -324,27 +324,11 @@ prototype is: %s\n",
   while (j < functions[i].argc) {
     
     if (functions[i].type[j] == ARRAY_OR_INTEGER_T) {
-      
-      // convert INTEGER_T to ARRAY_T
-      switch(clay_params->type[j]) {
-        case INTEGER_T:
-          tmp = clay_array_malloc();
-          for (k = 0 ; k < clay_parser_scop->context->nb_parameters ; k++) {
-            clay_array_add(tmp, 0);
-          }
-          
-          val = *((int*)clay_params->args[j]);
-          clay_array_add(tmp, val);
-          
-          free(clay_params->args[j]);
-          clay_params->args[j] = tmp;
-          
-          clay_params->type[j] = ARRAY_T;
-          break;
-      }
+      // convert the integer into array
+      clay_prototype_function_conv_int2array(clay_params, j, scop_nb_params);
       
     } else if (clay_params->type[j] != functions[i].type[j]) {
-      break;
+      break; // error
     }
     
     j++;
@@ -442,6 +426,19 @@ prototype is: %s\n",
                                  *((int*)clay_params->args[1]),
                                  clay_params->args[2], 
                                  clay_parser_options);
+      break;
+    case CLAY_FUNCTION_PEEL_AUTO:
+    
+      peel_first = *((int*)clay_params->args[1]) < 0;
+      clay_prototype_function_conv_int2array(clay_params,
+                                             1,
+                                             scop_nb_params);
+
+      status_result = clay_peel(clay_parser_scop,
+                                clay_params->args[0], 
+                                clay_params->args[1],
+                                peel_first,
+                                clay_parser_options);
       break;
     case CLAY_FUNCTION_PEEL_FIRST:
       status_result = clay_peel(clay_parser_scop,

@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL        15
+  #define CLAY_FUNCTIONS_TOTAL         16
   
   #define CLAY_FUNCTION_SPLIT           0
   #define CLAY_FUNCTION_REORDER         1
@@ -50,8 +50,9 @@
   #define CLAY_FUNCTION_UNROLL_NOEPILOG 9
   #define CLAY_FUNCTION_TILE           10
   #define CLAY_FUNCTION_SHIFT          11
-  #define CLAY_FUNCTION_PEEL_FIRST     12
-  #define CLAY_FUNCTION_PEEL_LAST      13
-  #define CLAY_FUNCTION_CONTEXT        14
+  #define CLAY_FUNCTION_PEEL_AUTO      12
+  #define CLAY_FUNCTION_PEEL_FIRST     13
+  #define CLAY_FUNCTION_PEEL_LAST      14
+  #define CLAY_FUNCTION_CONTEXT        15
   
 #endif

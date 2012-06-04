@@ -9,7 +9,7 @@
 int clay_function_split_type[]           =  {ARRAY_T, INTEGER_T};
 int clay_function_reorder_type[]         =  {ARRAY_T, ARRAY_T};
 int clay_function_interchange_type[]     =  {ARRAY_T, INTEGER_T, INTEGER_T};
-int clay_function_reverse_type[]         =  {ARRAY_T, INTEGER_T};
+int clay_function_reverse_type[]        =  {ARRAY_T, INTEGER_T};
 int clay_function_fuse_type[]            =  {ARRAY_T};
 int clay_function_skew_type[]            =  {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_iss_type[]             =  {ARRAY_T, ARRAY_T};
@@ -20,7 +20,8 @@ int clay_function_tile_type[]            =  {ARRAY_T, INTEGER_T, INTEGER_T,
                                              INTEGER_T, INTEGER_T};
 int clay_function_shift_type[]           =  {ARRAY_T, INTEGER_T,
                                              ARRAY_OR_INTEGER_T};
-int clay_function_peel_type[]            =  {ARRAY_T, ARRAY_OR_INTEGER_T};
+int clay_function_peel_int_type[]        =  {ARRAY_T, INTEGER_T};
+int clay_function_peel_type[]            =  {ARRAY_T, ARRAY_T};
 int clay_function_context_type[]         =  {ARRAY_T};
 
 
@@ -76,11 +77,15 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_shift_type, 3, 3
   },
   {
-    "peel_first", "peel_first(ident_loop, array|int peeling)",
+    "peel",       "peel(ident_loop, int peeling)",
+    NULL, clay_function_peel_int_type, 2, 2
+  },
+  {
+    "peel_first", "peel_first(ident_loop, array peeling)",
     NULL, clay_function_peel_type, 2, 2
   },
   {
-    "peel_last",  "peel_last(ident_loop, array|int peeling)",
+    "peel_last",  "peel_last(ident_loop, array peeling)",
     NULL, clay_function_peel_type, 2, 2
   },
   {

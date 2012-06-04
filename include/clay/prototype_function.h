@@ -37,7 +37,6 @@
 #ifndef CLAY_PROTOTYPE_FUNCTION_H
 #define CLAY_PROTOTYPE_FUNCTION_H
 
-
 #define ARRAY_T               0
 #define INTEGER_T             1
 #define ARRAY_OR_INTEGER_T    2
@@ -61,5 +60,9 @@ void              clay_prototype_function_args_add(clay_prototype_function_p,
                                                    void*, int);
 void              clay_prototype_function_args_clear(clay_prototype_function_p);
 
+void              clay_prototype_function_conv_int2array(
+                                                clay_prototype_function_p,
+                                                int,
+                                                int);
   
 #endif

@@ -110,3 +110,38 @@ void clay_prototype_function_free(clay_prototype_function_p f) {
   free(f->type);
   free(f);
 }
+
+
+
+/**
+ * clay_prototype_function_conv_int2array function: 
+ * Convert the `index'th arg into a clay_array_p
+ * If size == 3 and f->arg[index] == 8:
+ * result = [0,0,0,8]
+ * \param[in] function structure
+ */
+void  clay_prototype_function_conv_int2array(clay_prototype_function_p f,
+                                             int index,
+                                             int size) {
+  clay_array_p tmp;
+  int i, val;
+  
+  if (f->type[index] == INTEGER_T) {
+    
+    tmp = clay_array_malloc();
+    for (i = 0 ; i < size ; i++) {
+      clay_array_add(tmp, 0);
+    }
+    
+    val = *((int*)f->args[index]);
+    clay_array_add(tmp, val);
+    
+    free(f->args[index]);
+    f->args[index] = tmp;
+    
+    f->type[index] = ARRAY_T;
+    
+    
+    clay_array_print(stderr, f->args[index]);
+  }
+}
