@@ -123,15 +123,15 @@ int clay_reorder(osl_scop_p scop,
 
 
 /**
- * clay_reversal function:
+ * clay_reverse function:
  * Reverse the direction of the loop
  * \param[in] scop
  * \param[in] beta          Beta vector
  * \param[in] options
  * \return                  Status
  */
-int clay_reversal(osl_scop_p scop, clay_array_p beta, int depth,
-                  clay_options_p options) {
+int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
+                 clay_options_p options) {
  
   /* Description:
    * Oppose the output_dims column at the `depth'th level.

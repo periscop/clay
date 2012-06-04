@@ -241,7 +241,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/reversal_loop2.c
+./unitary/reverse_statement1.c
 # Starting line
 1
 # Ending line
@@ -251,7 +251,7 @@ b0 i b1 j b2
 </coordinates>
 
 <clay>
-   reversal([0,1], 2);
+   reverse([0,1,1], 2);
 </clay>
 
 </OpenScop>

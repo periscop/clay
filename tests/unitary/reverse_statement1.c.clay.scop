@@ -213,7 +213,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/reversal_statement1.c
+./unitary/reverse_statement1.c
 # Starting line
 1
 # Ending line

@@ -100,7 +100,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./must_fail/reversal_overflow_statement.c
+./must_fail/reverse_overflow_statement.c
 # Starting line
 1
 # Ending line
@@ -110,7 +110,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   reversal([0,0], 2);
+   reverse([0,0], 2);
 </clay>
 
 </OpenScop>

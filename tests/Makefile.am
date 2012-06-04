@@ -88,10 +88,10 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/reorder_nochanges.c \
 	$(top_srcdir)/tests/unitary/reorder_simple.c \
 	$(top_srcdir)/tests/unitary/reorder_swap_loops.c \
-	$(top_srcdir)/tests/unitary/reversal_loop1.c \
-	$(top_srcdir)/tests/unitary/reversal_loop2.c \
-	$(top_srcdir)/tests/unitary/reversal_statement1.c \
-	$(top_srcdir)/tests/unitary/reversal_statement2.c \
+	$(top_srcdir)/tests/unitary/reverse_loop1.c \
+	$(top_srcdir)/tests/unitary/reverse_loop2.c \
+	$(top_srcdir)/tests/unitary/reverse_statement1.c \
+	$(top_srcdir)/tests/unitary/reverse_statement2.c \
 	$(top_srcdir)/tests/unitary/skew_loop1.c \
 	$(top_srcdir)/tests/unitary/skew_loop2.c \
 	$(top_srcdir)/tests/unitary/skew_statement1.c \
@@ -122,8 +122,8 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/interchange_overflow_statement.c \
 	$(top_srcdir)/tests/must_fail/iss_not_in_a_loop.c \
 	$(top_srcdir)/tests/must_fail/reorder_array_too_small.c \
-	$(top_srcdir)/tests/must_fail/reversal_overflow_loop.c \
-	$(top_srcdir)/tests/must_fail/reversal_overflow_statement.c \
+	$(top_srcdir)/tests/must_fail/reverse_overflow_loop.c \
+	$(top_srcdir)/tests/must_fail/reverse_overflow_statement.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_loop.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement2.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement.c \

@@ -9,7 +9,7 @@
 int clay_function_split_type[]           =  {ARRAY_T, INTEGER_T};
 int clay_function_reorder_type[]         =  {ARRAY_T, ARRAY_T};
 int clay_function_interchange_type[]     =  {ARRAY_T, INTEGER_T, INTEGER_T};
-int clay_function_reversal_type[]        =  {ARRAY_T, INTEGER_T};
+int clay_function_reverse_type[]         =  {ARRAY_T, INTEGER_T};
 int clay_function_fuse_type[]            =  {ARRAY_T};
 int clay_function_skew_type[]            =  {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_iss_type[]             =  {ARRAY_T, ARRAY_T};
@@ -40,8 +40,8 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
     NULL, clay_function_interchange_type, 3, 3
   },
   {
-    "reversal",    "reversal(ident, uint depth)",
-    NULL, clay_function_reversal_type, 2, 2
+    "reverse",     "reverse(ident, uint depth)",
+    NULL, clay_function_reverse_type, 2, 2
   },
   {
     "fuse",        "fuse(ident_loop)",

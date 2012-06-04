@@ -41,7 +41,7 @@
   #define CLAY_FUNCTION_SPLIT           0
   #define CLAY_FUNCTION_REORDER         1
   #define CLAY_FUNCTION_INTERCHANGE     2
-  #define CLAY_FUNCTION_REVERSAL        3
+  #define CLAY_FUNCTION_REVERSE         3
   #define CLAY_FUNCTION_FUSE            4
   #define CLAY_FUNCTION_SKEW            5
   #define CLAY_FUNCTION_ISS             6

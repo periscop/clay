@@ -381,11 +381,11 @@ prototype is: %s\n",
                                        *((int*)clay_params->args[2]),
                                        clay_parser_options);
       break;
-    case CLAY_FUNCTION_REVERSAL:
-      status_result = clay_reversal(clay_parser_scop, 
-                                    clay_params->args[0],
+    case CLAY_FUNCTION_REVERSE:
+      status_result = clay_reverse(clay_parser_scop, 
+                                   clay_params->args[0],
                                    *((int*)clay_params->args[1]),
-                                    clay_parser_options);
+                                   clay_parser_options);
       break;
     case CLAY_FUNCTION_FUSE:
       status_result = clay_fuse(clay_parser_scop,
