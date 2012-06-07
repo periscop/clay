@@ -49,18 +49,18 @@
  * clay_ident_find_stmt function:
  * Search the corresponding beta of the `ident'th statement
  * \param[in] scop
- * \param[in] ident       >= 1
+ * \param[in] ident       >= 0
  * \return
  */
 clay_array_p clay_ident_find_stmt(osl_scop_p scop, int ident) {
   
-  if (ident <= 0)
+  if (ident < 0)
     return NULL;
   
   osl_statement_p sout;
   clay_array_p beta;
   clay_array_p beta_last;
-  int i = 1;
+  int i = 0;
   
   beta_last = clay_array_malloc(); // empty beta
   beta = clay_beta_next(scop->statement, beta_last, &sout);
