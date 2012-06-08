@@ -111,7 +111,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   shift([0], 1, [0,1]);
+   shift([0], 1, 1);
 </clay>
 
 </OpenScop>

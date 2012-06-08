@@ -98,7 +98,7 @@ int clay_reorder(osl_scop_p scop,
     if (clay_beta_check(statement, beta_loop)) {
     
       scattering = statement->scattering;
-      row = clay_statement_get_line(statement, column);
+      row = clay_relation_get_line(scattering, column);
       
       // get the beta value
       index = osl_int_get_si(precision,
@@ -336,13 +336,13 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
         if (column < scattering->nb_output_dims) {
         
           // Set the loop level
-          row = clay_statement_get_line(statement, column-2);
+          row = clay_relation_get_line(scattering, column-2);
           osl_int_set_si(precision, 
                          scattering->m[row], scattering->nb_columns-1, 
                          beta_loop->data[depth-1]);
 
           // Reorder the statement
-          row = clay_statement_get_line(statement, column);
+          row = clay_relation_get_line(scattering, column);
           osl_int_add_si(precision,
                          scattering->m[row], scattering->nb_columns-1,
                          scattering->m[row], scattering->nb_columns-1,
@@ -433,7 +433,7 @@ int clay_skew(osl_scop_p scop,
       matrix = scattering->m;
       iter_column = depth + scattering->nb_output_dims;
       
-      row = clay_statement_get_line(statement, column_beta);
+      row = clay_relation_get_line(scattering, column_beta);
       osl_int_add_si(precision, 
                      matrix[row], iter_column,
                      matrix[row], iter_column,
@@ -503,7 +503,7 @@ int clay_iss(osl_scop_p scop,
 
   // init new order value for the new loop
   scattering = statement->scattering;
-  row = clay_statement_get_line(statement, column); // parent loop line
+  row = clay_relation_get_line(scattering, column); // parent loop line
   order = osl_int_malloc(precision);
   osl_int_assign(precision,
                  order, 0,
@@ -538,7 +538,7 @@ int clay_iss(osl_scop_p scop,
 
         // the current statement is after the new statement
         scattering = statement->scattering;
-        row = clay_statement_get_line(statement, column);
+        row = clay_relation_get_line(scattering, column);
         osl_int_assign(precision,
                  scattering->m[row], scattering->nb_columns-1,
                  order, 0);
@@ -624,7 +624,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
     if (clay_beta_check(statement, beta)) {
       
       // set the strip mine
-      row = clay_statement_get_line(statement, column);
+      row = clay_relation_get_line(scattering, column);
       
       osl_relation_insert_blank_column(scattering, column+1);
       osl_relation_insert_blank_column(scattering, column+1);
@@ -651,7 +651,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       scattering->nb_output_dims += 2;
       
       // reorder
-      row_next = clay_statement_get_line(statement, column+2);
+      row_next = clay_relation_get_line(scattering, column+2);
       osl_int_assign(precision, scattering->m[row], scattering->nb_columns-1,
                      scattering->m[row_next], scattering->nb_columns-1);
       
@@ -660,7 +660,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
     
     } else if (pretty && column < scattering->nb_output_dims) {
       // add 2 empty dimensions
-      row = clay_statement_get_line(statement, column);
+      row = clay_relation_get_line(scattering, column);
       
       osl_relation_insert_blank_column(scattering, column+1);
       osl_relation_insert_blank_column(scattering, column+1);
@@ -675,7 +675,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       scattering->nb_output_dims += 2;
       
       // reorder
-      row_next = clay_statement_get_line(statement, column+2);
+      row_next = clay_relation_get_line(scattering, column+2);
       osl_int_assign(precision, scattering->m[row], scattering->nb_columns-1,
                      scattering->m[row_next], scattering->nb_columns-1);
       
@@ -834,7 +834,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
       if (setepilog) {
         // set the epilog from the original statement
         epilog_stmt = osl_statement_nclone(original_stmt, 1);
-        row = clay_statement_get_line(original_stmt, column-2);
+        row = clay_relation_get_line(original_stmt->scattering, column-2);
         scattering = epilog_stmt->scattering;
         osl_int_set_si(precision,
                        scattering->m[row], scattering->nb_columns-1,
@@ -888,7 +888,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
       
       // clone factor-1 times the original statement
      
-      row = clay_statement_get_line(original_stmt, column);
+      row = clay_relation_get_line(original_stmt->scattering, column);
       current_level = osl_int_get_si(scattering->precision, scattering->m[row], 
                                      scattering->nb_columns-1);
       if (last_level != current_level) {
@@ -1033,7 +1033,7 @@ int clay_shift(osl_scop_p scop,
       scattering = statement->scattering;
 
       if (vector->size <= 1 + scattering->nb_parameters) {
-        row = clay_statement_get_line(statement, column);
+        row = clay_relation_get_line(scattering, column);
         
         // affects parameters
         i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
@@ -1128,7 +1128,7 @@ int clay_peel(osl_scop_p scop,
   // init new order value for the new loop
   scattering = statement->scattering;
   
-  row = clay_statement_get_line(statement, column); // parent loop line
+  row = clay_relation_get_line(scattering, column); // parent loop line
   
   order = osl_int_malloc(precision);
   osl_int_assign(precision,
@@ -1303,7 +1303,7 @@ int clay_peel(osl_scop_p scop,
         
         // the current statement is after the new statement
         scattering = statement->scattering;
-        row = clay_statement_get_line(statement, column);
+        row = clay_relation_get_line(scattering, column);
         osl_int_assign(precision,
                  scattering->m[row], scattering->nb_columns-1,
                  order, 0);

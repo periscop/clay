@@ -140,8 +140,5 @@ void  clay_prototype_function_conv_int2array(clay_prototype_function_p f,
     f->args[index] = tmp;
     
     f->type[index] = ARRAY_T;
-    
-    
-    clay_array_print(stderr, f->args[index]);
   }
 }

@@ -39,6 +39,7 @@
 
 #include <osl/scop.h>
 #include <osl/statement.h>
+#include <osl/relation.h>
 #include <clay/array.h>
 
 #ifndef bool
@@ -51,7 +52,7 @@
 // NOTE : a beta is just a clay_array_p
 
 
-int              clay_statement_get_line(osl_statement_p, int);
+int              clay_relation_get_line(osl_relation_p, int);
 bool             clay_statement_is_after(osl_statement_p, clay_array_p);
 bool             clay_statement_is_before(osl_statement_p, clay_array_p);
 

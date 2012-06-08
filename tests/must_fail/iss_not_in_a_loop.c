@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   iss(S1, [3]);
+   iss(S0, [3]);
 */
 a = 0;
 #pragma endscop

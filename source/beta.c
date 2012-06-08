@@ -79,8 +79,8 @@ void clay_beta_normalize(osl_scop_p scop) {
     // set the smallest beta
     for (i = 0 ; i < beta->size ; i++) {
       beta->data[i] = counter_loops[i];
-      row = clay_statement_get_line(sout, i*2);
       scattering = sout->scattering;
+      row = clay_relation_get_line(scattering, i*2);
       osl_int_set_si(scattering->precision, scattering->m[row],
                      scattering->nb_columns-1, counter_loops[i]);
     }
@@ -142,7 +142,7 @@ clay_array_p clay_beta_get(osl_statement_p statement) {
         if (!osl_int_zero(precision, scattering->m[i], j)) {
           // line and column are corrects
           if (clay_scattering_check_zeros(statement, i, j)) {
-            row = clay_statement_get_line(statement, j-1);
+            row = clay_relation_get_line(scattering, j-1);
            
             tmp = osl_int_get_si(scattering->precision, 
                                  scattering->m[row], last_column);
@@ -358,7 +358,7 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
       if (column < scattering->nb_output_dims) {
-        row = clay_statement_get_line(statement, column);
+        row = clay_relation_get_line(scattering, column);
         current_level = osl_int_get_si(scattering->precision,
                                        scattering->m[row],
                                        scattering->nb_columns-1);
@@ -401,7 +401,7 @@ void clay_beta_shift_before(osl_statement_p statement, clay_array_p beta,
       if (clay_beta_check(statement, beta_parent)) {
         scattering = statement->scattering;
         if (column < scattering->nb_output_dims) {
-          row = clay_statement_get_line(statement, column);
+          row = clay_relation_get_line(scattering, column);
           osl_int_increment(precision, 
                             scattering->m[row], scattering->nb_columns-1, 
                             scattering->m[row], scattering->nb_columns-1);
@@ -437,7 +437,7 @@ void clay_beta_shift_after(osl_statement_p statement, clay_array_p beta,
     if (clay_statement_is_after(statement, beta)) {
       scattering = statement->scattering;
       if (column < scattering->nb_output_dims) {
-        row = clay_statement_get_line(statement, column);
+        row = clay_relation_get_line(scattering, column);
         osl_int_increment(precision, 
                           scattering->m[row], scattering->nb_columns-1, 
                           scattering->m[row], scattering->nb_columns-1);
@@ -472,7 +472,7 @@ bool clay_statement_is_before(osl_statement_p statement, clay_array_p beta) {
   tmp = osl_int_malloc(precision);
   
   for (i = 0 ; i < end ; i++) {
-    row = clay_statement_get_line(statement, i*2);
+    row = clay_relation_get_line(scat, i*2);
     osl_int_add_si(precision,
                    tmp, 0,
                    scat->m[row], scat->nb_columns-1,
@@ -614,25 +614,24 @@ bool clay_scattering_check_zeros(osl_statement_p statement, int i, int j) {
 
 
 /**
- * clay_statement_get_line function:
+ * clay_relation_get_line function:
  * Because the lines in the scattering matrix may have not ordered, we have to
  * search the corresponding line. It returns the first line where the value is
  * different from zero in the `column'. `column' is between 0 and 
  * nb_output_dims-1
- * \param[in] statement     Current statement
+ * \param[in] relation
  * \param[in] column        Line to search
  * \return                  Return the real line
  */
-int clay_statement_get_line(osl_statement_p statement, int column) {
-  osl_relation_p scattering = statement->scattering;
-  if (column < 0 || column > scattering->nb_output_dims)
+int clay_relation_get_line(osl_relation_p relation, int column) {
+  if (column < 0 || column > relation->nb_output_dims)
     return -1;
   int i;
-  int precision = scattering->precision;
-  for (i = 0 ; i < scattering->nb_rows ; i++) {
-    if (!osl_int_zero(precision, scattering->m[i], column+1)) {
+  int precision = relation->precision;
+  for (i = 0 ; i < relation->nb_rows ; i++) {
+    if (!osl_int_zero(precision, relation->m[i], column+1)) {
       break;
     }
   }
-  return (i == scattering->nb_rows ? -1 : i );
+  return (i == relation->nb_rows ? -1 : i );
 }
