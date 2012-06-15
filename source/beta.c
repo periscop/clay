@@ -42,6 +42,41 @@
 #include <clay/beta.h>
 
 
+/* 
+ * clay_beta_correct_order function:
+ * The list of statements is reordered to have statements in the right 
+ * order when the scop is printing
+ * \param[in] scop
+ */
+/*void clay_beta_correct_order(osl_scop_p scop) {
+  osl_statement_p sout;
+  osl_statement_p head = NULL;
+  osl_statement_p newlist;
+  clay_array_p beta;
+  clay_array_p beta_next;
+  
+  beta      = clay_array_malloc();
+  beta_next = clay_beta_next(scop->statement, beta, &sout);
+  
+  if (beta_last != NULL) {
+    head = sout;
+    newlist = sout;
+  }
+  
+  while (beta_next != NULL) {
+    newlist = newlist->next;
+    
+    clay_array_free(beta);
+    beta = beta_next;
+    
+    beta_next = clay_beta_next(scop->statement, beta, &sout);
+  }
+  
+  newlist = NULL;
+  
+  clay_array_free(beta);
+}*/
+
 
 /* 
  * clay_beta_normalize function:
@@ -55,10 +90,10 @@ void clay_beta_normalize(osl_scop_p scop) {
   osl_statement_p sout;
   osl_relation_p scattering;
   clay_array_p beta;
-  clay_array_p beta_last;
+  clay_array_p beta_next;
   
   int counter_loops[CLAY_MAX_BETA_SIZE];
-  int i;
+  int i, j;
   int row;
   
   for (i = 0 ; i < CLAY_MAX_BETA_SIZE ; i++) {
@@ -66,55 +101,50 @@ void clay_beta_normalize(osl_scop_p scop) {
   }
   
   // first statement
-  beta_last = clay_array_malloc(); // empty beta
-  beta = clay_beta_next(scop->statement, beta_last, &sout);
-  
-  if (beta == NULL) {
-    clay_array_free(beta_last);
-    return;
-  }
+  beta = clay_array_malloc(); // empty beta
+  beta_next = clay_beta_next(scop->statement, beta, &sout);
   
   // for each statement, we set the smallest beta
-  while (1) {
+  while (beta_next != NULL) {
+    clay_array_free(beta);
+    beta = beta_next;
+    
     // set the smallest beta
-    for (i = 0 ; i < beta->size ; i++) {
-      beta->data[i] = counter_loops[i];
+    for (j = 0 ; j < beta->size ; j++) {
+      //beta->data[i] = counter_loops[j];
       scattering = sout->scattering;
-      row = clay_relation_get_line(scattering, i*2);
+      row = clay_relation_get_line(scattering, j*2);
       osl_int_set_si(scattering->precision, scattering->m[row],
-                     scattering->nb_columns-1, counter_loops[i]);
+                     scattering->nb_columns-1, counter_loops[j]);
     }
     
-    clay_array_free(beta_last);
-    beta_last = beta;
-    beta = clay_beta_next(scop->statement, beta_last, &sout);
+    beta_next = clay_beta_next(scop->statement, beta, &sout);
     
-    if (beta == NULL) {
-      clay_array_free(beta_last);
-      return;
-    }
-    
-    // update the counter array for the next step
+    if (beta_next == NULL)
+      break;
     
     // search the first value wich is greater than the beta_last
     i = 0;
-    while (i < beta->size && i < beta_last->size) {
-      if (beta->data[i] > beta_last->data[i])
+    while (i < beta_next->size && i < beta->size) {
+      if (beta_next->data[i] > beta->data[i])
         break;
       i++;
     }
-    
-    if (i != beta->size)
+
+    // update the counter array for the next step
+    if (i != beta_next->size)
       counter_loops[i]++;
     
     // the rest is set to zero
     i++;
-    while (i < beta_last->size) {
+    while (i < beta->size) {
       counter_loops[i] = 0;
       i++;
     }
     
   }
+  
+  clay_array_free(beta);
 }
 
 
@@ -218,8 +248,8 @@ clay_array_p clay_beta_max(osl_statement_p statement, clay_array_p beta) {
  * Return the beta after the given beta.
  * \param[in] statement     List of statements
  * \param[in] beta          Beta vector
- * \param[in] sout          If not NULL, this is the statement corresponding to 
- *                          the returned beta
+ * \param[in] sout          If not NULL, this is the statement wich corresponds
+ *                          to the returned beta
  * \return
  */
 clay_array_p clay_beta_next(osl_statement_p statement, clay_array_p beta,
@@ -246,12 +276,12 @@ clay_array_p clay_beta_next(osl_statement_p statement, clay_array_p beta,
     if (sout) *sout = NULL;
     return NULL;
   }
-  if (is_statement && 
+  /*if (is_statement && 
       statement->scattering->nb_output_dims < beta_next->size*2-1) {
     clay_array_free(beta_next);
     if (sout) *sout = NULL;
     return NULL;
-  }
+  }*/
 
   // Search if there is an another beta before the beta we have found
   while (statement != NULL) {
