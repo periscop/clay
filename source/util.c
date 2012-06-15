@@ -44,7 +44,7 @@
 /* 
  * clay_util_statement_insert_inequation function:
  * Insert a new inequation at the end of the scattering
- * \param[in] statement          Satement to split
+ * \param[in,out] statement      Satement to split
  * \param[in] inequ              [iter1, iter2, ..., param1, param2, ..., const]
  * \param[in] nb_input_dims      Nb input dims in the array
  * \param[in] nb_params          Nb params in the array

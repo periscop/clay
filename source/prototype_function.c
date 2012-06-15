@@ -58,7 +58,7 @@ clay_prototype_function_p clay_prototype_function_malloc() {
 
 /**
  * clay_prototype_function_args_add function
- * \param[in] function structure
+ * \param[in,out] function structure
  * \param[in] param       Parameter to add in the args
  * \param[in] type        Type of the parameter
  */
@@ -78,7 +78,7 @@ void clay_prototype_function_args_add(clay_prototype_function_p f, void *param,
 /**
  * clay_prototype_function_args_clear function: 
  * Clear all the parameters
- * \param[in] function structure
+ * \param[in,out] function structure
  */
 void clay_prototype_function_args_clear(clay_prototype_function_p f) {
   int i;
@@ -118,7 +118,7 @@ void clay_prototype_function_free(clay_prototype_function_p f) {
  * Convert the `index'th arg into a clay_array_p
  * If size == 3 and f->arg[index] == 8:
  * result = [0,0,0,8]
- * \param[in] function structure
+ * \param[in,out] function structure
  */
 void  clay_prototype_function_conv_int2array(clay_prototype_function_p f,
                                              int index,

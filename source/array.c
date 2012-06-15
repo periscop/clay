@@ -57,7 +57,7 @@ clay_array_p clay_array_malloc() {
 /**
  * clay_array_add function: 
  * Push i at the end of arr
- * \param[in] arr
+ * \param[in,out] arr
  * \param[in] i
  */
 void clay_array_add(clay_array_p arr, int i) {
@@ -85,7 +85,7 @@ void clay_array_free(clay_array_p arr) {
 
 
 /**
- * clay_array_free function: 
+ * clay_array_print function: 
  * Print the array like this : [0,1,2,3,4,5,6]
  * \param[in] out   file where to print
  * \param[in] arr
@@ -108,7 +108,6 @@ void clay_array_print(FILE *out, clay_array_p arr) {
 
 /**
  * clay_array_clone function: 
- * \param[in] out   file where to print
  * \param[in] arr
  */
 clay_array_p clay_array_clone(clay_array_p arr) {
@@ -124,7 +123,7 @@ clay_array_p clay_array_clone(clay_array_p arr) {
 /**
  * clay_array_concat function: 
  * a1 = a1 + a2
- * \param[in] a1
+ * \param[in,out] a1
  * \param[in] a2
  */
 void clay_array_concat(clay_array_p a1, clay_array_p a2) {

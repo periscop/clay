@@ -46,42 +46,51 @@
  * clay_beta_correct_order function:
  * The list of statements is reordered to have statements in the right 
  * order when the scop is printing
- * \param[in] scop
+ * \param[in,out] scop
  */
-/*void clay_beta_correct_order(osl_scop_p scop) {
-  osl_statement_p sout;
-  osl_statement_p head = NULL;
-  osl_statement_p newlist;
+void clay_beta_correct_order(osl_scop_p scop) {
+  if (scop == NULL || scop->statement == NULL || scop->statement->next == NULL)
+    return;
+    
   clay_array_p beta;
-  clay_array_p beta_next;
+  osl_statement_p head = scop->statement;
+  osl_statement_p current;
+  osl_statement_p iter;
+  osl_statement_p tmp;
   
-  beta      = clay_array_malloc();
-  beta_next = clay_beta_next(scop->statement, beta, &sout);
-  
-  if (beta_last != NULL) {
-    head = sout;
-    newlist = sout;
-  }
-  
-  while (beta_next != NULL) {
-    newlist = newlist->next;
-    
+  // Insertion sort
+  tmp = head;
+  while (tmp->next != NULL) {
+    current = tmp->next;
+    beta = clay_beta_get(current);
+    if (!clay_statement_is_before(head, beta)) {
+      tmp->next = current->next;
+      current->next = head;
+      head = current;
+    } else {
+      for (iter = head ; iter != tmp ; iter = iter->next) {
+        if (!clay_statement_is_before(iter->next, beta))
+          break;
+      }
+      if (iter != tmp) {
+        tmp->next = current->next;
+        iter->next = current;
+        current->next = tmp;
+      } else {
+        tmp = tmp->next;
+      }
+    }
     clay_array_free(beta);
-    beta = beta_next;
-    
-    beta_next = clay_beta_next(scop->statement, beta, &sout);
   }
   
-  newlist = NULL;
-  
-  clay_array_free(beta);
-}*/
+  scop->statement = head;
+}
 
 
 /* 
  * clay_beta_normalize function:
  * Normalize all the beta
- * \param[in] scop
+ * \param[in,out] scop
  */
 void clay_beta_normalize(osl_scop_p scop) {
   if (!scop)
@@ -248,7 +257,7 @@ clay_array_p clay_beta_max(osl_statement_p statement, clay_array_p beta) {
  * Return the beta after the given beta.
  * \param[in] statement     List of statements
  * \param[in] beta          Beta vector
- * \param[in] sout          If not NULL, this is the statement wich corresponds
+ * \param[out] sout         If not NULL, this is the statement wich corresponds
  *                          to the returned beta
  * \return
  */
@@ -410,7 +419,7 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
 /**
  * clay_beta_shift_before function:
  * Shift all the statements that are before or on the beta vector
- * \param[in] statement     Statements list
+ * \param[in,out] statement Statements list
  * \param[in] beta          Beta vector 
  * \param[in] depth         Depth level to shift, >= 1
  */
@@ -447,7 +456,7 @@ void clay_beta_shift_before(osl_statement_p statement, clay_array_p beta,
 /**
  * clay_beta_shift_after function:
  * Shift all the statements that are after or on the beta vector
- * \param[in] statement     Statements list
+ * \param[in,out] statement Statements list
  * \param[in] beta          Beta vector 
  * \param[in] depth         Depth level to shift, >= 1
  */

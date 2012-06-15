@@ -60,7 +60,7 @@
 /**
  * clay_reorder function:
  * Reorders the statements in the loop
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta_loop     Loop beta vector
  * \param[in] order         Array to reorder the statements
  * \param[in] options
@@ -125,7 +125,7 @@ int clay_reorder(osl_scop_p scop,
 /**
  * clay_reverse function:
  * Reverse the direction of the loop
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta          Beta vector
  * \param[in] options
  * \return                  Status
@@ -182,7 +182,7 @@ int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
  * `depth_1'th and the `depth_2' are interchanged
  * /!\ If you want to interchange 2 loops, you must give the inner beta loop
  * and not the outer !
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta          Beta vector (inner loop or statement)
  * \param[in] depth_1       >= 1
  * \param[in] depth_2       >= 1
@@ -257,7 +257,7 @@ int clay_interchange(osl_scop_p scop,
 /**
  * clay_split function:
  * Split the loop in two parts at the `depth'th level from the statement
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta          Beta vector
  * \param[in] depth         >= 1
  * \param[in] options
@@ -292,7 +292,7 @@ int clay_split(osl_scop_p scop, clay_array_p beta, int depth,
 /**
  * clay_fuse function:
  * Fuse loop with the first loop after
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta_loop     Loop beta vector
  * \param[in] options
  * \return                  Status
@@ -367,7 +367,7 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
  * clay_skew function:
  * Skew the loop (or statement) from the `depth'th loop
  * (i, j) -> (i, j+i*coeff) where `depth' is the loop of i
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta          Beta vector
  * \param[in] depth         >= 1
  * \param[in] coeff         != 0
@@ -448,7 +448,7 @@ int clay_skew(osl_scop_p scop,
 /**
  * clay_iss function:
  * Split the loop (or statement) depending of an inequation.
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta              Beta vector (loop or statement)
  * \param[in] inequation array  [iter1, iter2, ..., param1, param2, ..., const]
  * \param[in] options
@@ -564,7 +564,7 @@ int clay_iss(osl_scop_p scop,
 /**
  * clay_stripmine function:
  * Decompose a single loop into two nested loop
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta          Beta vector (loop or statement)
  * \param[in] size          Block size of the inner loop
  * \param[in] pretty        If true, clay will keep the variables name
@@ -737,7 +737,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
 /**
  * clay_unroll function:
  * Unroll a loop 
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta_loop     Loop beta vector
  * \param[in] factor        > 0
  * \param[in] setepilog     if true the epilog will be added
@@ -937,7 +937,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
  * Apply a stripmine then an interchange.
  * The stripmine is at the `depth'th level. Next interchange the level `depth'
  * and `depth_outer'
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta          Beta vector
  * \param[in] depth         >=1
  * \param[in] size          >=1
@@ -977,7 +977,7 @@ int clay_tile(osl_scop_p scop,
 /**
  * clay_shift function:
  * Shift the iteration domain
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta          Beta vector (loop or statement)
  * \param[in] depth         >=1
  * \param[in] vector        [params1, params2, ..., const]
@@ -1065,7 +1065,7 @@ int clay_shift(osl_scop_p scop,
 /**
  * clay_peel function:
  * Removes the first or last iteration of the loop into separate code.
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] beta_loop         Loop beta vector
  * \param[in] peeling array     [param1, param2, ..., const]
  * \param[in] peel_first        1 : peel first
@@ -1329,7 +1329,7 @@ int clay_peel(osl_scop_p scop,
 /**
  * clay_context function:
  * Add a line to the context
- * \param[in] scop
+ * \param[in,out] scop
  * \param[in] vector        [param1, param2, ..., 1]
  * \param[in] options
  * \return                  Status

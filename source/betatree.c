@@ -68,7 +68,7 @@ clay_betatree_p clay_betatree_malloc(int value, int alloc_memory) {
 /**
  * clay_betatree_add_node function: 
  * Add a node at the end of the current tree.
- * \param[in] tree
+ * \param[in,out] tree
  * \param[in] i
  */
 void clay_betatree_add_node(clay_betatree_p tree, clay_betatree_p node) {
@@ -85,7 +85,7 @@ void clay_betatree_add_node(clay_betatree_p tree, clay_betatree_p node) {
 /**
  * clay_betatree_push_beta function: 
  * Add a branch in the tree containing the beta
- * \param[in] tree
+ * \param[in,out] tree
  * \param[in] beta
  */
 void clay_betatree_push_beta(clay_betatree_p tree, clay_array_p beta) {
@@ -107,10 +107,10 @@ void clay_betatree_push_beta(clay_betatree_p tree, clay_array_p beta) {
 
 
 /**
- * clay_betatree_push_beta function: 
+ * clay_betatree_search function: 
  * Search `value' in the nodes array in the tree
  * \param[in] tree
- * \param[in] beta
+ * \param[in] value
  * return     node
  */
 clay_betatree_p clay_betatree_search(clay_betatree_p tree, int value) {
@@ -177,7 +177,7 @@ clay_betatree_p clay_betatree_create(osl_scop_p scop) {
 
 
 /**
- * clay_betatree_free function: 
+ * clay_betatree_print function: 
  * \param[in] out    file where to print
  * \param[in] space  init to 0
  * \param[in] tree
