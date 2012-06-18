@@ -40,25 +40,62 @@
 #include <osl/relation.h>
 #include <clay/array.h>
 #include <clay/beta.h>
+#include <clay/macros.h>
 
 
 /* 
- * clay_beta_correct_order function:
- * The list of statements is reordered to have statements in the right 
- * order when the scop is printing
+ * clay_beta_sort function:
+ * The list of statements in the scop is sorted in function of the beta 
  * \param[in,out] scop
  */
-void clay_beta_correct_order(osl_scop_p scop) {
+void clay_beta_sort(osl_scop_p scop) {
   if (scop == NULL || scop->statement == NULL || scop->statement->next == NULL)
     return;
     
   clay_array_p beta;
-  osl_statement_p head = scop->statement;
-  osl_statement_p current;
   osl_statement_p iter;
   osl_statement_p tmp;
+  int sizebuff = 50;
+  int nb_stmt = 0;
+  osl_statement_p *buff;
+  int i, j;
+  
+  CLAY_malloc(buff, osl_statement_p* , sizeof(osl_statement_p) * sizebuff);
+  
+  for (iter = scop->statement ; iter != NULL ; iter = iter->next) {
+    buff[nb_stmt++] = iter;
+    if (nb_stmt == sizebuff) {
+      sizebuff *= 2;
+      CLAY_realloc(buff, osl_statement_p*, sizeof(osl_statement_p) * sizebuff);
+    }
+  }
   
   // Insertion sort
+  for (i = 1 ; i < nb_stmt ; i++) {
+    tmp = buff[i];
+    beta = clay_beta_get(tmp);
+    for (j = i ; j > 0 && !clay_statement_is_before(buff[j-1], beta) ; j--)
+      buff[j] = buff[j-1];
+    buff[j] = tmp;
+    clay_array_free(beta);
+  }
+  
+  scop->statement = buff[0];
+  for (i = 0 ; i < nb_stmt-1 ; i++) {
+    buff[i]->next = buff[i+1];
+  }
+  buff[i]->next = NULL;
+  
+  free(buff);
+  
+  /*
+  // Insertion sort
+  // this algo is less well because if the list is already sorted, the
+  // complexity will be maximal
+  
+  osl_statement_p current;
+  osl_statement_p tmp;
+  osl_statement_p head = scop->statement;
   tmp = head;
   while (tmp->next != NULL) {
     current = tmp->next;
@@ -82,8 +119,7 @@ void clay_beta_correct_order(osl_scop_p scop) {
     }
     clay_array_free(beta);
   }
-  
-  scop->statement = head;
+  scop->statement = head;*/
 }
 
 
@@ -108,6 +144,9 @@ void clay_beta_normalize(osl_scop_p scop) {
   for (i = 0 ; i < CLAY_MAX_BETA_SIZE ; i++) {
     counter_loops[i] = 0;
   }
+  
+  // TODO : we can optimize with clay_beta_sort, instead of looking for the
+  // following each time
   
   // first statement
   beta = clay_array_malloc(); // empty beta

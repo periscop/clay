@@ -56,7 +56,7 @@ int              clay_relation_get_line(osl_relation_p, int);
 bool             clay_statement_is_after(osl_statement_p, clay_array_p);
 bool             clay_statement_is_before(osl_statement_p, clay_array_p);
 
-void             clay_beta_correct_order(osl_scop_p);
+void             clay_beta_sort(osl_scop_p);
 void             clay_beta_normalize(osl_scop_p);
 clay_array_p     clay_beta_get(osl_statement_p);
 osl_statement_p  clay_beta_find(osl_statement_p, clay_array_p);
