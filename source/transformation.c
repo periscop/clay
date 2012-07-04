@@ -1003,10 +1003,10 @@ int clay_shift(osl_scop_p scop,
   
   osl_relation_p scattering;
   osl_statement_p statement;
+  osl_int_p tmp, tmp_outdim;
   const int column = depth*2 - 1; // iterator column
   int precision;
-  int i, j;
-  int row;
+  int i, j, k;
   
   statement = clay_beta_find(scop->statement, beta);
   if (!statement)
@@ -1027,37 +1027,66 @@ int clay_shift(osl_scop_p scop,
 
   precision = statement->scattering->precision;
   
+  tmp = osl_int_malloc(precision);
+  tmp_outdim = osl_int_malloc(precision);
+
   // add the vector for each statements
   while (statement != NULL) {
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
 
       if (vector->size <= 1 + scattering->nb_parameters) {
-        row = clay_relation_get_line(scattering, column);
-        
-        // affects parameters
-        i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
-            scattering->nb_local_dims;
-        for (j = 0 ; j < vector->size-1 ; j++) {
-          osl_int_add_si(precision,
-                         scattering->m[row], i,
-                         scattering->m[row], i,
-                         vector->data[j]);
-          i++;
+        // for each line where there is a number different from zero on the
+        // column
+        for (k = 0 ; k < scattering->nb_rows ; k++) {
+          if (!osl_int_zero(precision, scattering->m[k], 1+column)) {
+
+            // shifted_value += -1 * coeff_outputdim * shifting
+
+            // outdim = -1 * coeff_outputdim
+            osl_int_set_si(precision, tmp_outdim, 0, -1);
+            osl_int_mul(precision,
+                        tmp_outdim, 0,
+                        tmp_outdim, 0,
+                        scattering->m[k], 1+column);
+
+            // affects parameters
+            i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
+                scattering->nb_local_dims;
+            for (j = 0 ; j < vector->size-1 ; j++) {
+              osl_int_mul_si(precision,
+                             tmp, 0,
+                             tmp_outdim, 0,
+                             vector->data[j]);
+              osl_int_add(precision,
+                          scattering->m[k], i,
+                          scattering->m[k], i,
+                          tmp, 0);
+              i++;
+            }
+
+            // set the constant
+            osl_int_mul_si(precision,
+                           tmp, 0,
+                           tmp_outdim, 0,
+                           vector->data[j]);
+            osl_int_add(precision,
+                        scattering->m[k], scattering->nb_columns-1,
+                        scattering->m[k], scattering->nb_columns-1,
+                        tmp, 0);
+          }
         }
-        // set the constant
-        osl_int_add_si(precision,
-                       scattering->m[row], scattering->nb_columns-1,
-                       scattering->m[row], scattering->nb_columns-1,
-                       vector->data[vector->size-1]);
       }
     }
     statement = statement->next;
   }
+
+  osl_int_free(precision, tmp, 0);
+  osl_int_free(precision, tmp_outdim, 0);
   
   if (options && options->normalize)
     clay_beta_normalize(scop);
-    
+  
   return CLAY_SUCCESS;
 }
 
