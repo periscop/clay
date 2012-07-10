@@ -39,12 +39,20 @@
 
 
 struct clay_options {
-  char *script_name;/**< Name of the input script file. */
-  char *scop_name;  /**< Name of the input scop file. */
-  int input_scop;   /**< 1 read from scop file, else stdin */
-  int input_script; /**< 1 read from script file, else from extension in scop */
+  FILE *input;      /**< Input file. */
+  FILE *script;     /**< Input script file. */
+  int from_tag;     /**< 1 read the script from the scop tag, 
+                         else from the script file */
+	char *input_name; /**< Input file name */
   int print_infos;  /**< 1 if a --help or --version is given */
   int normalize;    /**< 1 the scop will be re-normalized */
+
+  #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
+  int compile;    /**< 1 to create the chain clan | clay | cloog */
+	#endif
+	#ifdef CANDL_LINKED
+	int nocandl;    /**< 1 don't check depedencies with candl*/
+  #endif
 };
 
 typedef struct clay_options  clay_options_t;

@@ -41,11 +41,23 @@
 
 if BUNDLED_OSL
     MAYBE_OSL = osl
-    OSL_LA = $(top_builddir)/osl/source/libosl.la
+    OSL_LA  = $(top_builddir)/osl/libosl.la
+endif
+if BUNDLED_CLAN
+    MAYBE_CLAN = clan
+    CLAN_LA = $(top_builddir)/clan/libclan.la
+endif
+if BUNDLED_CLOOG
+    MAYBE_CLOOG = cloog
+    CLOOG_LA = $(top_builddir)/cloog/libcloog-isl.la
+endif
+if BUNDLED_CANDL
+    MAYBE_CANDL = candl
+    CANDL_LA = $(top_builddir)/cloog/libcandl.la
 endif
 
-SUBDIRS         = $(MAYBE_OSL) doc tests
-DIST_SUBDIRS    = $(MAYBE_OSL) doc tests
+SUBDIRS         = $(MAYBE_OSL) $(MAYBE_CLAN) $(MAYBE_CLOOG) $(MAYBE_CANDL) doc tests
+DIST_SUBDIRS    = $(MAYBE_OSL) $(MAYBE_CLAN) $(MAYBE_CLOOG) $(MAYBE_CANDL) doc tests
 ACLOCAL_AMFLAGS = -I m4
 
 #############################################################################
@@ -61,6 +73,7 @@ pkginclude_HEADERS = \
 	include/clay/options.h \
 	include/clay/ident.h \
 	include/clay/beta.h \
+	include/clay/macros.h \
 	include/clay/betatree.h \
 	include/clay/util.h \
 	include/clay/errors.h \
@@ -72,12 +85,13 @@ DEFAULT_INCLUDES = -I.
 INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = $(CFLAGS_WARN)
 YFLAGS = -y -d
+LEX_OUTPUT_ROOT = lex.clay_yy
 
 #############################################################################
 
-libclay_la_LIBADD   = @OSL_LIBS@ $(OSL_LA)
-libclay_la_CPPFLAGS = @OSL_CPPFLAGS@ -g
-libclay_la_LDFLAGS  = @OSL_LDFLAGS@
+libclay_la_LIBADD   = @OSL_LIBS@ @CLAN_LIBS@ @CLOOG_LIBS@ @CANDL_LIBS@ $(OSL_LA) $(CLAN_LA) $(CLOOG_LA) $(CANDL_LA)
+libclay_la_CPPFLAGS = @OSL_CPPFLAGS@ @CLAN_CPPFLAGS@ @CLOOG_CPPFLAGS@ @CANDL_CPPFLAGS@
+#  libclay_la_LDFLAGS  = @OSL_LDFLAGS@ @CLAN_LDFLAGS@ @CLOOG_LDFLAGS@ @CANDL_LDFLAGS@ # TO BE REMOVED
 libclay_la_SOURCES  = \
   source/parser.y \
   source/scanner.l \
@@ -93,9 +107,9 @@ libclay_la_SOURCES  = \
 
 #############################################################################
 
-LDADD             = @OSL_LIBS@ libclay.la
-clay_CPPFLAGS     = @OSL_CPPFLAGS@ -g
-clay_LDFLAGS      = #@OSL_LDFLAGS@ # TO BE REMOVED
+LDADD             = @OSL_LIBS@ @CLAN_LIBS@ @CLOOG_LIBS@ @CANDL_LIBS@ libclay.la
+clay_CPPFLAGS     = @OSL_CPPFLAGS@ @CLAN_CPPFLAGS@ @CLOOG_CPPFLAGS@ @CANDL_CPPFLAGS@ -g
+#  clay_LDFLAGS      = # @OSL_LDFLAGS@ @CLAN_LDFLAGS@ @CLOOG_LDFLAGS@ @CANDL_LDFLAGS@ # TO BE REMOVED
 clay_DEPENDENCIES = libclay.la
 clay_SOURCES      = source/clay.c
 
@@ -114,5 +128,5 @@ dist-hook:
 	for file in $(AUX_DIST); do \
 	  cp $$file $(distdir)/$$file; \
 	done
-
 #############################################################################
+

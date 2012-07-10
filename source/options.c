@@ -88,12 +88,31 @@ void clay_options_help() {
   "Usage: clay [ options | file ] ...\n");
   printf(
   "\nGeneral options:\n"
+  #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
+		"  -c                    Compile 'file' and create the chain clan|clay|cloog\n"
+		#if defined(CLAN_LINKED)
+			"                        'file' is a .c (not a scop)\n"
+		#else
+			"                        'file' is a scop\n"
+			"                        Recompile Clay with Clan to read a .c\n"
+		#endif
+  #endif
+
+	#if defined(CANDL_LINKED)
+		#if defined(CLOOG_LINKED)
+			"  --nocandl             Don't check dependencies and print the optimized\n"
+			"                        code by cloog\n"
+		#else
+			"  --nocandl             Don't check dependencies and print the \n"
+			"                        transformed scop\n"
+		#endif
+	#endif
   "  --script <file>       Input script file. If not given the script is from\n"
   "                        the scop structure.\n"
   "  --nonormalize         Don't normalize the scop.\n"
-  "                        The normalization is done when clay begins and at the\n"
-  "                        end of the following functions : reorder, split,\n"
-  "                        fuse, iss, strimine, and unroll.\n"
+  "                        The normalization is done when at the begining of\n"
+  "                        clay and at the end of these following functions : \n"
+  "                        reorder, split, fuse, iss, strimine, and unroll.\n"
   "  --list                List all the available functions.\n"
   "  -v, --version         Display the release information.\n"
   "  -h, --help            Display this help.\n\n");
@@ -126,12 +145,18 @@ void clay_options_version() {
 clay_options_p clay_options_malloc() {
   clay_options_p options;
   CLAY_malloc(options, clay_options_p, sizeof(clay_options_t));
-  options->input_scop   = 0;
-  options->input_script = 0;
-  options->script_name  = NULL;
-  options->scop_name    = NULL;
+  options->from_tag     = 1;
+  options->script       = NULL;
+  options->input        = stdin;
+  options->input_name   = NULL;
   options->print_infos  = 0;
   options->normalize    = 1;
+  #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
+  options->compile = 0;
+  #endif
+  #ifdef CANDL_LINKED
+  options->nocandl = 0;
+  #endif
   return options;
 }
 
@@ -149,13 +174,25 @@ clay_options_p clay_options_read(int argc, char ** argv) {
   for (i = 1 ; i < argc ; i++) {
     if (strcmp(argv[i], "--script") == 0) {
       if (i >= argc-1)
-        CLAY_error("no file name for -script option");
-      options->script_name  = argv[i+1];
-      options->input_script = 1;
+        CLAY_error("no file name for --script option");
+      options->script = fopen(argv[i+1], "r");
+      if (options->script == NULL) {
+        fprintf(stderr, "[Clay] Error: cannot open the file %s\n", argv[i+1]);
+        exit(1);
+      }
+      options->from_tag = 0;
       i++;
     } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       clay_options_help();
       options->print_infos = 1;
+    #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
+    } else if (strcmp(argv[i], "-c") == 0) {
+      options->compile = 1;
+    #endif
+	  #ifdef CANDL_LINKED
+    } else if (strcmp(argv[i], "--nocandl") == 0) {
+      options->nocandl = 1;
+    #endif
     } else if (strcmp(argv[i], "--list") == 0) {
       clay_options_list_functions();
       options->print_infos = 1;
@@ -165,8 +202,12 @@ clay_options_p clay_options_read(int argc, char ** argv) {
       clay_options_version();
       options->print_infos = 1;
     } else {
-      options->scop_name  = argv[i];
-      options->input_scop = 1;
+      options->input = fopen(argv[i], "r");
+      if (options->input == NULL) {
+        fprintf(stderr, "[Clay] Error: cannot open the file %s\n", argv[i]);
+        exit(1);
+      }
+			options->input_name = argv[i];
     }
   }
 

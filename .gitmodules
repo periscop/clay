@@ -1,0 +1,12 @@
+[submodule "osl"]
+	path = osl
+	url = git://repo.or.cz/openscop.git
+[submodule "candl"]
+	path = candl
+	url = git://repo.or.cz/candl.git
+[submodule "clan"]
+	path = clan
+	url = git://repo.or.cz/clan.git
+[submodule "cloog"]
+	path = cloog
+	url = git://repo.or.cz/cloog.git

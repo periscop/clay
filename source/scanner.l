@@ -46,9 +46,10 @@
   
   extern clay_prototype_function_p  clay_params;
 
+//%option outfile="scanner.c" header-file="scanner.h"
 %}
 
-
+%option prefix="clay_yy"
 %option noyywrap
 %option noinput
 %option nounput
@@ -62,22 +63,22 @@ SEPARATOR [ \t]*
                    }
 
 -?[0-9]+           {
-                     yylval.ival = atoi(yytext);
+                     clay_yylval.ival = atoi(clay_yytext);
                      return INTEGER;
                    }
 
 S[0-9]+            {
-                     yylval.ival = atoi(yytext+1);
+                     clay_yylval.ival = atoi(clay_yytext+1);
                      return IDENT_STMT;
                    }
 
 L[0-9]+            {
-                     yylval.ival = atoi(yytext+1);
+                     clay_yylval.ival = atoi(clay_yytext+1);
                      return IDENT_LOOP;
                    }
 
 [a-zA-Z_][a-zA-Z0-9_]* {
-                     yylval.sval = strdup(yytext);
+                     clay_yylval.sval = strdup(clay_yytext);
                      return IDENT_NAME;
                    }
 
@@ -89,7 +90,7 @@ L[0-9]+            {
                    }
                    
 \n                 { clay_scanner_line++; }
-.                  { return yytext[0]; }
+.                  { return clay_yytext[0]; }
 
 %%
 
@@ -102,7 +103,7 @@ L[0-9]+            {
  * WARNING: this is probably *not* portable...
  */
 void clay_scanner_free() {
-  yy_delete_buffer(YY_CURRENT_BUFFER);
+  clay_yy_delete_buffer(YY_CURRENT_BUFFER);
   free(yy_buffer_stack);
 }
 
@@ -111,8 +112,6 @@ void clay_scanner_free() {
  * this function initialises the scanner global variables with default values.
  */
 void clay_scanner_initialize() {
-  yy_flush_buffer(YY_CURRENT_BUFFER);
+  clay_yy_flush_buffer(YY_CURRENT_BUFFER);
   clay_scanner_line = 1;
 }
-
-

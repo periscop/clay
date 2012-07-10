@@ -840,6 +840,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
                        scattering->m[row], scattering->nb_columns-1,
                        order_epilog);
         
+        // the order is not important in the statements list
         epilog_stmt->next = statement->next;
         statement->next = epilog_stmt;
         statement = epilog_stmt;
@@ -914,6 +915,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
                        scattering->m[row], scattering->nb_columns-1,
                        order);
         
+        // the order is not important in the statements list
         newstatement->next = statement->next;
         statement->next = newstatement;
         statement = newstatement;

@@ -38,8 +38,10 @@
   #include <stdio.h>
   #include <stdlib.h>
   #include <string.h>
+  #include <assert.h>
   #include <osl/scop.h>
   #include <osl/statement.h>
+  #include <osl/vector.h>
   #include <clay/macros.h>
   #include <clay/array.h>
   #include <clay/transformation.h>
@@ -49,13 +51,16 @@
   #include <clay/ident.h>
   
   // Yacc stuff.
-  int                 yylex(void);
+  int                 clay_yylex(void);
+  int                 clay_yyerror();
+  int                 clay_yy_scan_string(char*);
+  FILE*               clay_yyin;
   void                yy_scan_string(char*);
   
   // Scanner declarations
-  void                clay_scanner_free();
-  void                clay_scanner_initialize();
-  extern int          clay_scanner_line;
+  extern void                clay_scanner_free();
+  extern void                clay_scanner_initialize();
+  extern int                 clay_scanner_line;
   
   
   // Arguments list of the current scanned function
@@ -69,11 +74,7 @@
   
   // Command line options
   clay_options_p      clay_parser_options;
-  
-  // Other
-  int                 yyerror();
-  extern              FILE* yyin;
-  
+
   // parser functions
   void                clay_parser_exec_function(char *name);
   void                clay_parser_string(osl_scop_p, char*, clay_options_p);
@@ -84,6 +85,8 @@
   extern const clay_prototype_function_t functions[];
   
 %}
+
+%name-prefix "clay_yy"
 
 %union { int ival; } 
 %union { char *sval; }
@@ -223,9 +226,9 @@ list:
 
 
 /**
- * yyerror function
+ * clay_yyerror function
  */
-int yyerror(void) {
+int clay_yyerror(void) {
   fprintf(stderr,"[Clay] Error: syntax on line %d, maybe you forgot a `;'\n",
           clay_scanner_line-1);
   exit(1);
@@ -239,15 +242,16 @@ int yyerror(void) {
  * \param[in] options
  */
 void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
+  printf("ok\n");
   clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
   
   // List of parameters of the current scanned function
   clay_params = clay_prototype_function_malloc();
   
-  yyin = input;
+  clay_yyin = input;
   clay_scanner_initialize();
-  yyparse();
+  clay_yyparse();
   
   // Quit
   clay_scanner_free();
@@ -265,12 +269,12 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
   clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
   
-  // List of parameters of the current scanned function
+  // Will contains the list of parameters of the current scanned function
   clay_params = clay_prototype_function_malloc();
   
-  yy_scan_string(input);
+  clay_yy_scan_string(input);
   clay_scanner_line = 1;
-  yyparse();
+  clay_yyparse();
   
   // Quit
   clay_scanner_free();
@@ -313,8 +317,8 @@ void clay_parser_exec_function(char *name) {
   // Different number of parameters
   if (clay_params->argc != functions[i].argc) {
       fprintf(stderr, 
-        "[Clay] Error: line %d, in `%s' takes %d arguments\n[Clay] \
-prototype is: %s\n", 
+        "[Clay] Error: line %d, in `%s' takes %d arguments\n"
+        "[Clay] prototype is: %s\n", 
         clay_scanner_line, name, functions[i].argc, functions[i].prototype);
       exit(CLAY_ERROR_NB_ARGS);
   }
@@ -337,8 +341,8 @@ prototype is: %s\n",
   // Invalid type
   if (j != functions[i].argc) {
       fprintf(stderr, 
-        "[Clay] Error: line %d, in function `%s' invalid type on argument \
-%d\n[Clay] prototype is: %s\n", 
+        "[Clay] Error: line %d, in function `%s' invalid type on argument %d\n"
+        "[Clay] prototype is: %s\n", 
         clay_scanner_line, name, j+1, functions[i].prototype);
       exit(CLAY_ERROR_INVALID_TYPE);
   }
@@ -473,7 +477,6 @@ prototype is: %s\n",
 /**
  * clay_parser_print_error function:
  * \param[in] status
- * \return
  */
 void clay_parser_print_error(int status_result) {
   switch (status_result) {
@@ -548,8 +551,8 @@ void clay_parser_print_error(int status_result) {
       exit(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
       break;
     case CLAY_ERROR_INEQU:
-      fprintf(stderr,"[Clay] Error: line %d, the inequality or equality seems \
-to be wrong\n",
+      fprintf(stderr,"[Clay] Error: line %d, the inequality or equality seems "
+                     "to be wrong\n",
               clay_scanner_line);
       exit(CLAY_ERROR_INEQU);
       break;
