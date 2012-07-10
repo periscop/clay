@@ -1,0 +1,72 @@
+
+    +--------------------------------------------------------------------+
+    |                              Clay                                  |
+    +--------------------------------------------------------------------+
+
+ +--------------------------------------------------------------------------+
+ |  / __)(  )    /__\ ( \/ )                                                |
+ | ( (__  )(__  /(__)\ \  /         Chunky Loop Alteration wizardrY         |
+ |  \___)(____)(__)(__)(__)                                                 |
+ +--------------------------------------------------------------------------+
+ | Copyright (C) 2012 University of Paris-Sud                               |
+ |                                                                          |
+ | This library is free software; you can redistribute it and/or modify it  |
+ | under the terms of the GNU Lesser General Public License as published by |
+ | the Free Software Foundation; either version 2.1 of the License, or      |
+ | (at your option) any later version.                                      |
+ |                                                                          |
+ | This library is distributed in the hope that it will be useful but       |
+ | WITHOUT ANY WARRANTY; without even the implied warranty of               |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser  |
+ | General Public License for more details.                                 |
+ |                                                                          |
+ | You should have received a copy of the GNU Lesser General Public License |
+ | along with this software; if not, write to the Free Software Foundation, |
+ | Inc., 51 Franklin Street, Fifth Floor,                                   |
+ | Boston, MA  02110-1301  USA                                              |
+ |                                                                          |
+ | Clay, the Chunky Loop Alteration wizardrY                                |
+ | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
+ +--------------------------------------------------------------------------+
+
+
+INSTALL
+------------------------------
+
+By default Clay is linked with Clan, Candl and Cloog. This is useful to run
+Clay with the -c (compile) option. 
+If Clan, Cloog, Candl, OSL..., are not present use the bundled option in the
+redo.sh and run the get_submodules.sh
+
+- linked only with Clan
+  -c : input  : .c file
+       output : scop
+
+- linked only with Cloog (libcloog-isl)
+  -c : input  : scop
+       output : optimized .c file
+
+- linked with Clan and Cloog
+  -c : input  : .c file
+       output : optimized .c file
+
+- linked with Candl 
+	Warning: Candl need to be compiled with Piplib in GMP, because Cloog is only
+	compatible with GMP (change the variable BITS in the configure of Candl)
+  You can use the --nocandl to not check dependencies.
+  If it's also linked with Cloog, and if there are no violations the
+	optimized .c file is printed, otherwise it's the violation graph.
+
+Installation :
+$ ./redo.sh
+$ make install
+
+
+SUPPORT
+------------------------------
+
+For bug reporting or any suggestions, please send an email to the author
+Joel Poudroux <joel.poudroux@u-psud.fr> 
+or to
+Cedric Bastoul <cedric.bastoul@inria.fr>
+
