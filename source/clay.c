@@ -112,7 +112,7 @@ int main(int argc, char * argv[]) {
 
 	#if defined(CANDL_LINKED)
 	osl_scop_p orig_scop = NULL;
-	if (!options->nocandl) {
+	if (!options->nocandl && scop != NULL) {
 		orig_scop = osl_scop_clone(scop);
 		candl_scop_usr_init(orig_scop);
 	}
@@ -155,7 +155,7 @@ int main(int argc, char * argv[]) {
 	#ifdef CANDL_LINKED
 	int is_violated = 0;
 	// Check dependencies
-	if (!options->nocandl) {
+	if (!options->nocandl && scop != NULL) {
 		candl_options_p candl_opt = candl_options_malloc();
 		osl_dependence_p dep = candl_dependence(orig_scop, candl_opt);
 		candl_violation_p violation = candl_violation(orig_scop, dep, scop,
@@ -177,7 +177,7 @@ int main(int argc, char * argv[]) {
 	
   #ifdef CLOOG_LINKED
 	{
-		if (options->compile) {
+		if (options->compile && scop != NULL) {
 			CloogState *state = cloog_state_malloc();
 			CloogOptions *cloogoptions = cloog_options_malloc(state);
 			cloogoptions->openscop = 1;
