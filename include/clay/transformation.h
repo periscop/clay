@@ -2,7 +2,7 @@
    /*--------------------------------------------------------------------+
     |                              Clay                                  |
     |--------------------------------------------------------------------|
-    |                             Clay.c                                 |
+    |                           transformation.h                         |
     |--------------------------------------------------------------------|
     |                    First version: 03/04/2012                       |
     +--------------------------------------------------------------------+
@@ -38,9 +38,7 @@
 #define CLAY_TRANSFORMATIONS_H
 
 
-#include <osl/statement.h>
 #include <osl/scop.h>
-#include <osl/extensions/scatnames.h>
 #include <clay/array.h>
 #include <clay/options.h>
 

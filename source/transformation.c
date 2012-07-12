@@ -2,7 +2,7 @@
    /*--------------------------------------------------------------------+
     |                              Clay                                  |
     |--------------------------------------------------------------------|
-    |                             Clay.c                                 |
+    |                           transformation.c                         |
     |--------------------------------------------------------------------|
     |                    First version: 03/04/2012                       |
     +--------------------------------------------------------------------+
@@ -43,6 +43,7 @@
 #include <osl/util.h>
 #include <osl/statement.h>
 #include <osl/relation.h>
+#include <osl/extensions/scatnames.h>
 #include <clay/transformation.h>
 #include <clay/array.h>
 #include <clay/macros.h>
