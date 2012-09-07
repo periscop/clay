@@ -106,6 +106,8 @@ void clay_options_help() {
 			"  --nocandl             Don't check dependencies and print the \n"
 			"                        transformed scop\n"
 		#endif
+                "  --candl-structure     Set candl structure option \n"
+                "  --candl-fullcheck     Set candl fullcheck option \n"
 	#endif
   "  --script <file>       Input script file. If not given the script is from\n"
   "                        the scop structure.\n"
@@ -156,6 +158,8 @@ clay_options_p clay_options_malloc() {
   #endif
   #ifdef CANDL_LINKED
   options->nocandl = 0;
+  options->candl_structure = 0;
+  options->candl_fullcheck = 0;
   #endif
   return options;
 }
@@ -192,6 +196,10 @@ clay_options_p clay_options_read(int argc, char ** argv) {
 	  #ifdef CANDL_LINKED
     } else if (strcmp(argv[i], "--nocandl") == 0) {
       options->nocandl = 1;
+    } else if (strcmp(argv[i], "--candl-structure") == 0) {
+      options->candl_structure = 1;
+    } else if (strcmp(argv[i], "--candl-fullcheck") == 0) {
+      options->candl_fullcheck = 1;
     #endif
     } else if (strcmp(argv[i], "--list") == 0) {
       clay_options_list_functions();

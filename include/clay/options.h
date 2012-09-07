@@ -43,15 +43,17 @@ struct clay_options {
   FILE *script;     /**< Input script file. */
   int from_tag;     /**< 1 read the script from the scop tag, 
                          else from the script file */
-	char *input_name; /**< Input file name */
+  char *input_name; /**< Input file name */
   int print_infos;  /**< 1 if a --help or --version is given */
   int normalize;    /**< 1 the scop will be re-normalized */
 
   #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
   int compile;    /**< 1 to create the chain clan | clay | cloog */
-	#endif
-	#ifdef CANDL_LINKED
-	int nocandl;    /**< 1 don't check depedencies with candl*/
+  #endif
+  #ifdef CANDL_LINKED
+  int nocandl;    /**< 1 don't check depedencies with candl */
+  int candl_structure; /**< 1 to set candl structure option */
+  int candl_fullcheck; /**< 1 to set candl fullcheck option */
   #endif
 };
 

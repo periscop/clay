@@ -157,13 +157,17 @@ int main(int argc, char * argv[]) {
 	// Check dependencies
 	if (!options->nocandl && scop != NULL) {
 		candl_options_p candl_opt = candl_options_malloc();
+                if (options->candl_fullcheck)
+                  candl_opt->fullcheck = 1;
 		osl_dependence_p dep = candl_dependence(orig_scop, candl_opt);
-		candl_violation_p violation = candl_violation(orig_scop, dep, scop,
-																									candl_opt);
+		candl_violation_p violation = candl_violation(orig_scop, dep, scop, candl_opt);
 
 		is_violated = (violation != NULL);
-		if (is_violated)
-			candl_violation_pprint(stdout, violation);
+		if (is_violated) {
+                        candl_violation_pprint(stdout, violation);
+                        if (options->candl_structure)
+			  candl_violation_dump(stdout, violation);
+                }
 
 		candl_options_free(candl_opt);
 		candl_violation_free(violation);
@@ -182,10 +186,10 @@ int main(int argc, char * argv[]) {
 			CloogOptions *cloogoptions = cloog_options_malloc(state);
 			cloogoptions->openscop = 1;
 			CloogInput *clooginput = cloog_input_from_osl_scop(cloogoptions->state, 
-																												 scop);
+                                                                           scop);
 			cloog_options_copy_from_osl_scop(scop, cloogoptions);
 			CloogProgram *program = cloog_program_alloc(clooginput->context, 
-																									clooginput->ud, cloogoptions);
+					                            clooginput->ud, cloogoptions);
 			free(clooginput);
 			cloog_program_generate(program, cloogoptions);
 			

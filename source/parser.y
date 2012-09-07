@@ -54,7 +54,7 @@
   int                 clay_yylex(void);
   int                 clay_yyerror();
   int                 clay_yy_scan_string(char*);
-  FILE*               clay_yyin;
+  extern FILE*        clay_yyin;
   void                yy_scan_string(char*);
   
   // Scanner declarations
