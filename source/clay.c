@@ -97,7 +97,7 @@ int main(int argc, char * argv[]) {
     scop = clan_scop_extract(options->input, clan_opt);
     //clan_options_free(clan_opt); // bug, the name is also freed
     free(clan_opt);
-    // the file options->input is closed by clan_scop_extract
+    fclose(options->input);
   }
   else
   #endif
