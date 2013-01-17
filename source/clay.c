@@ -157,17 +157,17 @@ int main(int argc, char * argv[]) {
 	// Check dependencies
 	if (!options->nocandl && scop != NULL) {
 		candl_options_p candl_opt = candl_options_malloc();
-                if (options->candl_fullcheck)
-                  candl_opt->fullcheck = 1;
+    if (options->candl_fullcheck)
+      candl_opt->fullcheck = 1;
 		osl_dependence_p dep = candl_dependence(orig_scop, candl_opt);
 		candl_violation_p violation = candl_violation(orig_scop, dep, scop, candl_opt);
 
 		is_violated = (violation != NULL);
 		if (is_violated) {
-                        candl_violation_pprint(stdout, violation);
-                        if (options->candl_structure)
+      candl_violation_pprint(stdout, violation);
+      if (options->candl_structure)
 			  candl_violation_dump(stdout, violation);
-                }
+    }
 
 		candl_options_free(candl_opt);
 		candl_violation_free(violation);
@@ -179,8 +179,8 @@ int main(int argc, char * argv[]) {
 	if (!is_violated) // print the scop or the .c file by cloog
 	#endif
 	
-  #ifdef CLOOG_LINKED
 	{
+    #ifdef CLOOG_LINKED
 		if (options->compile && scop != NULL) {
 			CloogState *state = cloog_state_malloc();
 			CloogOptions *cloogoptions = cloog_options_malloc(state);
