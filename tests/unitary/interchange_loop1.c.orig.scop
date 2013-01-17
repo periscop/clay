@@ -88,7 +88,7 @@ WRITE
 # List of original iterators
 i j
 # Statement body expression
-a[i][j]=0;
+a[i][j] = 0;
 </body>
 
 # =============================================== Extensions
@@ -110,10 +110,10 @@ b0 i b1 j b2
 <coordinates>
 # File name
 ./unitary/interchange_loop1.c
-# Starting line
-1
-# Ending line
-10
+# Starting line and column
+2 0
+# Ending line and column
+10 0
 # Indentation
 0
 </coordinates>

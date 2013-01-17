@@ -54,7 +54,7 @@ WRITE
 # List of original iterators
 i1
 # Statement body expression
-c[i1]=0;
+c[i1] = 0 ;
 </body>
 
 # =============================================== Statement 2
@@ -122,7 +122,7 @@ READ
 # List of original iterators
 i1 j
 # Statement body expression
-c[i1]=c[i1]+a[i1][j]*b[j];
+c[i1] = c[i1] + a[i1][j] * b[j] ;
 </body>
 
 # =============================================== Extensions
@@ -145,10 +145,10 @@ b0 i1 __b1 ____jj0__jj00 __b0 __jj0 b1 j b2
 <coordinates>
 # File name
 ./tests/ax-do_double_tile.c
-# Starting line
-9
-# Ending line
-20
+# Starting line and column
+10 0
+# Ending line and column
+20 0
 # Indentation
 2
 </coordinates>

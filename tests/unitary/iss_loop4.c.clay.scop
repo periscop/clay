@@ -55,7 +55,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-a[i]=0;
+a[i] = 0;
 </body>
 
 # =============================================== Statement 2
@@ -95,7 +95,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-a[i]=0;
+a[i] = 0;
 </body>
 
 # =============================================== Statement 3
@@ -141,7 +141,7 @@ WRITE
 # List of original iterators
 i j
 # Statement body expression
-b[i][j]=0;
+b[i][j] = 0;
 </body>
 
 # =============================================== Statement 4
@@ -187,7 +187,7 @@ WRITE
 # List of original iterators
 i j
 # Statement body expression
-b[i][j]=0;
+b[i][j] = 0;
 </body>
 
 # =============================================== Statement 5
@@ -233,7 +233,7 @@ WRITE
 # List of original iterators
 i j
 # Statement body expression
-c[i][j]=0;
+c[i][j] = 0;
 </body>
 
 # =============================================== Statement 6
@@ -279,7 +279,7 @@ WRITE
 # List of original iterators
 i j
 # Statement body expression
-c[i][j]=0;
+c[i][j] = 0;
 </body>
 
 # =============================================== Extensions
@@ -303,10 +303,10 @@ b0 i b1 j b2
 <coordinates>
 # File name
 ./unitary/iss_loop4.c
-# Starting line
-1
-# Ending line
-12
+# Starting line and column
+2 0
+# Ending line and column
+12 0
 # Indentation
 0
 </coordinates>

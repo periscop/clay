@@ -45,7 +45,7 @@ WRITE
 # Number of original iterators
 0
 # Statement body expression
-a=0;
+a = 0;
 </body>
 
 # =============================================== Statement 2
@@ -84,7 +84,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-b[i]=0;
+b[i] = 0;
 </body>
 
 # =============================================== Statement 3
@@ -136,7 +136,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-c[i][j][k]=0;
+c[i][j][k] = 0;
 </body>
 
 # =============================================== Statement 4
@@ -186,7 +186,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-c[i][j][k]=0;
+c[i][j][k] = 0;
 </body>
 
 # =============================================== Statement 5
@@ -238,7 +238,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-c[i][(j+1)][k]=0;
+c[i][(j+1)][k] = 0;
 </body>
 
 # =============================================== Statement 6
@@ -290,7 +290,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-c[i][(j+2)][k]=0;
+c[i][(j+2)][k] = 0;
 </body>
 
 # =============================================== Statement 7
@@ -342,7 +342,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-c[i][(j+3)][k]=0;
+c[i][(j+3)][k] = 0;
 </body>
 
 # =============================================== Statement 8
@@ -394,7 +394,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-d[i][j][k]=0;
+d[i][j][k] = 0;
 </body>
 
 # =============================================== Statement 9
@@ -444,7 +444,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-d[i][j][k]=0;
+d[i][j][k] = 0;
 </body>
 
 # =============================================== Statement 10
@@ -496,7 +496,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-d[i][(j+1)][k]=0;
+d[i][(j+1)][k] = 0;
 </body>
 
 # =============================================== Statement 11
@@ -548,7 +548,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-d[i][(j+2)][k]=0;
+d[i][(j+2)][k] = 0;
 </body>
 
 # =============================================== Statement 12
@@ -600,7 +600,7 @@ WRITE
 # List of original iterators
 i k j
 # Statement body expression
-d[i][(j+3)][k]=0;
+d[i][(j+3)][k] = 0;
 </body>
 
 # =============================================== Statement 13
@@ -639,7 +639,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-e[i]=0;
+e[i] = 0;
 </body>
 
 # =============================================== Statement 14
@@ -669,7 +669,7 @@ WRITE
 # Number of original iterators
 0
 # Statement body expression
-f=0;
+f = 0;
 </body>
 
 # =============================================== Extensions
@@ -698,10 +698,10 @@ b0 i b1 k b2 j b3
 <coordinates>
 # File name
 ./unitary/unroll2.c
-# Starting line
-1
-# Ending line
-17
+# Starting line and column
+2 0
+# Ending line and column
+17 0
 # Indentation
 0
 </coordinates>

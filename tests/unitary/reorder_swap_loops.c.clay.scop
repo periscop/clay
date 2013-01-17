@@ -45,7 +45,7 @@ WRITE
 # Number of original iterators
 0
 # Statement body expression
-a=0;
+a = 0;
 </body>
 
 # =============================================== Statement 2
@@ -84,7 +84,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-b[i]=0;
+b[i] = 0;
 </body>
 
 # =============================================== Statement 3
@@ -129,7 +129,7 @@ WRITE
 # List of original iterators
 i j
 # Statement body expression
-c[i][j]=0;
+c[i][j] = 0;
 </body>
 
 # =============================================== Statement 4
@@ -174,7 +174,7 @@ WRITE
 # List of original iterators
 i k
 # Statement body expression
-d[i][k]=0;
+d[i][k] = 0;
 </body>
 
 # =============================================== Extensions
@@ -201,10 +201,10 @@ b0 i b1 j b2
 <coordinates>
 # File name
 ./unitary/reorder_swap_loops.c
-# Starting line
-1
-# Ending line
-15
+# Starting line and column
+2 0
+# Ending line and column
+15 0
 # Indentation
 0
 </coordinates>

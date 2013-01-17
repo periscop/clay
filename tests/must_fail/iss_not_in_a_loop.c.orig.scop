@@ -71,7 +71,7 @@ WRITE
 # Number of original iterators
 0
 # Statement body expression
-a=0;
+a = 0;
 </body>
 
 # =============================================== Extensions
@@ -85,10 +85,10 @@ a=0;
 <coordinates>
 # File name
 ./must_fail/iss_not_in_a_loop.c
-# Starting line
-1
-# Ending line
-6
+# Starting line and column
+2 0
+# Ending line and column
+6 0
 # Indentation
 0
 </coordinates>

@@ -42,7 +42,7 @@ redo.sh and run the get_submodules.sh
   -c : input  : .c file
        output : scop
 
-- linked only with Cloog (libcloog-isl)
+- linked only with Cloog (libcloog-isl), Cloog need to be compiled with Osl !
   -c : input  : scop
        output : optimized .c file
 

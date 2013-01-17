@@ -57,7 +57,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-a[i]=0;
+a[i] = 0;
 </body>
 
 # =============================================== Statement 2
@@ -98,7 +98,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-b[i]=0;
+b[i] = 0;
 </body>
 
 # =============================================== Extensions
@@ -119,10 +119,10 @@ __b0 __ii0 b0 i b1
 <coordinates>
 # File name
 ./unitary/stripmine_pretty.c
-# Starting line
-1
-# Ending line
-11
+# Starting line and column
+2 0
+# Ending line and column
+11 0
 # Indentation
 0
 </coordinates>

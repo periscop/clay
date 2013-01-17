@@ -45,7 +45,7 @@ WRITE
 # Number of original iterators
 0
 # Statement body expression
-a=0;
+a = 0;
 </body>
 
 # =============================================== Statement 2
@@ -84,7 +84,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-b[i]=0;
+b[i] = 0;
 </body>
 
 # =============================================== Statement 3
@@ -123,7 +123,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-c[i]=0;
+c[i] = 0;
 </body>
 
 # =============================================== Statement 4
@@ -162,7 +162,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-d[i]=0;
+d[i] = 0;
 </body>
 
 # =============================================== Statement 5
@@ -201,7 +201,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-t[i]=0;
+t[i] = 0;
 </body>
 
 # =============================================== Statement 6
@@ -240,7 +240,7 @@ WRITE
 # List of original iterators
 i
 # Statement body expression
-s[i]=0;
+s[i] = 0;
 </body>
 
 # =============================================== Statement 7
@@ -270,7 +270,7 @@ WRITE
 # Number of original iterators
 0
 # Statement body expression
-f=0;
+f = 0;
 </body>
 
 # =============================================== Extensions
@@ -296,10 +296,10 @@ b0 i b1
 <coordinates>
 # File name
 ./unitary/fuse.c
-# Starting line
-1
-# Ending line
-16
+# Starting line and column
+2 0
+# Ending line and column
+16 0
 # Indentation
 0
 </coordinates>
