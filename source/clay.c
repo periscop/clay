@@ -95,7 +95,8 @@ int main(int argc, char * argv[]) {
 		clan_opt->precision = OSL_PRECISION_MP;
 		clan_opt->name = options->input_name;
     scop = clan_scop_extract(options->input, clan_opt);
-    clan_options_free(clan_opt);
+    //clan_options_free(clan_opt); // bug, the name is also freed
+    free(clan_opt);
     // the file options->input is closed by clan_scop_extract
   }
   else
