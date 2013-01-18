@@ -35,27 +35,31 @@ INSTALL
 
 By default Clay is linked with Clan, Candl and Cloog. This is useful to run
 Clay with the -c (compile) option. 
-If Clan, Cloog, Candl, OSL..., are not present use the bundled option in the
-redo.sh and run the get_submodules.sh
 
-- linked only with Clan
-  -c : input  : .c file
-       output : scop
+If Clan, Cloog (need Osl), Candl, OSL..., are not present on your system 
+use the bundled option in the redo.sh and run the get_submodules.sh
 
-- linked only with Cloog (libcloog-isl), Cloog need to be compiled with Osl !
-  -c : input  : scop
-       output : optimized .c file
+Edit the redo.sh to modify the configuration.
 
-- linked with Clan and Cloog
-  -c : input  : .c file
-       output : optimized .c file
 
-- linked with Candl 
-	Warning: Candl need to be compiled with Piplib in GMP, because Cloog is only
-	compatible with GMP (change the variable BITS in the configure of Candl)
-  You can use the --nocandl to not check dependencies.
-  If it's also linked with Cloog, and if there are no violations the
-	optimized .c file is printed, otherwise it's the violation graph.
+  - linked with Clan and ClooG
+    -c : input  : .c file
+         output : .c file
+
+  - linked with Clan
+    --readc : input : .c file
+
+  - linked with ClooG
+    --printc : output : .c file
+
+  - linked with Candl 
+    Warning: Candl need to be compiled with Piplib in GMP, because Cloog is
+    only compatible with GMP (change the variable BITS in the configure of
+    Candl).
+    If there is a violation, the violation graph is printed otherwise it's the 
+    result (scop or .c file).
+    You can use the --nocandl to not check dependencies.
+
 
 Installation :
 $ ./redo.sh

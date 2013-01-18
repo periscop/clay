@@ -90,7 +90,7 @@ int main(int argc, char * argv[]) {
 
   // Open the scop file
   #ifdef CLAN_LINKED
-  if (options->compile) {
+  if (options->readc) {
     clan_options_p clan_opt = clan_options_malloc();
 		clan_opt->precision = OSL_PRECISION_MP;
 		clan_opt->name = options->input_name;
@@ -182,7 +182,7 @@ int main(int argc, char * argv[]) {
 	
 	{
     #ifdef CLOOG_LINKED
-		if (options->compile && scop != NULL) {
+		if (options->printc && scop != NULL) {
 			CloogState *state = cloog_state_malloc();
 			CloogOptions *cloogoptions = cloog_options_malloc(state);
 			cloogoptions->openscop = 1;

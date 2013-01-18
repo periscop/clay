@@ -47,9 +47,14 @@ struct clay_options {
   int print_infos;  /**< 1 if a --help or --version is given */
   int normalize;    /**< 1 the scop will be re-normalized */
 
-  #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
-  int compile;    /**< 1 to create the chain clan | clay | cloog */
+  #if defined(CLAN_LINKED)
+  int readc;      /**< 1 to read a .c, else it's a scop */
   #endif
+
+  #if defined(CLAN_LINKED)
+  int printc;    /**< 1 to print a .c, else it's a scop */
+  #endif
+
   #ifdef CANDL_LINKED
   int nocandl;    /**< 1 don't check depedencies with candl */
   int candl_structure; /**< 1 to set candl structure option */

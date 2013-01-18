@@ -88,26 +88,23 @@ void clay_options_help() {
   "Usage: clay [ options | file ] ...\n");
   printf(
   "\nGeneral options:\n"
-  #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
+  #if defined(CLAN_LINKED) && defined(CLOOG_LINKED)
 		"  -c                    Compile 'file' and create the chain clan|clay|cloog\n"
-		#if defined(CLAN_LINKED)
-			"                        'file' is a .c (not a scop)\n"
-		#else
-			"                        'file' is a scop\n"
-			"                        Recompile Clay with Clan to read a .c\n"
-		#endif
+    "                        equivalent to --readc --printc\n"
+  #endif
+
+  #if defined(CLAN_LINKED)
+    "  --readc               Read 'file' as a .c (with Clan)\n"
+  #endif
+
+  #if defined(CLOOG_LINKED)
+    "  --printc              Print a .c (with ClooG)\n"
   #endif
 
 	#if defined(CANDL_LINKED)
-		#if defined(CLOOG_LINKED)
-			"  --nocandl             Don't check dependencies and print the optimized\n"
-			"                        code by cloog\n"
-		#else
-			"  --nocandl             Don't check dependencies and print the \n"
-			"                        transformed scop\n"
-		#endif
-                "  --candl-structure     Set candl structure option \n"
-                "  --candl-fullcheck     Set candl fullcheck option \n"
+			"  --nocandl             Don't check dependencies and print the result\n"
+      "  --candl-structure     Set candl structure option \n"
+      "  --candl-fullcheck     Set candl fullcheck option \n"
 	#endif
   "  --script <file>       Input script file. If not given the script is from\n"
   "                        the scop structure.\n"
@@ -119,8 +116,9 @@ void clay_options_help() {
   "  -v, --version         Display the release information.\n"
   "  -h, --help            Display this help.\n\n");
   printf(
-  "The 'file' is optional, if it's not given, clay will read the scop from\n"
-  "the stdin.\n\n"
+  "The 'file' is optional, if it's not given, clay will the file from\n"
+  "the stdin. By default Clay read a scop and print a scop, Clay can\n"
+  "be linked with Clan and Cloog.\n\n"
   "For bug reporting or any suggestions, please send an email to the author\n"
   "Joel Poudroux <joel.poudroux@u-psud.fr>.\n");
 }
@@ -153,14 +151,21 @@ clay_options_p clay_options_malloc() {
   options->input_name   = NULL;
   options->print_infos  = 0;
   options->normalize    = 1;
-  #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
-  options->compile = 0;
+
+  #if defined(CLAN_LINKED)
+  options->readc = 0;
   #endif
+
+  #if defined(CLOOG_LINKED)
+  options->printc = 0;
+  #endif
+
   #ifdef CANDL_LINKED
   options->nocandl = 0;
   options->candl_structure = 0;
   options->candl_fullcheck = 0;
   #endif
+
   return options;
 }
 
@@ -189,10 +194,23 @@ clay_options_p clay_options_read(int argc, char ** argv) {
     } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
       clay_options_help();
       options->print_infos = 1;
-    #if defined(CLAN_LINKED) || defined(CLOOG_LINKED)
+
+    #if defined(CLAN_LINKED) && defined(CLOOG_LINKED)
     } else if (strcmp(argv[i], "-c") == 0) {
-      options->compile = 1;
+      options->readc = 1;
+      options->printc = 1;
     #endif
+
+    #if defined(CLAN_LINKED)
+    } else if (strcmp(argv[i], "--readc") == 0) {
+      options->readc = 1;
+    #endif
+
+    #if defined(CLOOG_LINKED)
+    } else if (strcmp(argv[i], "--printc") == 0) {
+      options->printc = 1;
+    #endif
+
 	  #ifdef CANDL_LINKED
     } else if (strcmp(argv[i], "--nocandl") == 0) {
       options->nocandl = 1;
@@ -201,6 +219,7 @@ clay_options_p clay_options_read(int argc, char ** argv) {
     } else if (strcmp(argv[i], "--candl-fullcheck") == 0) {
       options->candl_fullcheck = 1;
     #endif
+
     } else if (strcmp(argv[i], "--list") == 0) {
       clay_options_list_functions();
       options->print_infos = 1;
