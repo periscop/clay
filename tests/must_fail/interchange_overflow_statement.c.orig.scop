@@ -94,7 +94,7 @@ a = 0;
 </coordinates>
 
 <clay>
-   interchange([0], 1, 1);
+   interchange([0], 1, 1, 0);
 </clay>
 
 </OpenScop>

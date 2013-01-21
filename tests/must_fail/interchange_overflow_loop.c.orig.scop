@@ -111,7 +111,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   interchange([0], 2, 1);
+   interchange([0], 2, 1, 0);
 </clay>
 
 </OpenScop>

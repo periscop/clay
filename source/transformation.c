@@ -187,11 +187,13 @@ int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
  * \param[in] beta          Beta vector (inner loop or statement)
  * \param[in] depth_1       >= 1
  * \param[in] depth_2       >= 1
+ * \param[in] pretty        1 or 0 : update the scatnames
  * \param[in] options
  * \return                  Status
  */
 int clay_interchange(osl_scop_p scop, 
                       clay_array_p beta, int depth_1, int depth_2,
+                      int pretty,
                       clay_options_p options) {
   /* Description:
    * Swap the two output_dims columns.
@@ -251,6 +253,28 @@ int clay_interchange(osl_scop_p scop,
     
     statement = statement->next;
   }
+
+  // swap the two variables
+  if (pretty) {
+    osl_scatnames_p scat;
+    osl_strings_p names;
+    scat = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
+    names = scat->names;
+
+    int ii = 0;
+    for (ii = 0 ; names->string[ii] ; ii++)
+      ;
+
+    int c1 = depth_1 * 2 - 1;
+    int c2 = depth_2 * 2 - 1;
+
+    if (c1 < ii && c2 < ii) {
+      char *tmp = names->string[c1];
+      names->string[c1] = names->string[c2];
+      names->string[c2] = tmp;
+    }
+  }
+
   return CLAY_SUCCESS;
 }
 
@@ -970,7 +994,7 @@ int clay_tile(osl_scop_p scop,
   ret = clay_stripmine(scop, beta, depth, size, pretty, options);
   
   if (ret == CLAY_SUCCESS) {
-    ret = clay_interchange(scop, beta, depth, depth_outer, options);
+    ret = clay_interchange(scop, beta, depth, depth_outer, pretty, options);
   }
 
   return ret;

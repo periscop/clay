@@ -45,7 +45,8 @@
 
 int      clay_split(osl_scop_p, clay_array_p, int, clay_options_p);
 int      clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int      clay_interchange(osl_scop_p, clay_array_p, int, int, clay_options_p);
+int      clay_interchange(osl_scop_p, clay_array_p, int, int, int, 
+                          clay_options_p);
 int      clay_reverse(osl_scop_p, clay_array_p, int, clay_options_p);
 int      clay_skew(osl_scop_p, clay_array_p, int, int, clay_options_p);
 int      clay_fuse(osl_scop_p, clay_array_p, clay_options_p);

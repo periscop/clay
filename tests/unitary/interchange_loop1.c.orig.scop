@@ -119,7 +119,7 @@ b0 i b1 j b2
 </coordinates>
 
 <clay>
-   interchange([0,0], 1, 2);
+   interchange([0,0], 1, 2, 0);
 </clay>
 
 </OpenScop>
