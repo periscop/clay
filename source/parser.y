@@ -75,6 +75,9 @@
   // Command line options
   clay_options_p      clay_parser_options;
 
+  // Arrays are allocated differently
+  int is_in_a_list;
+
   // parser functions
   void                clay_parser_exec_function(char *name);
   void                clay_parser_string(osl_scop_p, char*, clay_options_p);
@@ -133,6 +136,7 @@ args:
       *tmp = $1;
       clay_prototype_function_args_add(clay_params, tmp, INTEGER_T);
     }
+
   | // Snum
     IDENT_STMT
     {
@@ -151,6 +155,7 @@ args:
       }
       clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
     }
+
   | // iterator name
     IDENT_NAME
     {
@@ -171,6 +176,7 @@ args:
       clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
       free($3);
     }
+
   | // Lnum
     IDENT_LOOP
     {
@@ -197,7 +203,14 @@ args:
       clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
       clay_betatree_free(tree);
     }
-  | // default beta vector
+
+  | // a list
+    args ',' '{' list_of_array '}' 
+  | 
+    '{' list_of_array '}'
+
+
+  | // an array
     args ',' array
   |
     array
@@ -205,19 +218,37 @@ args:
 
 // the array is allocated in the scanner.l
 array:
-    '[' list ']'
+    '[' list_of_integer ']'
+  ;
+
+// the list is allocated in the scanner.l
+// a list contains 5 maximum of arrays
+list_of_array:
+    list_of_array '|' list_of_integer
+  |
+    list_of_integer
   ;
 
 // The array is created in the lex file
-list:
-    list ',' INTEGER
+list_of_integer:
+    list_of_integer ',' INTEGER
     {
-      clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $3);
+      if (is_in_a_list) {
+        clay_list_p l = (clay_list_p) clay_params->args[clay_params->argc-1];
+        clay_array_add(l->data[l->size-1], $3);
+      } else {
+        clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $3);
+      }
     }
   |
     INTEGER
     {
-      clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $1);
+      if (is_in_a_list) {
+        clay_list_p l = (clay_list_p) clay_params->args[clay_params->argc-1];
+        clay_array_add(l->data[l->size-1], $1);
+      } else {
+        clay_array_add((clay_array_p) clay_params->args[clay_params->argc-1], $1);
+      }
     }
   |
   ;
@@ -242,13 +273,13 @@ int clay_yyerror(void) {
  * \param[in] options
  */
 void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
-  printf("ok\n");
   clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
   
   // List of parameters of the current scanned function
   clay_params = clay_prototype_function_malloc();
   
+  is_in_a_list = 0;
   clay_yyin = input;
   clay_scanner_initialize();
   clay_yyparse();
@@ -272,6 +303,7 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
   // Will contains the list of parameters of the current scanned function
   clay_params = clay_prototype_function_malloc();
   
+  is_in_a_list = 0;
   clay_yy_scan_string(input);
   clay_scanner_line = 1;
   clay_yyparse();
@@ -288,8 +320,6 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
  */
 void clay_parser_exec_function(char *name) {
   int i, j;
-  int scop_nb_params = clay_parser_scop->context->nb_parameters;
-  int peel_first; // special variable for PEEL_AUTO
   
   // search the function name
   i = 0;
@@ -326,15 +356,8 @@ void clay_parser_exec_function(char *name) {
   // check types
   j = 0;
   while (j < functions[i].argc) {
-    
-    if (functions[i].type[j] == ARRAY_OR_INTEGER_T) {
-      // convert the integer into array
-      clay_prototype_function_conv_int2array(clay_params, j, scop_nb_params);
-      
-    } else if (clay_params->type[j] != functions[i].type[j]) {
+    if (clay_params->type[j] != functions[i].type[j])
       break; // error
-    }
-    
     j++;
   }
   
@@ -392,6 +415,7 @@ void clay_parser_exec_function(char *name) {
       status_result = clay_iss(clay_parser_scop,
                                clay_params->args[0], 
                                clay_params->args[1],
+                               NULL,
                                clay_parser_options);
       break;
     case CLAY_FUNCTION_STRIPMINE:
@@ -432,31 +456,10 @@ void clay_parser_exec_function(char *name) {
                                  clay_params->args[2], 
                                  clay_parser_options);
       break;
-    case CLAY_FUNCTION_PEEL_AUTO:
-    
-      peel_first = *((int*)clay_params->args[1]) < 0;
-      clay_prototype_function_conv_int2array(clay_params,
-                                             1,
-                                             scop_nb_params);
-
+    case CLAY_FUNCTION_PEEL:
       status_result = clay_peel(clay_parser_scop,
                                 clay_params->args[0], 
                                 clay_params->args[1],
-                                peel_first,
-                                clay_parser_options);
-      break;
-    case CLAY_FUNCTION_PEEL_FIRST:
-      status_result = clay_peel(clay_parser_scop,
-                                clay_params->args[0], 
-                                clay_params->args[1],
-                                1,
-                                clay_parser_options);
-      break;
-    case CLAY_FUNCTION_PEEL_LAST:
-      status_result = clay_peel(clay_parser_scop,
-                                clay_params->args[0], 
-                                clay_params->args[1],
-                                0,
                                 clay_parser_options);
       break;
     case CLAY_FUNCTION_CONTEXT:
@@ -464,6 +467,13 @@ void clay_parser_exec_function(char *name) {
                                    clay_params->args[0], 
                                    clay_parser_options);
       break;
+/*    case CLAY_FUNCTION_DATACOPY:
+      status_result = clay_datacopy(clay_parser_scop,
+                                    clay_params->args[0],
+                                    (char*)clay_params->args[1],
+                                    *((int*)clay_params->args[2]),
+                                    clay_parser_options);
+      break;*/
   }
   
   // check errors
@@ -552,7 +562,7 @@ void clay_parser_print_error(int status_result) {
       exit(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
       break;
     case CLAY_ERROR_INEQU:
-      fprintf(stderr,"[Clay] Error: line %d, the inequality or equality seems "
+      fprintf(stderr,"[Clay] Error: line %d, the inequality seems "
                      "to be wrong\n",
               clay_scanner_line);
       exit(CLAY_ERROR_INEQU);

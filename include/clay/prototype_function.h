@@ -40,6 +40,8 @@
 #define ARRAY_T               0
 #define INTEGER_T             1
 #define ARRAY_OR_INTEGER_T    2
+#define STRING_T              3
+#define LIST_T                4
 
 struct clay_prototype_function {
   char *name;

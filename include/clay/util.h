@@ -45,10 +45,20 @@
 #include <osl/statement.h>
 #include <osl/extensions/scatnames.h>
 
-void  clay_util_statement_insert_inequation(osl_statement_p, clay_array_p,
-                                            int, int);
+/*void  clay_util_statement_insert_inequation(osl_statement_p, clay_array_p,
+                                            int, int);*/
+
+void  clay_util_relation_negate_row(osl_relation_p, int);
+
+void  clay_util_statement_set_inequation(osl_statement_p, clay_list_p);
+void  clay_util_statement_set_vector(osl_statement_p, clay_list_p, int);
+osl_statement_p  
+clay_util_statement_insert(osl_statement_p, osl_statement_p, int, int);
+
+void  clay_util_array_output_dims_pad_zero(clay_array_p);
+
+int   clay_util_statement_find_iterator(osl_statement_p, char*);
 bool  clay_util_scatnames_exists(osl_scatnames_p, char*);
 char* clay_util_string_replace(char*, char*, char*);
-int   clay_util_statement_find_iterator(osl_statement_p, char*);
 
 #endif

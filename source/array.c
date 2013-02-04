@@ -55,7 +55,7 @@ clay_array_p clay_array_malloc() {
 
 
 /**
- * clay_array_add function: 
+ * clay_array_add function:
  * Push i at the end of arr
  * \param[in,out] arr
  * \param[in] i
@@ -130,6 +130,63 @@ void clay_array_concat(clay_array_p a1, clay_array_p a2) {
   int i;
   for (i = 0 ; i < a2->size ; i++) {
     clay_array_add(a1, a2->data[i]);
+  }
+}
+
+
+
+clay_list_p clay_list_malloc() {
+  clay_list_p l;
+  CLAY_malloc(l, clay_list_p, sizeof(clay_list_t));
+  CLAY_malloc(l->data, clay_array_p*, sizeof(clay_array_p) * CLAY_LIST_INIT_SIZE);
+  l->size = 0;
+  l->available = CLAY_ARRAY_INIT_SIZE;
+  return l;
+}
+
+
+void clay_list_add(clay_list_p l, clay_array_p a) {
+  if (l->size >= l->available) {
+    l->available *= 2;
+    CLAY_realloc(l->data, clay_array_p*, sizeof(clay_array_p) * l->available);
+  }
+  l->data[l->size] = a;
+  (l->size)++;
+}
+
+
+void clay_list_free(clay_list_p l) {
+  if (l) {
+    int i;
+    for (i = 0 ; i < l->size ; i++)
+      clay_array_free(l->data[i]);
+    free(l->data);
+    free(l);
+  }
+}
+
+
+void clay_list_print(FILE *out, clay_list_p l) {
+  if (l == NULL) {
+    fprintf(out, "NULL\n");
+    return;
+  }
+  int i;
+  fprintf(out, "{");
+  for (i = 0 ; i < l->size-1 ; i++) {
+    clay_array_print(out, l->data[i]);
+    fprintf(out, ",");
+  }
+  if(l->size > 0)
+    clay_array_print(out, l->data[i]);
+  fprintf(out, "}\n");
+}
+
+
+void clay_list_clear(clay_list_p l) {
+  int i;
+  for (i = 0 ; i < l->size ; i++) {
+    l->data[i]->size = 0;
   }
 }
 

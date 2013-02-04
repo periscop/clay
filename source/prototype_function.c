@@ -82,6 +82,7 @@ void clay_prototype_function_args_add(clay_prototype_function_p f, void *param,
  */
 void clay_prototype_function_args_clear(clay_prototype_function_p f) {
   int i;
+  clay_list_p l;
   if (f->args) {
     for (i = 0 ; i < f->argc ; i++) {
       if (f->args[i]) {
@@ -90,7 +91,12 @@ void clay_prototype_function_args_clear(clay_prototype_function_p f) {
             clay_array_free(f->args[i]);
             break;
           case INTEGER_T:
+          case STRING_T:
             free(f->args[i]);
+            break;
+          case LIST_T:
+            l = (clay_list_p) f->args[i];
+            clay_list_free(l);
             break;
         }
       }
@@ -115,7 +121,7 @@ void clay_prototype_function_free(clay_prototype_function_p f) {
 
 /**
  * clay_prototype_function_conv_int2array function: 
- * Convert the `index'th arg into a clay_array_p
+ * Convert the `index'th arg into a clay_array_p (zero padding)
  * If size == 3 and f->arg[index] == 8:
  * result = [0,0,0,8]
  * \param[in,out] function structure

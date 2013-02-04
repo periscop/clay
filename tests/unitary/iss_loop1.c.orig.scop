@@ -222,7 +222,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   iss([0], [1,0,-1]);
+   iss([0], {1 | 0 | -1});
 </clay>
 
 </OpenScop>

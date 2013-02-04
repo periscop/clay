@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   peel_last([0], [0,-5]);
+   peel([0], {-1 | -25});
 */
 for(i = 10 ; i <= N-8 ; i++) {
   a[i] = 0;

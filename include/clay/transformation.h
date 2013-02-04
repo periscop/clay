@@ -45,21 +45,18 @@
 
 int      clay_split(osl_scop_p, clay_array_p, int, clay_options_p);
 int      clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int      clay_interchange(osl_scop_p, clay_array_p, int, int, int, 
-                          clay_options_p);
+int      clay_interchange(osl_scop_p, clay_array_p, int, int, int, clay_options_p);
 int      clay_reverse(osl_scop_p, clay_array_p, int, clay_options_p);
 int      clay_skew(osl_scop_p, clay_array_p, int, int, clay_options_p);
 int      clay_fuse(osl_scop_p, clay_array_p, clay_options_p);
-int      clay_iss(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
-int      clay_stripmine(osl_scop_p, clay_array_p, int, int, int,
-                        clay_options_p);
+int      clay_iss(osl_scop_p, clay_array_p, clay_list_p, clay_array_p*, clay_options_p);
+int      clay_stripmine(osl_scop_p, clay_array_p, int, int, int, clay_options_p);
 int      clay_unroll(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int      clay_tile(osl_scop_p, clay_array_p, int, int, int, int,
-                   clay_options_p);
-int      clay_shift(osl_scop_p, clay_array_p, int, clay_array_p,
-                    clay_options_p);
-int      clay_peel(osl_scop_p, clay_array_p, clay_array_p, int, clay_options_p);
+int      clay_tile(osl_scop_p, clay_array_p, int, int, int, int, clay_options_p);
+int      clay_shift(osl_scop_p, clay_array_p, int, clay_list_p, clay_options_p);
+int      clay_peel(osl_scop_p, clay_array_p, clay_list_p, clay_options_p);
 int      clay_context(osl_scop_p, clay_array_p, clay_options_p);
+int      clay_datacopy(osl_scop_p, clay_array_p, char*, int, clay_options_p);
 
 
 #endif

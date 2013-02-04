@@ -1,8 +1,8 @@
 #pragma scop
 /* Clay
-   iss([0], [1,0,-1]);
+   iss([0], {1 | 0 | -1});
 */
-for(i = 0 ; i <= N ; i++) {
+for (i = 0 ; i <= N ; i++) {
     a[i] = 0;
     b[i] = 0;
     c[i] = 0;

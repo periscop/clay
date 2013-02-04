@@ -44,7 +44,7 @@ N M
 </strings>
 
 # Number of statements
-1
+2
 
 # =============================================== Statement 1
 # Number of relations describing the statement:
@@ -91,6 +91,45 @@ i j
 a[i][j] = 0;
 </body>
 
+# =============================================== Statement 2
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+3 5 1 0 0 2
+# e/i|  i |  N    M |  1  
+   1    1    0    0    0    ## i >= 0
+   1   -1    1    0    0    ## -i+N >= 0
+   1    0    1    0    0    ## N >= 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+3 8 3 1 0 2
+# e/i| c1   c2   c3 |  i |  N    M |  1  
+   0   -1    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    1    0    0    0    ## c2 == i
+   0    0    0   -1    0    0    0    1    ## c3 == 1
+
+# ----------------------------------------------  2.3 Access
+WRITE
+2 7 2 1 0 2
+# e/i| Arr  [1]|  i |  N    M |  1  
+   0   -1    0    0    0    0    6    ## Arr == b
+   0    0   -1    1    0    0    0    ## [1] == i
+
+# ----------------------------------------------  2.4 Body
+# Statement body is provided
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+b[i] = 0;
+</body>
+
 # =============================================== Extensions
 <scatnames>
 b0 i b1 j b2
@@ -98,13 +137,14 @@ b0 i b1 j b2
 
 <arrays>
 # Number of arrays
-5
+6
 # Mapping array-identifiers/array-names
 1 i
 2 N
 3 j
 4 M
 5 a
+6 b
 </arrays>
 
 <coordinates>
@@ -113,13 +153,13 @@ b0 i b1 j b2
 # Starting line and column
 2 0
 # Ending line and column
-10 0
+11 0
 # Indentation
 0
 </coordinates>
 
 <clay>
-   skew([0,0], 1, 2);
+  skew([0,0], 1, 2);
 </clay>
 
 </OpenScop>

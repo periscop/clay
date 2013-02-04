@@ -37,6 +37,7 @@
 %{
   #include <parser.h>
   #include <clay/array.h>
+  #include <clay/macros.h>
   #include <clay/prototype_function.h>
 
   void        clay_scanner_free();
@@ -45,6 +46,7 @@
   int         clay_scanner_line;
   
   extern clay_prototype_function_p  clay_params;
+  extern int is_in_a_list;
 
 //%option outfile="scanner.c" header-file="scanner.h"
 %}
@@ -53,7 +55,7 @@
 %option noyywrap
 %option noinput
 %option nounput
-SEPARATOR [ \t]*
+SEPARATOR ([ \t]|\xc2\xa0)*
 
 %%
 
@@ -67,6 +69,17 @@ SEPARATOR [ \t]*
                      return INTEGER;
                    }
 
+true               {
+                     clay_yylval.ival = 1;
+                     return INTEGER;
+                   }
+
+false              {
+                     clay_yylval.ival = 0;
+                     return INTEGER;
+                   }
+
+
 S[0-9]+            {
                      clay_yylval.ival = atoi(clay_yytext+1);
                      return IDENT_STMT;
@@ -77,18 +90,41 @@ L[0-9]+            {
                      return IDENT_LOOP;
                    }
 
+
 [a-zA-Z_][a-zA-Z0-9_]* {
                      clay_yylval.sval = strdup(clay_yytext);
                      return IDENT_NAME;
                    }
 
 {SEPARATOR}        { ; }
+
 \[                 {
-                     clay_array_p tmp = clay_array_malloc();
-                     clay_prototype_function_args_add(clay_params, tmp, ARRAY_T);
+                     clay_array_p a = clay_array_malloc();
+                     clay_prototype_function_args_add(clay_params, a, ARRAY_T);
                      return '[';
                    }
-                   
+
+\{                 {
+                     is_in_a_list = 1;
+                     clay_list_p l = clay_list_malloc();
+                     clay_list_add(l, clay_array_malloc());
+                     clay_prototype_function_args_add(clay_params, l, LIST_T);
+                     return '{';
+                   }
+
+\|                 {
+                     if (is_in_a_list) {
+                       clay_list_p l = clay_params->args[clay_params->argc-1];
+                       clay_list_add(l, clay_array_malloc());
+                     }
+                     return '|';
+                   }
+
+\}                 {
+                     is_in_a_list = 0;
+                     return '}'; 
+                   }
+
 \n                 { clay_scanner_line++; }
 .                  { return clay_yytext[0]; }
 

@@ -238,7 +238,7 @@ clay_array_p clay_beta_get(osl_statement_p statement) {
 
 
 /**
- * clay_beta_max function:
+ * clay_beta_min function:
  * Return beta min
  * \param[in] statement     List of statements
  * \param[in] beta          Beta vector parent
@@ -457,7 +457,7 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
 
 /**
  * clay_beta_shift_before function:
- * Shift all the statements that are before or on the beta vector
+ * Shift one on all the statements that are before or on the beta vector
  * \param[in,out] statement Statements list
  * \param[in] beta          Beta vector 
  * \param[in] depth         Depth level to shift, >= 1
@@ -467,7 +467,7 @@ void clay_beta_shift_before(osl_statement_p statement, clay_array_p beta,
   if (beta->size == 0)
     return;
   osl_relation_p scattering;
-  const int column = (depth-1)*2;  // transition column
+  const int column = (depth-1)*2;  // alpha column
   int row;
   int precision = statement->scattering->precision;
   
@@ -494,7 +494,7 @@ void clay_beta_shift_before(osl_statement_p statement, clay_array_p beta,
 
 /**
  * clay_beta_shift_after function:
- * Shift all the statements that are after or on the beta vector
+ * Shift one on all the statements that are after (strictly)
  * \param[in,out] statement Statements list
  * \param[in] beta          Beta vector 
  * \param[in] depth         Depth level to shift, >= 1
@@ -504,7 +504,7 @@ void clay_beta_shift_after(osl_statement_p statement, clay_array_p beta,
   if (beta->size == 0)
     return;
   osl_relation_p scattering;
-  const int column = (depth-1)*2;  // transition column
+  const int column = (depth-1)*2;  // alpha column
   int row;
   int precision = statement->scattering->precision;
   
@@ -576,8 +576,8 @@ bool clay_statement_is_before(osl_statement_p statement, clay_array_p beta) {
  * \return
  */
 bool clay_statement_is_after(osl_statement_p statement, clay_array_p beta) {
-  return !clay_statement_is_before(statement, beta) && 
-         !clay_beta_check(statement, beta);
+  return !clay_beta_check(statement, beta) &&
+         !clay_statement_is_before(statement, beta);
 }
 
 

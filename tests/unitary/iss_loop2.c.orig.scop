@@ -276,7 +276,7 @@ b0 i b1 j b2
 </coordinates>
 
 <clay>
-   iss([0,1], [0,1,0,0,-10]);
+   iss([0,1], {0,1 | 0,0 | -10});
 </clay>
 
 </OpenScop>

@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   skew([1,1,1], 1, 1);
+   skew([1,1,1], 1, 2);
 */
 z = 0;
 for(i = 0 ; i <= N ; i++) {
