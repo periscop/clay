@@ -37,11 +37,16 @@
 #include <string.h>
 #include <clay/array.h>
 #include <clay/macros.h>
-#include <clay/beta.h>
 #include <clay/util.h>
+
 #include <osl/statement.h>
 #include <osl/body.h>
+#include <osl/extensions/extbody.h>
 #include <osl/extensions/scatnames.h>
+#include <osl/scop.h>
+#include <osl/generic.h>
+#include <osl/util.h>
+#include <osl/macros.h>
 
 /** 
  * clay_util_statement_insert_inequation function:
@@ -307,7 +312,7 @@ osl_statement_p clay_util_statement_insert(osl_statement_p statement,
   osl_relation_p scattering = statement->scattering;
 
   // the current statement is after the new statement
-  int row = clay_relation_get_line(scattering, column);
+  int row = clay_util_relation_get_line(scattering, column);
   osl_int_set_si(scattering->precision,
                  scattering->m[row], scattering->nb_columns-1,
                  order);
@@ -400,7 +405,13 @@ bool clay_util_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
  * \return
  */
 int clay_util_statement_find_iterator(osl_statement_p statement, char *iter) {
-  osl_body_p body = (osl_body_p) statement->body->data;
+  osl_body_p body;
+  
+  if (osl_generic_has_URI(statement->body, OSL_URI_EXTBODY))
+    body = ((osl_extbody_p) statement->body->data)->body;
+  else
+    body = (osl_body_p) statement->body->data;
+
   char **ptr = body->iterators->string;
   int i = 0;
   
@@ -411,5 +422,196 @@ int clay_util_statement_find_iterator(osl_statement_p statement, char *iter) {
     i++;
   }
   
+  return -1;
+}
+
+
+/**
+ * clay_util_scop_export_body function:
+ * Convert each extbody to a body structure
+ * \param[in] scop
+ */
+void clay_util_scop_export_body(osl_scop_p scop) {
+  if (scop == NULL)
+    return;
+
+  osl_statement_p stmt = scop->statement;
+  osl_extbody_p ebody;
+
+  while (stmt) {
+    if (osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
+      ebody = stmt->body->data;
+
+      osl_interface_free(stmt->body->interface);
+      stmt->body->interface = osl_body_interface();
+
+      stmt->body->data = ebody->body;
+
+      ebody->body = NULL;
+      osl_extbody_free(ebody);
+    }
+    stmt = stmt->next;
+  }
+}
+
+
+void static clay_util_name_sprint(char **dst, int *hwm, 
+                                  int *print_plus, int val, char *name) {
+  if (*print_plus)
+    osl_util_safe_strcat(dst, " + ", hwm);
+  else
+    *print_plus = 1;
+
+  char buffer[32];
+
+  if (name == NULL) {
+    snprintf(buffer, 32, "%d", val);
+    osl_util_safe_strcat(dst, buffer, hwm);
+  } else {
+    if (val == 1) {
+      osl_util_safe_strcat(dst, name, hwm);
+    } else if (val == -1) {
+      osl_util_safe_strcat(dst, "-", hwm);
+      osl_util_safe_strcat(dst, name, hwm);
+    } else {
+      snprintf(buffer, 32, "%d*", val);
+      osl_util_safe_strcat(dst, buffer, hwm);
+      osl_util_safe_strcat(dst, name, hwm);
+    }
+  }
+}
+
+
+/**
+ * clay_util_body_regenerate_access function:
+ * Read the access array and re-generate the code in the body
+ * \param[in] ebody     An extbody structure
+ * \param[in] access    The relation to regenerate the code
+ * \param[in] index     nth access (needed to access to the array start and 
+ *                      length of the extbody structure)
+ */
+void clay_util_body_regenerate_access(osl_extbody_p ebody,
+                                      osl_relation_p access,
+                                      int index,
+                                      osl_arrays_p arrays,
+                                      osl_scatnames_p scatnames,
+                                      osl_strings_p params) {
+
+  if (!arrays || !scatnames || !params || access->nb_output_dims == 0 ||
+      index >= ebody->nb_access)
+    return;
+
+  const int precision = access->precision;
+  int i, j, k, row, val, print_plus;
+
+  char *body = ebody->body->expression->string[0];
+  int body_len = strlen(body);
+  int start = ebody->start[index];
+  int len = ebody->length[index];
+
+  if (start >= body_len || start + len >= body_len)
+    return;
+
+  char *new_body;
+  char end_body[OSL_MAX_STRING];
+  int hwm = OSL_MAX_STRING;
+
+  CLAY_malloc(new_body, char *, OSL_MAX_STRING * sizeof(char));
+
+  // copy the beginning of the body
+  if (start+1 >= OSL_MAX_STRING)
+    CLAY_error("memcpy: please recompile osl with a higher OSL_MAX_STRING");
+  memcpy(new_body, body, start);
+  new_body[start] = '\0';
+
+  // save the end in a buffer
+  int sz = body_len - start - len;
+  if (sz + 1 >= OSL_MAX_STRING)
+    CLAY_error("memcpy: please recompile osl with a higher OSL_MAX_STRING");
+  memcpy(end_body, body + start + len, sz);
+  end_body[sz] = '\0';
+
+
+  // copy access name string
+  row = clay_util_relation_get_line(access, 0);
+  val = osl_int_get_si(precision, access->m[row], access->nb_columns-1);
+  val = clay_util_arrays_search(arrays, val);
+  osl_util_safe_strcat(&new_body, arrays->names[val], &hwm);
+
+
+  // generate each dims
+  for (i = 1 ; i < access->nb_output_dims ; i++) {
+    osl_util_safe_strcat(&new_body, "[", &hwm);
+    row = clay_util_relation_get_line(access, i);
+
+    print_plus = 0;
+    k = 1 + access->nb_output_dims;
+
+    // iterators
+    for (j = 0 ; j < access->nb_input_dims ; j++, k++) {
+      val = osl_int_get_si(precision, access->m[row], k);
+      if (val != 0)
+        clay_util_name_sprint(&new_body,
+                              &hwm, 
+                              &print_plus,
+                              val,
+                              scatnames->names->string[j*2+1]);
+    }
+
+    // params
+    for (j = 0 ; j < access->nb_parameters ; j++, k++) {
+      val = osl_int_get_si(precision, access->m[row], k);
+      if (val != 0)
+        clay_util_name_sprint(&new_body,
+                              &hwm, 
+                              &print_plus,
+                              val,
+                              params->string[j]);
+    }
+
+    // const
+    val = osl_int_get_si(precision, access->m[row], k);
+    if (val != 0)
+      clay_util_name_sprint(&new_body,
+                            &hwm, 
+                            &print_plus,
+                            val,
+                            NULL);
+
+    osl_util_safe_strcat(&new_body, "]", &hwm);
+  }
+
+  // length of the generated access
+  ebody->length[index] = strlen(new_body) - start;
+
+  // concat the end
+  osl_util_safe_strcat(&new_body, end_body, &hwm);
+
+  // update ebody
+  free(ebody->body->expression->string[0]);
+  ebody->body->expression->string[0] = new_body;
+
+  // shift the start
+  int diff = ebody->length[index] - len;
+  for (i = 0 ; i < ebody->nb_access ; i++)
+    if (i != index)
+      ebody->start[i] += diff;
+}
+
+
+/**
+ * clay_util_arrays_search function:
+ * \param[in] arrays    An arrays osl structure
+ * \param[in] id        The id to search
+ * \return              Return the index in the arrays 
+ */
+int clay_util_arrays_search(osl_arrays_p arrays, int id) {
+
+  int i;
+  for (i = 0 ; i < arrays->nb_names ; i++) {
+    if (arrays->id[i] == id)
+      return i;
+  }
+
   return -1;
 }

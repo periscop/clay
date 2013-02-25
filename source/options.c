@@ -133,6 +133,8 @@ void clay_options_help() {
   "                        clay and at the end of these following functions : \n"
   "                        reorder, split, fuse, iss, strimine, and unroll.\n"
   "  --list                List all the available functions.\n"
+  "  --keep-extbody        Each extbody are kept (otherwise, they are exported\n"
+  "                        to a basic body)."
   "  -v, --version         Display the release information.\n"
   "  -h, --help            Display this help.\n\n");
   printf(
@@ -171,6 +173,7 @@ clay_options_p clay_options_malloc() {
   options->input_name   = NULL;
   options->print_infos  = 0;
   options->normalize    = 1;
+  options->keep_extbody = 0;
 
   #if defined(CLAN_LINKED)
   options->readc = 0;
@@ -245,6 +248,8 @@ clay_options_p clay_options_read(int argc, char ** argv) {
       options->print_infos = 1;
     } else if (strcmp(argv[i], "--nonormalize") == 0) {
       options->normalize = 0;
+    } else if (strcmp(argv[i], "--keep-extbody") == 0) {
+      options->keep_extbody = 1;
     } else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
       clay_options_version();
       options->print_infos = 1;

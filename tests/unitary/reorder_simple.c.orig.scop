@@ -67,12 +67,18 @@ WRITE
 # ----------------------------------------------  1.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 1
+
+# Basic body
 # Number of original iterators
 0
 # Statement body expression
 a = 0;
-</body>
+</extbody>
 
 # =============================================== Statement 2
 # Number of relations describing the statement:
@@ -97,12 +103,18 @@ WRITE
 # ----------------------------------------------  2.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 1
+
+# Basic body
 # Number of original iterators
 0
 # Statement body expression
 b = 0;
-</body>
+</extbody>
 
 # =============================================== Extensions
 <arrays>

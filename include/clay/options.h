@@ -45,7 +45,8 @@ struct clay_options {
                          else from the script file */
   char *input_name; /**< Input file name */
   int print_infos;  /**< 1 if a --help or --version is given */
-  int normalize;    /**< 1 the scop will be re-normalized */
+  int normalize;    /**< 1 the scop will be re-normalized, default 1 */
+  int keep_extbody; /**< 1 Don't export extbody to a body, default 0 */
 
   #if defined(CLAN_LINKED)
   int readc;      /**< 1 to read a .c, else it's a scop */

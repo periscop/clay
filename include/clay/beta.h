@@ -52,15 +52,14 @@
 // NOTE : a beta is just a clay_array_p
 
 
-int              clay_relation_get_line(osl_relation_p, int);
-bool             clay_statement_is_after(osl_statement_p, clay_array_p);
-bool             clay_statement_is_before(osl_statement_p, clay_array_p);
+int              clay_statement_is_after(osl_statement_p, clay_array_p);
+int              clay_statement_is_before(osl_statement_p, clay_array_p);
 
 void             clay_beta_sort(osl_scop_p);
 void             clay_beta_normalize(osl_scop_p);
 clay_array_p     clay_beta_get(osl_statement_p);
 osl_statement_p  clay_beta_find(osl_statement_p, clay_array_p);
-bool             clay_beta_check(osl_statement_p, clay_array_p);
+int              clay_beta_check(osl_statement_p, clay_array_p);
 clay_array_p     clay_beta_min(osl_statement_p, clay_array_p);
 clay_array_p     clay_beta_max(osl_statement_p, clay_array_p);
 clay_array_p     clay_beta_next(osl_statement_p, clay_array_p beta,
@@ -70,7 +69,7 @@ int              clay_beta_nb_parts(osl_statement_p,clay_array_p);
 void             clay_beta_shift_after(osl_statement_p, clay_array_p, int);
 void             clay_beta_shift_before(osl_statement_p, clay_array_p, int);
 
-bool             clay_scattering_check_zeros(osl_statement_p, int, int);
+int              clay_scattering_check_zeros(osl_statement_p, int, int);
 
 
 #endif

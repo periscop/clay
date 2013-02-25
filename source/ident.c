@@ -36,7 +36,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <osl/scop.h>
+
 #include <clay/macros.h>
 #include <clay/array.h>
 #include <clay/beta.h>

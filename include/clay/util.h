@@ -42,23 +42,41 @@
 #endif
 
 #include <clay/array.h>
+#include <osl/scop.h>
 #include <osl/statement.h>
+#include <osl/relation.h>
+#include <osl/extensions/extbody.h>
 #include <osl/extensions/scatnames.h>
+#include <osl/extensions/arrays.h>
 
-/*void  clay_util_statement_insert_inequation(osl_statement_p, clay_array_p,
-                                            int, int);*/
+/*void
+  clay_util_statement_insert_inequation
+  (osl_statement_p, clay_array_p, int, int);*/
 
+void  clay_util_scop_export_body(osl_scop_p);
+
+int   clay_util_relation_get_line(osl_relation_p, int);
 void  clay_util_relation_negate_row(osl_relation_p, int);
 
+int   clay_util_statement_find_iterator(osl_statement_p, char*);
 void  clay_util_statement_set_inequation(osl_statement_p, clay_list_p);
 void  clay_util_statement_set_vector(osl_statement_p, clay_list_p, int);
-osl_statement_p  
-clay_util_statement_insert(osl_statement_p, osl_statement_p, int, int);
+osl_statement_p clay_util_statement_insert(osl_statement_p,
+                                           osl_statement_p,
+                                           int,
+                                           int);
 
 void  clay_util_array_output_dims_pad_zero(clay_array_p);
-
-int   clay_util_statement_find_iterator(osl_statement_p, char*);
 bool  clay_util_scatnames_exists(osl_scatnames_p, char*);
 char* clay_util_string_replace(char*, char*, char*);
+
+void  clay_util_body_regenerate_access(osl_extbody_p, 
+                                       osl_relation_p, 
+                                       int,
+                                       osl_arrays_p,
+                                       osl_scatnames_p,
+                                       osl_strings_p);
+
+int   clay_util_arrays_search(osl_arrays_p, int);
 
 #endif

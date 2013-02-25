@@ -69,12 +69,18 @@ WRITE
 # ----------------------------------------------  1.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 1
+
+# Basic body
 # Number of original iterators
 0
 # Statement body expression
 a = 0;
-</body>
+</extbody>
 
 # =============================================== Statement 2
 # Number of relations describing the statement:
@@ -83,37 +89,43 @@ a = 0;
 # ----------------------------------------------  2.1 Domain
 DOMAIN
 3 4 1 0 0 1
-# e/i|  i |  N |  1  
-   1    1    0    0    ## i >= 0
-   1   -1    1    0    ## -i+N >= 0
+# e/i| i1 |  N |  1  
+   1    1    0    0    ## i1 >= 0
+   1   -1    1    0    ## -i1+N >= 0
    1    0    1    0    ## N >= 0
 
 # ----------------------------------------------  2.2 Scattering
 SCATTERING
 3 7 3 1 0 1
-# e/i| c1   c2   c3 |  i |  N |  1  
+# e/i| c1   c2   c3 | i1 |  N |  1  
    0   -1    0    0    0    0    1    ## c1 == 1
-   0    0   -1    0    1    0    0    ## c2 == i
+   0    0   -1    0    1    0    0    ## c2 == i1
    0    0    0   -1    0    0    0    ## c3 == 0
 
 # ----------------------------------------------  2.3 Access
 WRITE
 2 6 2 1 0 1
-# e/i| Arr  [1]|  i |  N |  1  
+# e/i| Arr  [1]| i1 |  N |  1  
    0   -1    0    0    0    4    ## Arr == b
-   0    0   -1    1    0    0    ## [1] == i
+   0    0   -1    1    0    0    ## [1] == i1
 
 # ----------------------------------------------  2.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 4
+
+# Basic body
 # Number of original iterators
 1
 # List of original iterators
 i
 # Statement body expression
 b[i] = 0;
-</body>
+</extbody>
 
 # =============================================== Statement 3
 # Number of relations describing the statement:
@@ -138,12 +150,18 @@ WRITE
 # ----------------------------------------------  3.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 1
+
+# Basic body
 # Number of original iterators
 0
 # Statement body expression
 c = 0;
-</body>
+</extbody>
 
 # =============================================== Statement 4
 # Number of relations describing the statement:
@@ -152,37 +170,43 @@ c = 0;
 # ----------------------------------------------  4.1 Domain
 DOMAIN
 3 4 1 0 0 1
-# e/i|  i |  N |  1  
-   1    1    0    0    ## i >= 0
-   1   -1    1    0    ## -i+N >= 0
+# e/i| i1 |  N |  1  
+   1    1    0    0    ## i1 >= 0
+   1   -1    1    0    ## -i1+N >= 0
    1    0    1    0    ## N >= 0
 
 # ----------------------------------------------  4.2 Scattering
 SCATTERING
 3 7 3 1 0 1
-# e/i| c1   c2   c3 |  i |  N |  1  
+# e/i| c1   c2   c3 | i1 |  N |  1  
    0   -1    0    0    0    0    3    ## c1 == 3
-   0    0   -1    0    1    0    0    ## c2 == i
+   0    0   -1    0    1    0    0    ## c2 == i1
    0    0    0   -1    0    0    0    ## c3 == 0
 
 # ----------------------------------------------  4.3 Access
 WRITE
 2 6 2 1 0 1
-# e/i| Arr  [1]|  i |  N |  1  
+# e/i| Arr  [1]| i1 |  N |  1  
    0   -1    0    0    0    6    ## Arr == t
-   0    0   -1    1    0    0    ## [1] == i
+   0    0   -1    1    0    0    ## [1] == i1
 
 # ----------------------------------------------  4.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 4
+
+# Basic body
 # Number of original iterators
 1
 # List of original iterators
 i
 # Statement body expression
 t[i] = 0;
-</body>
+</extbody>
 
 # =============================================== Statement 5
 # Number of relations describing the statement:
@@ -191,37 +215,43 @@ t[i] = 0;
 # ----------------------------------------------  5.1 Domain
 DOMAIN
 3 4 1 0 0 1
-# e/i|  i |  N |  1  
-   1    1    0    0    ## i >= 0
-   1   -1    1    0    ## -i+N >= 0
+# e/i| i1 |  N |  1  
+   1    1    0    0    ## i1 >= 0
+   1   -1    1    0    ## -i1+N >= 0
    1    0    1    0    ## N >= 0
 
 # ----------------------------------------------  5.2 Scattering
 SCATTERING
 3 7 3 1 0 1
-# e/i| c1   c2   c3 |  i |  N |  1  
+# e/i| c1   c2   c3 | i1 |  N |  1  
    0   -1    0    0    0    0    3    ## c1 == 3
-   0    0   -1    0    1    0    0    ## c2 == i
+   0    0   -1    0    1    0    0    ## c2 == i1
    0    0    0   -1    0    0    1    ## c3 == 1
 
 # ----------------------------------------------  5.3 Access
 WRITE
 2 6 2 1 0 1
-# e/i| Arr  [1]|  i |  N |  1  
+# e/i| Arr  [1]| i1 |  N |  1  
    0   -1    0    0    0    7    ## Arr == s
-   0    0   -1    1    0    0    ## [1] == i
+   0    0   -1    1    0    0    ## [1] == i1
 
 # ----------------------------------------------  5.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 4
+
+# Basic body
 # Number of original iterators
 1
 # List of original iterators
 i
 # Statement body expression
 s[i] = 0;
-</body>
+</extbody>
 
 # =============================================== Statement 6
 # Number of relations describing the statement:
@@ -246,12 +276,18 @@ WRITE
 # ----------------------------------------------  6.4 Body
 # Statement body is provided
 1
-<body>
+<extbody>
+# Number of access
+1
+# start/length
+0 1
+
+# Basic body
 # Number of original iterators
 0
 # Statement body expression
 f = 0;
-</body>
+</extbody>
 
 # =============================================== Extensions
 <scatnames>

@@ -39,9 +39,11 @@
   #include <stdlib.h>
   #include <string.h>
   #include <assert.h>
+
   #include <osl/scop.h>
   #include <osl/statement.h>
   #include <osl/vector.h>
+
   #include <clay/macros.h>
   #include <clay/array.h>
   #include <clay/transformation.h>
@@ -51,42 +53,40 @@
   #include <clay/ident.h>
   
   // Yacc stuff.
-  int                 clay_yylex(void);
-  int                 clay_yyerror();
-  int                 clay_yy_scan_string(char*);
-  extern FILE*        clay_yyin;
-  void                yy_scan_string(char*);
+  int          clay_yylex(void);
+  int          clay_yyerror();
+  int          clay_yy_scan_string(char*);
+  extern FILE* clay_yyin;
+  void         yy_scan_string(char*);
+  extern int   clay_yylineno;
   
   // Scanner declarations
-  extern void                clay_scanner_free();
-  extern void                clay_scanner_initialize();
-  extern int                 clay_scanner_line;
-  
+  extern void clay_scanner_free();
+  extern void clay_scanner_initialize();
   
   // Arguments list of the current scanned function
   clay_prototype_function_p  clay_params;
   
   // Current scop
-  osl_scop_p          clay_parser_scop;
+  osl_scop_p clay_parser_scop;
   
   // If we need to search a beta
-  clay_array_p        clay_parser_beta;
+  clay_array_p clay_parser_beta;
   
   // Command line options
-  clay_options_p      clay_parser_options;
+  clay_options_p clay_parser_options;
 
   // Arrays are allocated differently
   int is_in_a_list;
 
   // parser functions
-  void                clay_parser_exec_function(char *name);
-  void                clay_parser_string(osl_scop_p, char*, clay_options_p);
-  void                clay_parser_file(osl_scop_p, FILE*, clay_options_p);
-  void                clay_parser_print_error(int);
+  void clay_parser_exec_function(char *name);
+  void clay_parser_string(osl_scop_p, char*, clay_options_p);
+  void clay_parser_file(osl_scop_p, FILE*, clay_options_p);
+  void clay_parser_print_error(int);
   
   // Authorized functions in Clay
   extern const clay_prototype_function_t functions[];
-  
 %}
 
 %name-prefix "clay_yy"
@@ -261,7 +261,7 @@ list_of_integer:
  */
 int clay_yyerror(void) {
   fprintf(stderr,"[Clay] Error: syntax on line %d, maybe you forgot a `;'\n",
-          clay_scanner_line-1);
+          clay_yylineno);
   exit(1);
 }
 
@@ -305,7 +305,6 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
   
   is_in_a_list = 0;
   clay_yy_scan_string(input);
-  clay_scanner_line = 1;
   clay_yyparse();
   
   // Quit
@@ -339,7 +338,7 @@ void clay_parser_exec_function(char *name) {
       i = CLAY_FUNCTION_FUSE;
     } else { // Undefined function
       fprintf(stderr, "[Clay] Error: line %d, unknown function `%s'\n", 
-              clay_scanner_line, name);
+              clay_yylineno, name);
       exit(CLAY_ERROR_UNKNOWN_FUNCTION);
     }
   }
@@ -349,7 +348,7 @@ void clay_parser_exec_function(char *name) {
       fprintf(stderr, 
         "[Clay] Error: line %d, in `%s' takes %d arguments\n"
         "[Clay] prototype is: %s\n", 
-        clay_scanner_line, name, functions[i].argc, functions[i].prototype);
+        clay_yylineno, name, functions[i].argc, functions[i].prototype);
       exit(CLAY_ERROR_NB_ARGS);
   }
   
@@ -366,7 +365,7 @@ void clay_parser_exec_function(char *name) {
       fprintf(stderr, 
         "[Clay] Error: line %d, in function `%s' invalid type on argument %d\n"
         "[Clay] prototype is: %s\n", 
-        clay_scanner_line, name, j+1, functions[i].prototype);
+        clay_yylineno, name, j+1, functions[i].prototype);
       exit(CLAY_ERROR_INVALID_TYPE);
   }
 
@@ -467,13 +466,12 @@ void clay_parser_exec_function(char *name) {
                                    clay_params->args[0], 
                                    clay_parser_options);
       break;
-/*    case CLAY_FUNCTION_DATACOPY:
-      status_result = clay_datacopy(clay_parser_scop,
-                                    clay_params->args[0],
-                                    (char*)clay_params->args[1],
-                                    *((int*)clay_params->args[2]),
-                                    clay_parser_options);
-      break;*/
+    case CLAY_FUNCTION_DIMREORDER:
+      status_result = clay_dimreorder(clay_parser_scop,
+                                      *((int*)clay_params->args[0]),
+                                      clay_params->args[1],
+                                      clay_parser_options);
+      break;
   }
   
   // check errors
@@ -493,84 +491,74 @@ void clay_parser_print_error(int status_result) {
   switch (status_result) {
     case CLAY_ERROR_BETA_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d: the beta vector was not found\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_BETA_NOT_FOUND);
+              clay_yylineno);
       break;
     case CLAY_ERROR_NOT_BETA_LOOP:
       fprintf(stderr,"[Clay] Error: line %d: the beta is not a loop\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_NOT_BETA_LOOP);
-      break;
-    case CLAY_ERROR_NOT_BETA_STMT:
-      fprintf(stderr,"[Clay] Error: line %d, the beta is not a statement\n", 
-              clay_scanner_line);
-      exit(3);
+              clay_yylineno);
       break;
     case CLAY_ERROR_REORDER_ARRAY_TOO_SMALL:
       fprintf(stderr,"[Clay] Error: line %d, the order array is too small\n", 
-              clay_scanner_line);
-      exit(CLAY_ERROR_REORDER_ARRAY_TOO_SMALL);
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_REORDER_ARRAY_SIZE:
+      fprintf(stderr,"[Clay] Error: line %d, the order array is too small or too big\n", 
+              clay_yylineno);
       break;
     case CLAY_ERROR_DEPTH_OVERFLOW:
       fprintf(stderr,"[Clay] Error: line %d, depth overflow\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_DEPTH_OVERFLOW);
+              clay_yylineno);
       break;
     case CLAY_ERROR_WRONG_COEFF:
       fprintf(stderr,"[Clay] Error: line %d, wrong coefficient\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_WRONG_COEFF);
+              clay_yylineno);
       break;
     case CLAY_ERROR_BETA_EMPTY:
       fprintf(stderr,"[Clay] Error: line %d, the beta vector is empty\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_BETA_EMPTY);
+              clay_yylineno);
       break;
     case CLAY_ERROR_BETA_NOT_IN_A_LOOP:
       fprintf(stderr,"[Clay] Error: line %d, the beta need to be in a loop\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_BETA_EMPTY);
+              clay_yylineno);
       break;
     case CLAY_ERROR_WRONG_BLOCK_SIZE:
       fprintf(stderr,"[Clay] Error: line %d, block value is incorrect\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_WRONG_BLOCK_SIZE);
+              clay_yylineno);
       break;
     case CLAY_ERROR_WRONG_FACTOR:
       fprintf(stderr,"[Clay] Error: line %d, wrong factor\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_WRONG_FACTOR);
+              clay_yylineno);
       break;
     case CLAY_ERROR_DEPTH_OUTER:
       fprintf(stderr,"[Clay] Error: line %d, the depth is not 'outer'\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_DEPTH_OUTER);
+              clay_yylineno);
       break;
     case CLAY_ERROR_VECTOR_EMPTY:
       fprintf(stderr,"[Clay] Error: line %d, the vector is empty\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_VECTOR_EMPTY);
+              clay_yylineno);
       break;
     case CLAY_ERROR_IDENT_NAME_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d, the iterator name was not found\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+              clay_yylineno);
       break;
     case CLAY_ERROR_IDENT_STMT_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d, the statement was not found\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+              clay_yylineno);
       break;
     case CLAY_ERROR_INEQU:
       fprintf(stderr,"[Clay] Error: line %d, the inequality seems "
                      "to be wrong\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_INEQU);
+              clay_yylineno);
       break;
     case CLAY_ERROR_VECTOR:
       fprintf(stderr,"[Clay] Error: line %d, the vector seems to be wrong\n",
-              clay_scanner_line);
-      exit(CLAY_ERROR_VECTOR);
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_REORDER_OVERFLOW_VALUE:
+      fprintf(stderr,"[Clay] Error: line %d, there is an overflow value on the reorder array\n",
+              clay_yylineno);
       break;
   }
+
+  exit(status_result);
 }

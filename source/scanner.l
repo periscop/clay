@@ -40,17 +40,30 @@
   #include <clay/macros.h>
   #include <clay/prototype_function.h>
 
-  void        clay_scanner_free();
-  void        clay_scanner_initialize();
-  
-  int         clay_scanner_line;
+  void clay_scanner_free();
+  void clay_scanner_initialize();
   
   extern clay_prototype_function_p  clay_params;
   extern int is_in_a_list;
 
+//extern YYLTYPE clay_yylloc;
+//extern YYSTYPE clay_yylval;;
+
+
+
+/*
+  int yycolumn = 1;
+  #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
+      yylloc.first_column = yycolumn; yylloc.last_column = yycolumn + yyleng - 1; \
+      yycolumn += yyleng; \
+      yylval.str = strdup(yytext);
+  */
+//#define YY_USER_ACTION clay_yylloc.first_line = clay_yylloc.last_line = clay_yylineno;
+
 //%option outfile="scanner.c" header-file="scanner.h"
 %}
 
+%option yylineno
 %option prefix="clay_yy"
 %option noyywrap
 %option noinput
@@ -59,10 +72,7 @@ SEPARATOR ([ \t]|\xc2\xa0)*
 
 %%
 
-{SEPARATOR}#(.|{SEPARATOR})*\n {
-                     clay_scanner_line++;
-                     return COMMENT;
-                   }
+{SEPARATOR}#(.|{SEPARATOR})*\n { return COMMENT; }
 
 -?[0-9]+           {
                      clay_yylval.ival = atoi(clay_yytext);
@@ -125,7 +135,7 @@ L[0-9]+            {
                      return '}'; 
                    }
 
-\n                 { clay_scanner_line++; }
+\n                 { }
 .                  { return clay_yytext[0]; }
 
 %%
@@ -149,5 +159,4 @@ void clay_scanner_free() {
  */
 void clay_scanner_initialize() {
   clay_yy_flush_buffer(YY_CURRENT_BUFFER);
-  clay_scanner_line = 1;
 }

@@ -35,9 +35,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <clay/macros.h>
 #include <clay/beta.h>
 #include <clay/betatree.h>
+
 #include <osl/scop.h>
 #include <osl/statement.h>
 

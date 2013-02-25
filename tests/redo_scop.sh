@@ -45,7 +45,7 @@ do
     rm -f "$name.orig.scop"
     rm -f "$name.clay.scop"
     echo "add $name"
-    clan "$name" >"$name.orig.scop"
+    clan -extbody "$name" >"$name.orig.scop"
     clay "$name.orig.scop" 2>&1 | grep -v "enerated by" >"$name.clay.scop"
   fi
 done

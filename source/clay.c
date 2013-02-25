@@ -37,17 +37,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #include <osl/scop.h>
 #include <osl/macros.h>
 #include <osl/generic.h>
 #include <osl/interface.h>
 #include <osl/extensions/clay.h>
+
 #include <clay/clay.h>
 #include <clay/beta.h>
 #include <clay/betatree.h>
 #include <clay/options.h>
 #include <clay/array.h>
 #include <clay/ident.h>
+#include <clay/util.h>
 #include <parser.h>
 
 #ifdef CLAN_LINKED
@@ -94,6 +97,7 @@ int main(int argc, char * argv[]) {
     clan_options_p clan_opt = clan_options_malloc();
 		clan_opt->precision = OSL_PRECISION_MP;
 		clan_opt->name = options->input_name;
+		clan_opt->extbody = 1;
     scop = clan_scop_extract(options->input, clan_opt);
     //clan_options_free(clan_opt); // bug, the name is also freed
     free(clan_opt);
@@ -183,11 +187,13 @@ int main(int argc, char * argv[]) {
 	{
     #ifdef CLOOG_LINKED
 		if (options->printc && scop != NULL) {
+      clay_util_scop_export_body(scop);
+
 			CloogState *state = cloog_state_malloc();
 			CloogOptions *cloogoptions = cloog_options_malloc(state);
 			cloogoptions->openscop = 1;
 			CloogInput *clooginput = cloog_input_from_osl_scop(cloogoptions->state, 
-                                                                           scop);
+                                                         scop);
 			cloog_options_copy_from_osl_scop(scop, cloogoptions);
 			CloogProgram *program = cloog_program_alloc(clooginput->context, 
 					                            clooginput->ud, cloogoptions);
@@ -203,6 +209,9 @@ int main(int argc, char * argv[]) {
 		else
 		#endif
 		{
+      if (!options->keep_extbody)
+        clay_util_scop_export_body(scop);
+
 			osl_scop_print(stdout, scop);
 		}
 	}

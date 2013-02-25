@@ -39,7 +39,7 @@
 #define CLAY_SUCCESS                         0
 #define CLAY_ERROR_BETA_NOT_FOUND            1
 #define CLAY_ERROR_NOT_BETA_LOOP             2
-#define CLAY_ERROR_NOT_BETA_STMT             3 // NOT USED
+//#define CLAY_ERROR_NOT_BETA_STMT             3 // NOT USED
 #define CLAY_ERROR_REORDER_ARRAY_TOO_SMALL   4
 #define CLAY_ERROR_DEPTH_OVERFLOW            5
 #define CLAY_ERROR_WRONG_COEFF               6
@@ -56,5 +56,7 @@
 #define CLAY_ERROR_IDENT_NAME_NOT_FOUND      17
 #define CLAY_ERROR_INEQU                     18
 #define CLAY_ERROR_VECTOR                    19
+#define CLAY_ERROR_REORDER_ARRAY_SIZE        20
+#define CLAY_ERROR_REORDER_OVERFLOW_VALUE    21
 
 #endif

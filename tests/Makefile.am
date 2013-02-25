@@ -107,7 +107,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/peel_last.c \
 	$(top_srcdir)/tests/unitary/peel_last_nochanges.c \
 	$(top_srcdir)/tests/unitary/peel_remove_condition.c \
-	$(top_srcdir)/tests/unitary/context.c
+	$(top_srcdir)/tests/unitary/context.c \
+	$(top_srcdir)/tests/unitary/dimreorder.c
 	
 
 FAIL_TEST_FILES = \

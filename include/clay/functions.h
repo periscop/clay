@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL         14
+  #define CLAY_FUNCTIONS_TOTAL         15
   
   #define CLAY_FUNCTION_SPLIT           0
   #define CLAY_FUNCTION_REORDER         1
@@ -52,6 +52,6 @@
   #define CLAY_FUNCTION_SHIFT          11
   #define CLAY_FUNCTION_PEEL           12
   #define CLAY_FUNCTION_CONTEXT        13
-  //#define CLAY_FUNCTION_DATACOPY       15
+  #define CLAY_FUNCTION_DIMREORDER     14
   
 #endif

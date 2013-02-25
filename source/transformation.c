@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <osl/macros.h>
 #include <osl/scop.h>
 #include <osl/body.h>
@@ -43,7 +44,11 @@
 #include <osl/util.h>
 #include <osl/statement.h>
 #include <osl/relation.h>
+#include <osl/generic.h>
 #include <osl/extensions/scatnames.h>
+#include <osl/extensions/arrays.h>
+#include <osl/extensions/extbody.h>
+
 #include <clay/transformation.h>
 #include <clay/array.h>
 #include <clay/macros.h>
@@ -99,7 +104,7 @@ int clay_reorder(osl_scop_p scop,
     if (clay_beta_check(statement, beta_loop)) {
     
       scattering = statement->scattering;
-      row = clay_relation_get_line(scattering, column);
+      row = clay_util_relation_get_line(scattering, column);
       
       // get the beta value
       index = osl_int_get_si(precision,
@@ -360,13 +365,13 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
         if (column < scattering->nb_output_dims) {
         
           // Set the loop level
-          row = clay_relation_get_line(scattering, column-2);
+          row = clay_util_relation_get_line(scattering, column-2);
           osl_int_set_si(precision, 
                          scattering->m[row], scattering->nb_columns-1, 
                          beta_loop->data[depth-1]);
 
           // Reorder the statement
-          row = clay_relation_get_line(scattering, column);
+          row = clay_util_relation_get_line(scattering, column);
           osl_int_add_si(precision,
                          scattering->m[row], scattering->nb_columns-1,
                          scattering->m[row], scattering->nb_columns-1,
@@ -607,7 +612,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
     if (clay_beta_check(statement, beta)) {
       
       // set the strip mine
-      row = clay_relation_get_line(scattering, column);
+      row = clay_util_relation_get_line(scattering, column);
       
       osl_relation_insert_blank_column(scattering, column+1);
       osl_relation_insert_blank_column(scattering, column+1);
@@ -634,7 +639,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       scattering->nb_output_dims += 2;
       
       // reorder
-      row_next = clay_relation_get_line(scattering, column+2);
+      row_next = clay_util_relation_get_line(scattering, column+2);
       osl_int_assign(precision, scattering->m[row], scattering->nb_columns-1,
                      scattering->m[row_next], scattering->nb_columns-1);
       
@@ -643,7 +648,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
     
     } else if (pretty && column < scattering->nb_output_dims) {
       // add 2 empty dimensions
-      row = clay_relation_get_line(scattering, column);
+      row = clay_util_relation_get_line(scattering, column);
       
       osl_relation_insert_blank_column(scattering, column+1);
       osl_relation_insert_blank_column(scattering, column+1);
@@ -658,7 +663,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       scattering->nb_output_dims += 2;
       
       // reorder
-      row_next = clay_relation_get_line(scattering, column+2);
+      row_next = clay_util_relation_get_line(scattering, column+2);
       osl_int_assign(precision, scattering->m[row], scattering->nb_columns-1,
                      scattering->m[row_next], scattering->nb_columns-1);
       
@@ -773,6 +778,8 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   
   int iterator_index = beta_loop->size-1;
   int iterator_size;
+
+  int is_extbody;
   
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
@@ -805,8 +812,14 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
     // TODO NOTE : we can optimize to not check twice this statement
     if (clay_beta_check(statement, beta_loop)) {
       
+      // create the body with symbols for the substitution
       original_stmt = statement;
-      body = (osl_body_p) statement->body->data;
+
+      is_extbody = osl_generic_has_URI(statement->body, OSL_URI_EXTBODY);
+      body = is_extbody ?
+             ((osl_extbody_p) statement->body->data)->body :
+             (osl_body_p) statement->body->data;
+
       expression = body->expression->string[0];
       iterator[0] = (char*) body->iterators->string[iterator_index];
       iterator_size = strlen(iterator[0]);
@@ -817,7 +830,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
       if (setepilog) {
         // set the epilog from the original statement
         epilog_stmt = osl_statement_nclone(original_stmt, 1);
-        row = clay_relation_get_line(original_stmt->scattering, column-2);
+        row = clay_util_relation_get_line(original_stmt->scattering, column-2);
         scattering = epilog_stmt->scattering;
         osl_int_set_si(precision,
                        scattering->m[row], scattering->nb_columns-1,
@@ -872,7 +885,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
       
       // clone factor-1 times the original statement
      
-      row = clay_relation_get_line(original_stmt->scattering, column);
+      row = clay_util_relation_get_line(original_stmt->scattering, column);
       current_level = osl_int_get_si(scattering->precision, scattering->m[row], 
                                      scattering->nb_columns-1);
       if (last_level != current_level) {
@@ -888,7 +901,11 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
         sprintf(replacement, "(%s+%d)", iterator[0], i+1);
         newexpression = clay_util_string_replace(substitution, replacement,
                                             substitued);
-        newbody = ((osl_body_p) newstatement->body->data);
+
+        newbody = is_extbody ?
+                  ((osl_extbody_p) newstatement->body->data)->body :
+                  (osl_body_p) newstatement->body->data;
+
         free(newbody->expression->string[0]);
         newbody->expression->string[0] = newexpression;
         
@@ -1162,13 +1179,105 @@ int clay_context(osl_scop_p scop, clay_array_p vector,
 
 
 /**
- * clay_datacopy function:
+ * clay_dimreorder function:
+ * Add a line to the context
  * \param[in,out] scop
+ * \param[in] access_name   ident of the access array
+ * \param[in] neworder      reorder the dims 
+ * \param[in] options
  * \return                  Status
  */
-int clay_datacopy(osl_scop_p scop, clay_array_p beta, 
-                  char *var_access, int depth, 
-                  clay_options_p options) {
+int clay_dimreorder(osl_scop_p scop, int access_name,
+                    clay_array_p neworder,
+                    clay_options_p options) {
+
+  /* Description
+   * Swap the columns in the output dims (access arrays)
+   * The first output dim is not used ( => var name) 
+   */
+
+  osl_statement_p stmt = scop->statement;
+  osl_relation_list_p access;
+  osl_relation_p a, tmp;
+  int i, j;
+  int row;
+  int count_access;
+  int found = 0;
+
+  osl_arrays_p arrays;
+  osl_scatnames_p scatnames;
+  osl_strings_p params;
+  arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
+  scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
+  params = osl_generic_lookup(scop->parameters, OSL_URI_STRINGS);
+
+  if (!arrays || !scatnames || !params)
+    CLAY_warning("no arrays or scatnames extension");
+
+  while (stmt) {
+    access = stmt->access;
+    count_access = 0;
+
+    // for each access in each statement, we search the access_name
+    while (access) {
+      a = access->elt;
+
+      row = clay_util_relation_get_line(a, 0);
+      if (osl_int_get_si(a->precision, a->m[row], 
+                         a->nb_columns-1) == access_name) {
+        found = 1;
+
+        if (!osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
+          CLAY_error("extbody uri not found on this statement");
+          fprintf(stderr, "%s\n",
+            ((osl_body_p) stmt->body->data)->expression->string[0]);
+        }
+
+        if (a->nb_output_dims-1 != neworder->size) {
+          CLAY_warning("can't apply this dimreorder on this statement:");
+          fprintf(stderr, "%s\n",
+            ((osl_extbody_p) stmt->body->data)->body->expression->string[0]);
+          return CLAY_ERROR_REORDER_ARRAY_SIZE;
+        }
+
+        // swap all the output dim columns
+
+        tmp = osl_relation_nclone(a, 1);
+
+        for (i = 0 ; i < neworder->size ; i++) {
+          if (neworder->data[i] < 0 ||
+              neworder->data[i] >= a->nb_output_dims-1) {
+            return CLAY_ERROR_REORDER_OVERFLOW_VALUE;
+          }
+          if (i+2 != neworder->data[i]+2) {
+            for (j = 0 ; j < a->nb_rows ; j++)
+            osl_int_assign(a->precision, 
+                           tmp->m[j], i+2,
+                           a->m[j], neworder->data[i]+2);
+          }
+        }
+
+        osl_relation_free(a);
+        access->elt = tmp;
+
+        // re-generate the body
+        clay_util_body_regenerate_access(
+            ((osl_extbody_p) stmt->body->data),
+            tmp,
+            count_access,
+            arrays,
+            scatnames,
+            params);
+      }
+
+      access = access->next;
+      count_access++;
+    }    
+    stmt = stmt->next;
+  }
+
+  if (!found)
+   fprintf(stderr,"[Clay] Warning: access number %d not found\n", access_name);
 
   return CLAY_SUCCESS;
 }
