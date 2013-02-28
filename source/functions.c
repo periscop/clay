@@ -42,20 +42,21 @@
 // Authorized functions in Clay
 
 
-int clay_function_split_type[]       =  {ARRAY_T, INTEGER_T};
-int clay_function_reorder_type[]     =  {ARRAY_T, ARRAY_T};
-int clay_function_interchange_type[] =  {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
-int clay_function_reverse_type[]     =  {ARRAY_T, INTEGER_T};
-int clay_function_fuse_type[]        =  {ARRAY_T};
-int clay_function_skew_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T};
-int clay_function_iss_type[]         =  {ARRAY_T, LIST_T};
-int clay_function_stripmine_type[]   =  {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
-int clay_function_unroll_type[]      =  {ARRAY_T, INTEGER_T};
-int clay_function_tile_type[]        =  {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T, INTEGER_T};
-int clay_function_shift_type[]       =  {ARRAY_T, INTEGER_T, LIST_T};
-int clay_function_peel_type[]        =  {ARRAY_T, LIST_T};
-int clay_function_context_type[]     =  {ARRAY_T};
-int clay_function_dimreorder_type[]  =  {INTEGER_T, ARRAY_T};
+int clay_function_split_type[]       = {ARRAY_T, INTEGER_T};
+int clay_function_reorder_type[]     = {ARRAY_T, ARRAY_T};
+int clay_function_interchange_type[] = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_reverse_type[]     = {ARRAY_T, INTEGER_T};
+int clay_function_fuse_type[]        = {ARRAY_T};
+int clay_function_skew_type[]        = {ARRAY_T, INTEGER_T, INTEGER_T};
+int clay_function_iss_type[]         = {ARRAY_T, LIST_T};
+int clay_function_stripmine_type[]   = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_unroll_type[]      = {ARRAY_T, INTEGER_T};
+int clay_function_tile_type[]        = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_shift_type[]       = {ARRAY_T, INTEGER_T, LIST_T};
+int clay_function_peel_type[]        = {ARRAY_T, LIST_T};
+int clay_function_context_type[]     = {ARRAY_T};
+int clay_function_dimreorder_type[]  = {ARRAY_T, INTEGER_T, ARRAY_T};
+int clay_function_dimprivatize_type[] = {ARRAY_T, INTEGER_T, INTEGER_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -133,7 +134,12 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "dimreorder",
-    "dimreorder(uint #access, array neworder)",
-    NULL, clay_function_dimreorder_type, 2, 0
+    "dimreorder(ident, uint #access, array neworder)",
+    NULL, clay_function_dimreorder_type, 3, 0
+  },
+  {
+    "dimprivatize",
+    "dimprivatize(ident, uint depth, uint #access)",
+    NULL, clay_function_dimprivatize_type, 3, 0
   }
 };

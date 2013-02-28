@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-  dimreorder(5, [1, 0]); # 5 == a
+  dimreorder([0,0], 5, [1, 0]); # 5 == a
 */
 
 for(i = 0 ; i <= N ; i++) {

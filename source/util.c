@@ -36,8 +36,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <clay/array.h>
+#include <clay/beta.h>
 #include <clay/macros.h>
 #include <clay/util.h>
+#include <clay/errors.h>
 
 #include <osl/statement.h>
 #include <osl/body.h>
@@ -601,17 +603,115 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
 /**
  * clay_util_arrays_search function:
+ * Search the string which corresponds to id
+ * arrays is an extension of osl
  * \param[in] arrays    An arrays osl structure
  * \param[in] id        The id to search
  * \return              Return the index in the arrays 
  */
 int clay_util_arrays_search(osl_arrays_p arrays, int id) {
-
   int i;
   for (i = 0 ; i < arrays->nb_names ; i++) {
     if (arrays->id[i] == id)
       return i;
   }
-
   return -1;
 }
+
+
+/**
+ * clay_util_foreach_access function:
+ * Execute func on each access which corresponds to access_name
+ * \param[in,out] scop
+ * \param[in] beta
+ * \param[in] access_name      The id to search
+ * \param[in] func             The function to execute for each access
+ *                             The function takes an osl_relation_list_p in 
+ *                             parameter (the elt can be modified) and must 
+ *                             return a define error or CLAY_SUCCESS
+ * \param[in] regenerate_body  If 1: after each call to func, 
+ *                             clay_util_body_regenerate_access is also called
+ * \return                     Return a define error or CLAY_SUCCESS
+ */
+int clay_util_foreach_access(osl_scop_p scop,
+                             clay_array_p beta,
+                             int access_name,
+                             int (*func)(osl_relation_list_p),
+                             int regenerate_body) {
+
+  osl_statement_p stmt = scop->statement;
+  osl_relation_list_p access;
+  osl_relation_p a;
+  int row;
+  int count_access;
+  int found = 0;
+  int ret;
+
+  // TODO : global vars ?
+  osl_arrays_p arrays;
+  osl_scatnames_p scatnames;
+  osl_strings_p params;
+  arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
+  scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
+  params = osl_generic_lookup(scop->parameters, OSL_URI_STRINGS);
+
+  if (!arrays || !scatnames || !params)
+    CLAY_warning("no arrays or scatnames extension");
+
+  stmt = clay_beta_find(scop->statement, beta);
+  if (!stmt)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  // for each access in the beta, we search the access_name
+  while (stmt != NULL) {
+    if (clay_beta_check(stmt, beta)) {
+      access = stmt->access;
+      count_access = 0;
+
+      while (access) {
+        a = access->elt;
+
+        row = clay_util_relation_get_line(a, 0);
+        if (osl_int_get_si(a->precision, a->m[row], 
+                           a->nb_columns-1) == access_name) {
+          found = 1;
+
+          if (!osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
+            CLAY_error("extbody uri not found on this statement");
+            fprintf(stderr, "%s\n",
+              ((osl_body_p) stmt->body->data)->expression->string[0]);
+          }
+
+          // call the function
+          ret = (*func)(access);
+          if (ret != CLAY_SUCCESS) {
+            fprintf(stderr, "%s\n",
+              ((osl_extbody_p) stmt->body->data)->body->expression->string[0]);
+            return ret;
+          }
+
+          // re-generate the body
+          if (regenerate_body) {
+            clay_util_body_regenerate_access(
+                ((osl_extbody_p) stmt->body->data),
+                access->elt,
+                count_access,
+                arrays,
+                scatnames,
+                params);
+          }
+        }
+
+        access = access->next;
+        count_access++;
+      }
+    }
+    stmt = stmt->next;
+  }
+
+  if (!found)
+   fprintf(stderr,"[Clay] Warning: access number %d not found\n", access_name);
+
+  return CLAY_SUCCESS;
+}
+

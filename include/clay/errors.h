@@ -58,5 +58,6 @@
 #define CLAY_ERROR_VECTOR                    19
 #define CLAY_ERROR_REORDER_ARRAY_SIZE        20
 #define CLAY_ERROR_REORDER_OVERFLOW_VALUE    21
+#define CLAY_ERROR_CANT_PRIVATIZE            22
 
 #endif

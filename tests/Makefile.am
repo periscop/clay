@@ -108,7 +108,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/peel_last_nochanges.c \
 	$(top_srcdir)/tests/unitary/peel_remove_condition.c \
 	$(top_srcdir)/tests/unitary/context.c \
-	$(top_srcdir)/tests/unitary/dimreorder.c
+	$(top_srcdir)/tests/unitary/dimreorder.c \
+	$(top_srcdir)/tests/unitary/dimprivatize_simple.c
 	
 
 FAIL_TEST_FILES = \
@@ -126,7 +127,8 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement2.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement.c \
 	$(top_srcdir)/tests/must_fail/stripmine_not_in_a_loop.c \
-	$(top_srcdir)/tests/must_fail/context.c
+	$(top_srcdir)/tests/must_fail/context.c \
+	$(top_srcdir)/tests/must_fail/dimprivatize_cant_privatize.c
 
 TEST_FILES_REF = $(TEST_FILES:.c=.c.scop)
 UNITARY_TEST_FILES_REF = $(UNITARY_TEST_FILES:.c=.c.scop)

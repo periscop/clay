@@ -46,10 +46,31 @@
 #define bool short
 #endif
 
+// NOTE : a beta is just a clay_array_p
+
+
 #define CLAY_MAX_BETA_SIZE 20
 
 
-// NOTE : a beta is just a clay_array_p
+#define CLAY_BETA_IS_LOOP(beta, statement)                          \
+  do {                                                              \
+    if (beta->size*2-1 >= statement->scattering->nb_output_dims)    \
+      return CLAY_ERROR_NOT_BETA_LOOP;                              \
+  } while (0)
+
+
+#define CLAY_BETA_CHECK_DEPTH(beta, depth, statement)               \
+  do {                                                              \
+    /* check if it's a statement */                                 \
+    /* the depth must be strictly less than the beta size */        \
+    if (beta->size*2-1 >= statement->scattering->nb_output_dims &&  \
+        depth >= beta->size)                                        \
+      return CLAY_ERROR_DEPTH_OVERFLOW;                             \
+    /* else it's a loop, and the depth must be less or equal */     \
+    /* than the beta size */                                        \
+    if (depth > beta->size)                                         \
+      return CLAY_ERROR_DEPTH_OVERFLOW;                             \
+  } while(0)
 
 
 int              clay_statement_is_after(osl_statement_p, clay_array_p);

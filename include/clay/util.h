@@ -79,4 +79,7 @@ void  clay_util_body_regenerate_access(osl_extbody_p,
 
 int   clay_util_arrays_search(osl_arrays_p, int);
 
+int clay_util_foreach_access(osl_scop_p, clay_array_p, int, 
+                             int (*func)(osl_relation_list_p), int);
+
 #endif

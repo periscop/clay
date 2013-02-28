@@ -94,12 +94,11 @@ int clay_reorder(osl_scop_p scop,
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
-  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_ERROR_NOT_BETA_LOOP;
-  
-  precision = statement->scattering->precision;
+
+  CLAY_BETA_IS_LOOP(beta_loop, statement);
   
   // TODO NOTE : we can optimize to not check twice this statement
+  precision = statement->scattering->precision;
   while (statement != NULL) {
     if (clay_beta_check(statement, beta_loop)) {
     
@@ -157,15 +156,11 @@ int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
   statement = clay_beta_find(statement, beta);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
-  if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
-      depth >= beta->size)
-    return CLAY_ERROR_DEPTH_OVERFLOW;
-  // else it's a loop, and the depth must be less or equal than the beta size
-  if (depth > beta->size)
-    return CLAY_ERROR_DEPTH_OVERFLOW;
 
-  precision = statement->scattering->precision;
+  CLAY_BETA_CHECK_DEPTH(beta, depth, statement);
+
   // TODO NOTE : we can optimize to not check twice this statement
+  precision = statement->scattering->precision;
   while (statement != NULL) {
     if (clay_beta_check(statement, beta)) {
       scattering = statement->scattering;
@@ -224,20 +219,15 @@ int clay_interchange(osl_scop_p scop,
   if (statement->scattering->nb_output_dims == 1)
     return CLAY_ERROR_DEPTH_OVERFLOW;
   
-  // if it's a statement, the depth must be strictly less than the beta size
-  if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
-      (depth_1 >= beta->size || 
-      depth_2 >= beta->size))
-    return CLAY_ERROR_DEPTH_OVERFLOW;
-  // else it's a loop, and the depth must be less or equal than the beta size
-  if (depth_1 > beta->size || depth_2 > beta->size)
-    return CLAY_ERROR_DEPTH_OVERFLOW;
+  CLAY_BETA_CHECK_DEPTH(beta, depth_1, statement);
+  CLAY_BETA_CHECK_DEPTH(beta, depth_2, statement);
+
   // it's not useful to interchange the same line
   if (depth_1 == depth_2)
     return CLAY_SUCCESS;
   
-  precision = statement->scattering->precision;
   // TODO NOTE : we can optimize to not check twice this statement
+  precision = statement->scattering->precision;
   while (statement != NULL) {
   
     if (clay_beta_check(statement, beta)) {
@@ -348,8 +338,8 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
-  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_ERROR_NOT_BETA_LOOP;
+
+  CLAY_BETA_IS_LOOP(beta_loop, statement);
 
   precision = statement->scattering->precision;
   
@@ -488,8 +478,8 @@ int clay_iss(osl_scop_p scop,
     return CLAY_ERROR_BETA_NOT_FOUND;
   if (statement->scattering->nb_input_dims == 0)
     return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
-  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_ERROR_NOT_BETA_LOOP;
+
+  CLAY_BETA_IS_LOOP(beta_loop, statement);
   
   // decompose the inequation
   nb_parameters = scop->context->nb_parameters;
@@ -595,12 +585,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
   if (statement->scattering->nb_output_dims < 3)
     return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
   
-  if (beta->size*2-1 >= statement->scattering->nb_output_dims && 
-      depth >= beta->size)
-    return CLAY_ERROR_DEPTH_OVERFLOW;
-  // else it's a loop, and the depth must be less or equal than the beta size
-  if (depth > beta->size)
-    return CLAY_ERROR_DEPTH_OVERFLOW;
+  CLAY_BETA_CHECK_DEPTH(beta, depth, statement);
   
   precision = statement->scattering->precision;
   if (pretty)
@@ -784,8 +769,8 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
-  if (beta_loop->size*2-1 >= statement->scattering->nb_output_dims)
-    return CLAY_ERROR_NOT_BETA_LOOP;
+
+  CLAY_BETA_IS_LOOP(beta_loop, statement);
   
   precision = statement->scattering->precision;
   
@@ -1017,14 +1002,7 @@ int clay_shift(osl_scop_p scop,
   if (statement->scattering->nb_input_dims == 0)
     return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
 
-  // if it's a statement, the depth must be strictly less than the beta size
-  if (beta->size*2-1 >= statement->scattering->nb_output_dims) {
-      if (depth >= beta->size)
-        return CLAY_ERROR_DEPTH_OVERFLOW;
-  // else it's a loop and if the depth is the same as the beta, we change nothing
-  } else if (depth > beta->size) {
-    return CLAY_ERROR_DEPTH_OVERFLOW;
-  }
+  CLAY_BETA_CHECK_DEPTH(beta, depth, statement);
 
   // decompose the vector
   nb_parameters = scop->context->nb_parameters;
@@ -1180,104 +1158,124 @@ int clay_context(osl_scop_p scop, clay_array_p vector,
 
 /**
  * clay_dimreorder function:
- * Add a line to the context
+ * Reorder the dimensions of access_name
  * \param[in,out] scop
+ * \param[in] beta
  * \param[in] access_name   ident of the access array
  * \param[in] neworder      reorder the dims 
  * \param[in] options
  * \return                  Status
  */
-int clay_dimreorder(osl_scop_p scop, int access_name,
+int clay_dimreorder(osl_scop_p scop,
+                    clay_array_p beta,
+                    int access_name,
                     clay_array_p neworder,
                     clay_options_p options) {
 
   /* Description
    * Swap the columns in the output dims (access arrays)
-   * The first output dim is not used ( => var name) 
+   * The first output dim is not used ( => access name) 
    */
 
-  osl_statement_p stmt = scop->statement;
-  osl_relation_list_p access;
-  osl_relation_p a, tmp;
-  int i, j;
-  int row;
-  int count_access;
-  int found = 0;
+  int aux(osl_relation_list_p access) {
+    osl_relation_p a = access->elt;
 
-  osl_arrays_p arrays;
-  osl_scatnames_p scatnames;
-  osl_strings_p params;
-  arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
-  scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
-  params = osl_generic_lookup(scop->parameters, OSL_URI_STRINGS);
+    if (a->nb_output_dims-1 != neworder->size) {
+      fprintf(stderr, "[Clay] Warning: can't reoder dims on this statement: ");
+      return CLAY_ERROR_REORDER_ARRAY_SIZE;
+    }
 
-  if (!arrays || !scatnames || !params)
-    CLAY_warning("no arrays or scatnames extension");
+    osl_relation_p tmp = osl_relation_nclone(a, 1);
+    int i, j;
 
-  while (stmt) {
-    access = stmt->access;
-    count_access = 0;
+    for (i = 0 ; i < neworder->size ; i++) {
+      if (neworder->data[i] < 0 ||
+          neworder->data[i] >= a->nb_output_dims-1)
+        return CLAY_ERROR_REORDER_OVERFLOW_VALUE;
 
-    // for each access in each statement, we search the access_name
-    while (access) {
-      a = access->elt;
+      if (i+2 != neworder->data[i]+2)
+        for (j = 0 ; j < a->nb_rows ; j++)
+          osl_int_assign(a->precision, 
+                         tmp->m[j], i+2,
+                         a->m[j], neworder->data[i]+2);
+    }
 
-      row = clay_util_relation_get_line(a, 0);
-      if (osl_int_get_si(a->precision, a->m[row], 
-                         a->nb_columns-1) == access_name) {
-        found = 1;
+    osl_relation_free(a);
+    access->elt = tmp;
 
-        if (!osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
-          CLAY_error("extbody uri not found on this statement");
-          fprintf(stderr, "%s\n",
-            ((osl_body_p) stmt->body->data)->expression->string[0]);
-        }
-
-        if (a->nb_output_dims-1 != neworder->size) {
-          CLAY_warning("can't apply this dimreorder on this statement:");
-          fprintf(stderr, "%s\n",
-            ((osl_extbody_p) stmt->body->data)->body->expression->string[0]);
-          return CLAY_ERROR_REORDER_ARRAY_SIZE;
-        }
-
-        // swap all the output dim columns
-
-        tmp = osl_relation_nclone(a, 1);
-
-        for (i = 0 ; i < neworder->size ; i++) {
-          if (neworder->data[i] < 0 ||
-              neworder->data[i] >= a->nb_output_dims-1) {
-            return CLAY_ERROR_REORDER_OVERFLOW_VALUE;
-          }
-          if (i+2 != neworder->data[i]+2) {
-            for (j = 0 ; j < a->nb_rows ; j++)
-            osl_int_assign(a->precision, 
-                           tmp->m[j], i+2,
-                           a->m[j], neworder->data[i]+2);
-          }
-        }
-
-        osl_relation_free(a);
-        access->elt = tmp;
-
-        // re-generate the body
-        clay_util_body_regenerate_access(
-            ((osl_extbody_p) stmt->body->data),
-            tmp,
-            count_access,
-            arrays,
-            scatnames,
-            params);
-      }
-
-      access = access->next;
-      count_access++;
-    }    
-    stmt = stmt->next;
+    return CLAY_SUCCESS;
   }
 
-  if (!found)
-   fprintf(stderr,"[Clay] Warning: access number %d not found\n", access_name);
+  return clay_util_foreach_access(scop, beta, access_name, aux, 1);
+}
 
-  return CLAY_SUCCESS;
+
+/**
+ * clay_dimprivatize function:
+ * Privatize an access
+ * \param[in,out] scop
+ * \param[in] beta
+ * \param[in] depth
+ * \param[in] access_name   ident of the access array
+ * \param[in] options
+ * \return                  Status
+ */
+int clay_dimprivatize(osl_scop_p scop,
+                      clay_array_p beta,
+                      int depth,
+                      int access_name,
+                      clay_options_p options) {
+
+  /* Description
+   * Add an output dim on each access which are in the beta vector
+   */
+
+  if (depth <= 0) 
+    return CLAY_ERROR_DEPTH_OVERFLOW;
+
+  osl_statement_p stmt = clay_beta_find(scop->statement, beta);
+  if (!stmt)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  CLAY_BETA_CHECK_DEPTH(beta, depth, stmt);
+
+  int aux(osl_relation_list_p access) {
+    osl_relation_p a = access->elt;
+
+    // check if the iterator is not used
+    int i;
+    for (i = 0 ; i < a->nb_rows ; i++) {
+      if (!osl_int_zero(a->precision,
+                        a->m[i],
+                        a->nb_output_dims + depth)) {
+        fprintf(stderr, 
+            "[Clay] Warning: can't privatize this statement\n"
+            "                the dim (depth=%d) seems to be already used\n"
+            "                the depth is the depth in the loops\n"
+            "                ", depth);
+        return CLAY_ERROR_CANT_PRIVATIZE;
+      }
+    }
+
+    a->nb_output_dims++;
+
+    osl_relation_insert_blank_column(a, a->nb_output_dims);
+    osl_relation_insert_blank_row(a, a->nb_rows);
+
+    osl_int_set_si(a->precision, 
+                   a->m[a->nb_rows-1],
+                   a->nb_output_dims,
+                   -1);
+
+    osl_int_set_si(a->precision,
+                   a->m[a->nb_rows-1],
+                   a->nb_output_dims + depth,
+                   1);
+
+    return CLAY_SUCCESS;
+  }
+
+  // TODO : optimization, don't restart at the beginning of the scop
+
+  return clay_util_foreach_access(scop, beta, access_name, aux, 1);
 }

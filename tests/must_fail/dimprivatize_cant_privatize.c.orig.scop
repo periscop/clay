@@ -48,7 +48,7 @@ N M
 
 # =============================================== Statement 1
 # Number of relations describing the statement:
-4
+3
 
 # ----------------------------------------------  1.1 Domain
 DOMAIN
@@ -77,24 +77,16 @@ WRITE
 # e/i| Arr  [1]  [2]| i1   i2 |  N    M |  1  
    0   -1    0    0    0    0    0    0    5    ## Arr == a
    0    0   -1    0    1    0    0    0    0    ## [1] == i1
-   0    0    0   -1    0    4    0    0    0    ## [2] == 4*i2
-
-READ
-3 9 3 2 0 2
-# e/i| Arr  [1]  [2]| i1   i2 |  N    M |  1  
-   0   -1    0    0    0    0    0    0    5    ## Arr == a
-   0    0   -1    0    1    0    0    0    0    ## [1] == i1
-   0    0    0   -1    0    1    1    2    5    ## [2] == i2+N+2*M+5
+   0    0    0   -1    0    1    0    0    0    ## [2] == i2
 
 # ----------------------------------------------  1.4 Body
 # Statement body is provided
 1
 <extbody>
 # Number of access
-2
+1
 # start/length
-0 10
-13 21
+0 7
 
 # Basic body
 # Number of original iterators
@@ -102,7 +94,7 @@ READ
 # List of original iterators
 i j
 # Statement body expression
-a[i] [j*4] = a[i][j + N + 2*M + 5] * 2;
+a[i][j] = 0;
 </extbody>
 
 # =============================================== Extensions
@@ -123,7 +115,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/dimreorder.c
+./must_fail/dimprivatize_cant_privatize.c
 # Starting line and column
 2 0
 # Ending line and column
@@ -133,7 +125,7 @@ b0 i b1 j b2
 </coordinates>
 
 <clay>
-  dimreorder([0,0], 5, [1, 0]); # 5 == a
+   dimprivatize([0,0], 2, 5); # 5 == a
 </clay>
 
 </OpenScop>
