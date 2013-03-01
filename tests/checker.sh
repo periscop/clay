@@ -42,7 +42,7 @@ CHECK_ERROR=$3
 echo "$STRING"
 
 for name in $FILES; do
-  echo "check $name \c"
+  echo -e "check $name \c"
   clay "$name.orig.scop" 2>/tmp/clay_scop_stderr | grep -v "enerated by" >/tmp/clay_scop
   
   n=0
@@ -55,9 +55,9 @@ for name in $FILES; do
   if [ $n -ne 0 ]; then
     echo "\n\033[31m[ FAIL ] \c"
     cat /tmp/clay_scop_stderr
-    echo "\033[0m"
+    echo -e "\033[0m"
   else
-    echo "\033[32m[ OK ]\033[0m"
+    echo -e "\033[32m[ OK ]\033[0m"
   fi
 
   rm -f /tmp/clay_scop_stderr

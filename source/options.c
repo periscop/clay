@@ -134,7 +134,7 @@ void clay_options_help() {
   "                        reorder, split, fuse, iss, strimine, and unroll.\n"
   "  --list                List all the available functions.\n"
   "  --keep-extbody        Each extbody are kept (otherwise, they are exported\n"
-  "                        to a basic body)."
+  "                        to a basic body).\n"
   "  -v, --version         Display the release information.\n"
   "  -h, --help            Display this help.\n\n");
   printf(

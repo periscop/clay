@@ -48,6 +48,8 @@
 #include <osl/scop.h>
 #include <osl/generic.h>
 #include <osl/util.h>
+#include <osl/relation.h>
+#include <osl/relation_list.h>
 #include <osl/macros.h>
 
 /** 
@@ -140,7 +142,7 @@ void clay_util_statement_set_inequation(
   // insert the inequation spliting (local dims are not in the inequation)
   // (at the end)
   osl_relation_insert_blank_row(scattering, row);
-  osl_int_set_si(precision, scattering->m[row], 0, 1); // type inequation
+  osl_int_set_si(precision, &scattering->m[row][0], 1); // type inequation
 
   if (inequ->size > 3) {
     CLAY_error("list with more than 3 arrays not supported");
@@ -160,7 +162,7 @@ void clay_util_statement_set_inequation(
     i = 1;
     for (j = 0 ; j < arr_dims->size ; j++) {
       osl_int_set_si(precision,
-                     scattering->m[row], i,
+                     &scattering->m[row][i],
                      arr_dims->data[j]);
       i++;
     }
@@ -172,7 +174,7 @@ void clay_util_statement_set_inequation(
         scattering->nb_local_dims;
     for (j = 0; j < arr_params->size ; j++) {
       osl_int_set_si(precision,
-                     scattering->m[row], i,
+                     &scattering->m[row][i],
                      arr_params->data[j]);
       i++;
     }
@@ -181,7 +183,7 @@ void clay_util_statement_set_inequation(
   // set the constant
   if (inequ->size >= 1 && arr_const->size == 1) {
     osl_int_set_si(precision,
-                   scattering->m[row], scattering->nb_columns-1,
+                   &scattering->m[row][scattering->nb_columns-1],
                    arr_const->data[0]);
   }
 }
@@ -223,7 +225,7 @@ void clay_util_statement_set_vector(
   // for each line where there is a number different from zero on the
   // column
   for (k = 0 ; k < scattering->nb_rows ; k++) {
-    if (!osl_int_zero(precision, scattering->m[k], 1+column)) {
+    if (!osl_int_zero(precision, scattering->m[k][1+column])) {
 
       // scattering = coeff_outputdim * shifting
 
@@ -232,8 +234,8 @@ void clay_util_statement_set_vector(
         i = 1;
         for (j = 0 ; j < arr_dims->size ; j++) {
           osl_int_mul_si(precision,
-                         scattering->m[k], i,
-                         scattering->m[k], 1+column,
+                         &scattering->m[k][i],
+                         scattering->m[k][1+column],
                          arr_dims->data[j]);
           i++;
         }
@@ -248,13 +250,13 @@ void clay_util_statement_set_vector(
             scattering->nb_local_dims;
         for (j = 0 ; j < arr_params->size ; j++) {
           osl_int_mul_si(precision,
-                         tmp, 0,
-                         scattering->m[k], 1+column,
+                         tmp,
+                         scattering->m[k][1+column],
                          arr_params->data[j]);
           osl_int_add(precision,
-                      scattering->m[k], i,
-                      scattering->m[k], i,
-                      tmp, 0);
+                      &scattering->m[k][i],
+                      scattering->m[k][i],
+                      *tmp);
           i++;
         }
       }
@@ -262,18 +264,18 @@ void clay_util_statement_set_vector(
       // set the constant
       if (vector->size >= 1 && arr_const->size == 1) {
         osl_int_mul_si(precision,
-                       tmp, 0,
-                       scattering->m[k], 1+column,
+                       tmp,
+                       scattering->m[k][1+column],
                        arr_const->data[0]);
         osl_int_add(precision,
-                    scattering->m[k], scattering->nb_columns-1,
-                    scattering->m[k], scattering->nb_columns-1,
-                    tmp, 0);
+                    &scattering->m[k][scattering->nb_columns-1],
+                    scattering->m[k][scattering->nb_columns-1],
+                    *tmp);
       }
     }
   }
   
-  osl_int_free(precision, tmp, 0);
+  osl_int_free(precision, tmp);
 }
 
 
@@ -288,12 +290,12 @@ void clay_util_relation_negate_row(osl_relation_p r, int row) {
   int precision = r->precision;
   for (i = 1 ; i < r->nb_columns ; i++) {
     osl_int_oppose(precision, 
-                   r->m[row], i,
-                   r->m[row], i);
+                   &r->m[row][i],
+                   r->m[row][i]);
   }
   osl_int_decrement(precision, 
-                    r->m[row], r->nb_columns-1,
-                    r->m[row], r->nb_columns-1);
+                    &r->m[row][r->nb_columns-1],
+                    r->m[row][r->nb_columns-1]);
 }
 
 
@@ -316,7 +318,7 @@ osl_statement_p clay_util_statement_insert(osl_statement_p statement,
   // the current statement is after the new statement
   int row = clay_util_relation_get_line(scattering, column);
   osl_int_set_si(scattering->precision,
-                 scattering->m[row], scattering->nb_columns-1,
+                 &scattering->m[row][scattering->nb_columns-1],
                  order);
 
   // the order is not important in the statements list
@@ -536,7 +538,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
   // copy access name string
   row = clay_util_relation_get_line(access, 0);
-  val = osl_int_get_si(precision, access->m[row], access->nb_columns-1);
+  val = osl_int_get_si(precision, access->m[row][access->nb_columns-1]);
   val = clay_util_arrays_search(arrays, val);
   osl_util_safe_strcat(&new_body, arrays->names[val], &hwm);
 
@@ -551,7 +553,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
     // iterators
     for (j = 0 ; j < access->nb_input_dims ; j++, k++) {
-      val = osl_int_get_si(precision, access->m[row], k);
+      val = osl_int_get_si(precision, access->m[row][k]);
       if (val != 0)
         clay_util_name_sprint(&new_body,
                               &hwm, 
@@ -562,7 +564,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
     // params
     for (j = 0 ; j < access->nb_parameters ; j++, k++) {
-      val = osl_int_get_si(precision, access->m[row], k);
+      val = osl_int_get_si(precision, access->m[row][k]);
       if (val != 0)
         clay_util_name_sprint(&new_body,
                               &hwm, 
@@ -572,7 +574,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
     }
 
     // const
-    val = osl_int_get_si(precision, access->m[row], k);
+    val = osl_int_get_si(precision, access->m[row][k]);
     if (val != 0)
       clay_util_name_sprint(&new_body,
                             &hwm, 
@@ -642,7 +644,6 @@ int clay_util_foreach_access(osl_scop_p scop,
   osl_statement_p stmt = scop->statement;
   osl_relation_list_p access;
   osl_relation_p a;
-  int row;
   int count_access;
   int found = 0;
   int ret;
@@ -671,9 +672,7 @@ int clay_util_foreach_access(osl_scop_p scop,
       while (access) {
         a = access->elt;
 
-        row = clay_util_relation_get_line(a, 0);
-        if (osl_int_get_si(a->precision, a->m[row], 
-                           a->nb_columns-1) == access_name) {
+        if (osl_relation_get_array_id(a) == access_name) {
           found = 1;
 
           if (!osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {

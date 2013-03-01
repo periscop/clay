@@ -107,14 +107,13 @@ int clay_reorder(osl_scop_p scop,
       
       // get the beta value
       index = osl_int_get_si(precision,
-                             scattering->m[row],
-                             scattering->nb_columns-1);
+                             scattering->m[row][scattering->nb_columns-1]);
       
       if (index >= neworder->size)
         return CLAY_ERROR_REORDER_ARRAY_TOO_SMALL;
       
       osl_int_set_si(precision, 
-                     scattering->m[row], scattering->nb_columns-1,
+                     &scattering->m[row][scattering->nb_columns-1],
                      neworder->data[index]);
     }
     statement = statement->next;
@@ -166,8 +165,8 @@ int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
       scattering = statement->scattering;
       for(i = 0 ; i < scattering->nb_rows ; i++) {
         osl_int_oppose(precision, 
-                       scattering->m[i], column+1,
-                       scattering->m[i], column+1);
+                       &scattering->m[i][column+1],
+                       scattering->m[i][column+1]);
       }
     }
     statement = statement->next;
@@ -210,7 +209,7 @@ int clay_interchange(osl_scop_p scop,
   const int column_1 = depth_1*2 - 1; // iterator column
   const int column_2 = depth_2*2 - 1;
   int i;
-  void **matrix;
+  osl_int_t **matrix;
   //int nb_rows;
 
   statement = clay_beta_find(statement, beta);
@@ -241,8 +240,8 @@ int clay_interchange(osl_scop_p scop,
       matrix = scattering->m;
       for (i = 0 ; i < scattering->nb_rows ; i++)
         osl_int_swap(precision, 
-                     matrix[i], column_1+1,
-                     matrix[i], column_2+1);
+                     &matrix[i][column_1+1],
+                     &matrix[i][column_2+1]);
     }
     
     statement = statement->next;
@@ -357,14 +356,14 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
           // Set the loop level
           row = clay_util_relation_get_line(scattering, column-2);
           osl_int_set_si(precision, 
-                         scattering->m[row], scattering->nb_columns-1, 
+                         &scattering->m[row][scattering->nb_columns-1],
                          beta_loop->data[depth-1]);
 
           // Reorder the statement
           row = clay_util_relation_get_line(scattering, column);
           osl_int_add_si(precision,
-                         scattering->m[row], scattering->nb_columns-1,
-                         scattering->m[row], scattering->nb_columns-1,
+                         &scattering->m[row][scattering->nb_columns-1],
+                         scattering->m[row][scattering->nb_columns-1],
                          beta_max->data[depth]+1);
         }
       }
@@ -607,29 +606,32 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       osl_relation_insert_blank_row(scattering, column);
       
       // stripmine
-      osl_int_set_si(precision, scattering->m[row+0], column+1, -1);
-      osl_int_set_si(precision, scattering->m[row+1], column+2, -size);
-      osl_int_set_si(precision, scattering->m[row+2], column+2, size);
-      osl_int_set_si(precision, scattering->m[row+2], scattering->nb_columns-1, 
+      osl_int_set_si(precision, &scattering->m[row+0][column+1], -1);
+      osl_int_set_si(precision, &scattering->m[row+1][column+2], -size);
+      osl_int_set_si(precision, &scattering->m[row+2][column+2], size);
+      osl_int_set_si(precision, 
+                     &scattering->m[row+2][scattering->nb_columns-1],
                      size-1);
       
       // inequality
-      osl_int_set_si(precision, scattering->m[row+1], 0, 1);
-      osl_int_set_si(precision, scattering->m[row+2], 0, 1);
+      osl_int_set_si(precision, &scattering->m[row+1][0], 1);
+      osl_int_set_si(precision, &scattering->m[row+2][0], 1);
       
       // iterator dependance
-      osl_int_set_si(precision, scattering->m[row+1], column+4, 1);
-      osl_int_set_si(precision, scattering->m[row+2], column+4, -1);
+      osl_int_set_si(precision, &scattering->m[row+1][column+4], 1);
+      osl_int_set_si(precision, &scattering->m[row+2][column+4], -1);
       
       scattering->nb_output_dims += 2;
       
       // reorder
       row_next = clay_util_relation_get_line(scattering, column+2);
-      osl_int_assign(precision, scattering->m[row], scattering->nb_columns-1,
-                     scattering->m[row_next], scattering->nb_columns-1);
+      osl_int_assign(precision, 
+                     &scattering->m[row][scattering->nb_columns-1],
+                     scattering->m[row_next][scattering->nb_columns-1]);
       
-      osl_int_set_si(precision, scattering->m[row_next],
-                     scattering->nb_columns-1, 0);
+      osl_int_set_si(precision, 
+                     &scattering->m[row_next][scattering->nb_columns-1],
+                     0);
     
     } else if (pretty && column < scattering->nb_output_dims) {
       // add 2 empty dimensions
@@ -642,18 +644,20 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
       osl_relation_insert_blank_row(scattering, column);
       
       // -Identity
-      osl_int_set_si(precision, scattering->m[row], column+1, -1);
-      osl_int_set_si(precision, scattering->m[row+1], column+2, -1);
+      osl_int_set_si(precision, &scattering->m[row][column+1], -1);
+      osl_int_set_si(precision, &scattering->m[row+1][column+2], -1);
       
       scattering->nb_output_dims += 2;
       
       // reorder
       row_next = clay_util_relation_get_line(scattering, column+2);
-      osl_int_assign(precision, scattering->m[row], scattering->nb_columns-1,
-                     scattering->m[row_next], scattering->nb_columns-1);
+      osl_int_assign(precision, 
+                     &scattering->m[row][scattering->nb_columns-1],
+                     scattering->m[row_next][scattering->nb_columns-1]);
       
-      osl_int_set_si(precision, scattering->m[row_next],
-                     scattering->nb_columns-1, 0);
+      osl_int_set_si(precision, 
+                     &scattering->m[row_next][scattering->nb_columns-1],
+                     0);
     }
     statement = statement->next;
   }
@@ -818,7 +822,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
         row = clay_util_relation_get_line(original_stmt->scattering, column-2);
         scattering = epilog_stmt->scattering;
         osl_int_set_si(precision,
-                       scattering->m[row], scattering->nb_columns-1,
+                       &scattering->m[row][scattering->nb_columns-1],
                        order_epilog);
         
         // the order is not important in the statements list
@@ -837,18 +841,18 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
       while (domain != NULL) {
       
         for (i = domain->nb_rows-1 ; i >= 0  ; i--) {
-          if (!osl_int_zero(precision, domain->m[i], 0)) {
+          if (!osl_int_zero(precision, domain->m[i][0])) {
           
             // remove the lower bound on the epilog statement
             if(setepilog &&
-               osl_int_pos(precision, domain->m[i], iterator_index+1)) {
+               osl_int_pos(precision, domain->m[i][iterator_index+1])) {
               osl_relation_remove_row(epilog_domain, i);
             }
             // remove the upper bound on the original statement
-            if (osl_int_neg(precision, domain->m[i], iterator_index+1)) {
+            if (osl_int_neg(precision, domain->m[i][iterator_index+1])) {
               osl_int_add_si(precision, 
-                             domain->m[i], domain->nb_columns-1,
-                             domain->m[i], domain->nb_columns-1,
+                             &domain->m[i][domain->nb_columns-1],
+                             domain->m[i][domain->nb_columns-1],
                              -factor);
             }
           }
@@ -858,9 +862,10 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
         osl_relation_insert_blank_column(domain, domain->nb_output_dims+1);
         osl_relation_insert_blank_row(domain, 0);
         (domain->nb_local_dims)++;
-        osl_int_set_si(precision, domain->m[0], domain->nb_output_dims+1,
+        osl_int_set_si(precision, 
+                       &domain->m[0][domain->nb_output_dims+1],
                        -factor);
-        osl_int_set_si(precision, domain->m[0], iterator_index+1, 1);
+        osl_int_set_si(precision, &domain->m[0][iterator_index+1], 1);
         
         domain = domain->next;
         
@@ -871,8 +876,8 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
       // clone factor-1 times the original statement
      
       row = clay_util_relation_get_line(original_stmt->scattering, column);
-      current_level = osl_int_get_si(scattering->precision, scattering->m[row], 
-                                     scattering->nb_columns-1);
+      current_level = osl_int_get_si(scattering->precision,
+                                 scattering->m[row][scattering->nb_columns-1]);
       if (last_level != current_level) {
         current_stmt++;
         last_level = current_level;
@@ -897,7 +902,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
         // reorder
         order = current_stmt + max + nb_stmts*i;
         osl_int_set_si(precision,
-                       scattering->m[row], scattering->nb_columns-1,
+                       &scattering->m[row][scattering->nb_columns-1],
                        order);
         
         // the order is not important in the statements list
@@ -1140,14 +1145,14 @@ int clay_context(osl_scop_p scop, clay_array_p vector,
   osl_relation_insert_blank_row(context, row);
   
   osl_int_set_si(precision,
-                 context->m[row], 0,
+                 &context->m[row][0],
                  vector->data[0]);
   
   j = 1 + context->nb_output_dims + context->nb_input_dims +
       context->nb_local_dims;
   for (i = 1 ; i < vector->size ; i++) {
     osl_int_set_si(precision,
-                   context->m[row], j,
+                   &context->m[row][j],
                    vector->data[i]);
     j++;
   }
@@ -1196,8 +1201,8 @@ int clay_dimreorder(osl_scop_p scop,
       if (i+2 != neworder->data[i]+2)
         for (j = 0 ; j < a->nb_rows ; j++)
           osl_int_assign(a->precision, 
-                         tmp->m[j], i+2,
-                         a->m[j], neworder->data[i]+2);
+                         &tmp->m[j][i+2],
+                         a->m[j][neworder->data[i]+2]);
     }
 
     osl_relation_free(a);
@@ -1245,9 +1250,7 @@ int clay_dimprivatize(osl_scop_p scop,
     // check if the iterator is not used
     int i;
     for (i = 0 ; i < a->nb_rows ; i++) {
-      if (!osl_int_zero(a->precision,
-                        a->m[i],
-                        a->nb_output_dims + depth)) {
+      if (!osl_int_zero(a->precision, a->m[i][a->nb_output_dims + depth])) {
         fprintf(stderr, 
             "[Clay] Warning: can't privatize this statement\n"
             "                the dim (depth=%d) seems to be already used\n"
@@ -1263,13 +1266,11 @@ int clay_dimprivatize(osl_scop_p scop,
     osl_relation_insert_blank_row(a, a->nb_rows);
 
     osl_int_set_si(a->precision, 
-                   a->m[a->nb_rows-1],
-                   a->nb_output_dims,
+                   &a->m[a->nb_rows-1][a->nb_output_dims],
                    -1);
 
     osl_int_set_si(a->precision,
-                   a->m[a->nb_rows-1],
-                   a->nb_output_dims + depth,
+                   &a->m[a->nb_rows-1][a->nb_output_dims + depth],
                    1);
 
     return CLAY_SUCCESS;
