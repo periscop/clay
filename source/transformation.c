@@ -1186,7 +1186,7 @@ int clay_dimreorder(osl_scop_p scop,
     osl_relation_p a = access->elt;
 
     if (a->nb_output_dims-1 != neworder->size) {
-      fprintf(stderr, "[Clay] Warning: can't reoder dims on this statement: ");
+      fprintf(stderr, "[Clay] Warning: can't reorder dims on this statement: ");
       return CLAY_ERROR_REORDER_ARRAY_SIZE;
     }
 
