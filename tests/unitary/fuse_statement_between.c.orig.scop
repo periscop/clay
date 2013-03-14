@@ -72,10 +72,8 @@ WRITE
 <extbody>
 # Number of access
 1
-# start/length
+# Mapping start/length
 0 1
-
-# Basic body
 # Number of original iterators
 0
 # Statement body expression
@@ -115,10 +113,8 @@ WRITE
 <extbody>
 # Number of access
 1
-# start/length
+# Mapping start/length
 0 4
-
-# Basic body
 # Number of original iterators
 1
 # List of original iterators
@@ -153,10 +149,8 @@ WRITE
 <extbody>
 # Number of access
 1
-# start/length
+# Mapping start/length
 0 1
-
-# Basic body
 # Number of original iterators
 0
 # Statement body expression
@@ -196,10 +190,8 @@ WRITE
 <extbody>
 # Number of access
 1
-# start/length
+# Mapping start/length
 0 4
-
-# Basic body
 # Number of original iterators
 1
 # List of original iterators
@@ -241,10 +233,8 @@ WRITE
 <extbody>
 # Number of access
 1
-# start/length
+# Mapping start/length
 0 4
-
-# Basic body
 # Number of original iterators
 1
 # List of original iterators
@@ -279,10 +269,8 @@ WRITE
 <extbody>
 # Number of access
 1
-# start/length
+# Mapping start/length
 0 1
-
-# Basic body
 # Number of original iterators
 0
 # Statement body expression

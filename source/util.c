@@ -599,9 +599,8 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
   // shift the start
   int diff = ebody->length[index] - len;
-  for (i = 0 ; i < ebody->nb_access ; i++)
-    if (i != index)
-      ebody->start[i] += diff;
+  for (i = index+1 ; i < ebody->nb_access ; i++)
+    ebody->start[i] += diff;
 }
 
 

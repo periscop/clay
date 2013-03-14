@@ -125,7 +125,7 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "peel",   
-    "peel(ident:loop,  list inequation { ((output,) params,)) const })",
+    "peel(ident:loop,  list inequation { (params,) const })",
     NULL, clay_function_peel_type, 2, 0
   },
   {

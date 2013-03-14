@@ -109,7 +109,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/peel_remove_condition.c \
 	$(top_srcdir)/tests/unitary/context.c \
 	$(top_srcdir)/tests/unitary/dimreorder.c \
-	$(top_srcdir)/tests/unitary/dimprivatize_simple.c
+	$(top_srcdir)/tests/unitary/dimprivatize_simple.c \
+	$(top_srcdir)/tests/unitary/dimcontract.c
 	
 
 FAIL_TEST_FILES = \

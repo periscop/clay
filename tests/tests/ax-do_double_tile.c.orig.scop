@@ -79,10 +79,8 @@ WRITE
 <extbody>
 # Number of access
 1
-# start/length
+# Mapping start/length
 0 5
-
-# Basic body
 # Number of original iterators
 1
 # List of original iterators
@@ -147,13 +145,11 @@ READ
 <extbody>
 # Number of access
 4
-# start/length
+# Mapping start/length
 0 5
 8 5
 16 8
 27 4
-
-# Basic body
 # Number of original iterators
 2
 # List of original iterators

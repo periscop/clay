@@ -1319,6 +1319,7 @@ int clay_dimcontract(osl_scop_p scop,
     int row = clay_util_relation_get_line(a, depth);
     osl_relation_remove_row(a, row);
     osl_relation_remove_column(a, depth+1);
+    a->nb_columns--;
     a->nb_output_dims--;
 
     return CLAY_SUCCESS;
