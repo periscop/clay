@@ -1163,17 +1163,17 @@ int clay_context(osl_scop_p scop, clay_array_p vector,
 
 /**
  * clay_dimreorder function:
- * Reorder the dimensions of access_name
+ * Reorder the dimensions of access_ident
  * \param[in,out] scop
  * \param[in] beta
- * \param[in] access_name   ident of the access array
+ * \param[in] access_ident   ident of the access array
  * \param[in] neworder      reorder the dims 
  * \param[in] options
  * \return                  Status
  */
 int clay_dimreorder(osl_scop_p scop,
                     clay_array_p beta,
-                    int access_name,
+                    int access_ident,
                     clay_array_p neworder,
                     clay_options_p options) {
 
@@ -1182,6 +1182,7 @@ int clay_dimreorder(osl_scop_p scop,
    * The first output dim is not used ( => access name) 
    */
 
+  // core of the function
   int aux(osl_relation_list_p access) {
     osl_relation_p a = access->elt;
 
@@ -1211,7 +1212,7 @@ int clay_dimreorder(osl_scop_p scop,
     return CLAY_SUCCESS;
   }
 
-  return clay_util_foreach_access(scop, beta, access_name, aux, 1);
+  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
 }
 
 
@@ -1221,14 +1222,14 @@ int clay_dimreorder(osl_scop_p scop,
  * \param[in,out] scop
  * \param[in] beta
  * \param[in] depth
- * \param[in] access_name   ident of the access array
+ * \param[in] access_ident   ident of the access array
  * \param[in] options
  * \return                  Status
  */
 int clay_dimprivatize(osl_scop_p scop,
                       clay_array_p beta,
                       int depth,
-                      int access_name,
+                      int access_ident,
                       clay_options_p options) {
 
   /* Description
@@ -1244,6 +1245,7 @@ int clay_dimprivatize(osl_scop_p scop,
 
   CLAY_BETA_CHECK_DEPTH(beta, depth, stmt);
 
+  // core of the function
   int aux(osl_relation_list_p access) {
     osl_relation_p a = access->elt;
 
@@ -1278,5 +1280,52 @@ int clay_dimprivatize(osl_scop_p scop,
 
   // TODO : optimization, don't restart at the beginning of the scop
 
-  return clay_util_foreach_access(scop, beta, access_name, aux, 1);
+  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
 }
+
+
+/**
+ * clay_dimcontract function:
+ * Contract an access (remove a dimension)
+ * \param[in,out] scop
+ * \param[in] beta
+ * \param[in] depth
+ * \param[in] access_ident   ident of the access array
+ * \param[in] options
+ * \return                  Status
+ */
+int clay_dimcontract(osl_scop_p scop,
+                     clay_array_p beta,
+                     int depth,
+                     int access_ident,
+                     clay_options_p options) {
+  /* Description
+   * Remove the line/column at the depth level
+   */
+
+  if (depth <= 0) 
+    return CLAY_ERROR_DEPTH_OVERFLOW;
+
+  osl_statement_p stmt = clay_beta_find(scop->statement, beta);
+  if (!stmt)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  CLAY_BETA_CHECK_DEPTH(beta, depth, stmt);
+
+  // core of the function
+  int aux(osl_relation_list_p access) {
+    osl_relation_p a = access->elt;
+
+    int row = clay_util_relation_get_line(a, depth);
+    osl_relation_remove_row(a, row);
+    osl_relation_remove_column(a, depth+1);
+    a->nb_output_dims--;
+
+    return CLAY_SUCCESS;
+  }
+
+  // TODO : optimization, don't restart at the beginning of the scop
+
+  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
+}
+

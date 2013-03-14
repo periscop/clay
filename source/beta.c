@@ -692,26 +692,3 @@ int clay_scattering_check_zeros(osl_statement_p statement, int i, int j) {
   return 1;
 }
 
-
-/**
- * clay_util_relation_get_line function:
- * Because the lines in the scattering matrix may have not ordered, we have to
- * search the corresponding line. It returns the first line where the value is
- * different from zero in the `column'. `column' is between 0 and 
- * nb_output_dims-1
- * \param[in] relation
- * \param[in] column        Line to search
- * \return                  Return the real line
- */
-int clay_util_relation_get_line(osl_relation_p relation, int column) {
-  if (column < 0 || column > relation->nb_output_dims)
-    return -1;
-  int i;
-  int precision = relation->precision;
-  for (i = 0 ; i < relation->nb_rows ; i++) {
-    if (!osl_int_zero(precision, relation->m[i][column+1])) {
-      break;
-    }
-  }
-  return (i == relation->nb_rows ? -1 : i );
-}

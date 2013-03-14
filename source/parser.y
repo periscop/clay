@@ -480,6 +480,13 @@ void clay_parser_exec_function(char *name) {
                                         *((int*)clay_params->args[2]),
                                         clay_parser_options);
       break;
+    case CLAY_FUNCTION_DIMCONTRACT:
+      status_result = clay_dimcontract(clay_parser_scop,
+                                       clay_params->args[0],
+                                       *((int*)clay_params->args[1]),
+                                       *((int*)clay_params->args[2]),
+                                       clay_parser_options);
+      break;
     default:
       fprintf(stderr, "[Clay] Error: can't call the function %s (%s).\n", 
               functions[i].name, __func__);

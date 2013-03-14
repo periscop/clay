@@ -537,16 +537,18 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
 
   // copy access name string
-  row = clay_util_relation_get_line(access, 0);
-  val = osl_int_get_si(precision, access->m[row][access->nb_columns-1]);
-  val = clay_util_arrays_search(arrays, val);
+  val = osl_relation_get_array_id(access);
+  val = clay_util_arrays_search(arrays, val); // get the index in th array
   osl_util_safe_strcat(&new_body, arrays->names[val], &hwm);
 
 
   // generate each dims
   for (i = 1 ; i < access->nb_output_dims ; i++) {
-    osl_util_safe_strcat(&new_body, "[", &hwm);
     row = clay_util_relation_get_line(access, i);
+    if (row == -1)
+      continue;
+
+    osl_util_safe_strcat(&new_body, "[", &hwm);
 
     print_plus = 0;
     k = 1 + access->nb_output_dims;
@@ -714,3 +716,26 @@ int clay_util_foreach_access(osl_scop_p scop,
   return CLAY_SUCCESS;
 }
 
+
+/**
+ * clay_util_relation_get_line function:
+ * Because the lines in the scattering matrix may have not ordered, we have to
+ * search the corresponding line. It returns the first line where the value is
+ * different from zero in the `column'. `column' is between 0 and 
+ * nb_output_dims-1
+ * \param[in] relation
+ * \param[in] column        Line to search
+ * \return                  Return the real line
+ */
+int clay_util_relation_get_line(osl_relation_p relation, int column) {
+  if (column < 0 || column > relation->nb_output_dims)
+    return -1;
+  int i;
+  int precision = relation->precision;
+  for (i = 0 ; i < relation->nb_rows ; i++) {
+    if (!osl_int_zero(precision, relation->m[i][column+1])) {
+      break;
+    }
+  }
+  return (i == relation->nb_rows ? -1 : i );
+}
