@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   dimprivatize([0,0], 2, 5); # 5 == a
+   dimprivatize([0,0], 5, 2); # 5 == a
 */
 
 for (i = 0 ; i <= N ; i++) {

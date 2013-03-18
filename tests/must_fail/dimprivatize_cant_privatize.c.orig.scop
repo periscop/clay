@@ -123,7 +123,7 @@ b0 i b1 j b2
 </coordinates>
 
 <clay>
-   dimprivatize([0,0], 2, 5); # 5 == a
+   dimprivatize([0,0], 5, 2); # 5 == a
 </clay>
 
 </OpenScop>

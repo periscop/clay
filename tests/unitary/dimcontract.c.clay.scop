@@ -58,7 +58,7 @@ a = 0;
 
 # =============================================== Statement 2
 # Number of relations describing the statement:
-4
+5
 
 # ----------------------------------------------  2.1 Domain
 DOMAIN
@@ -88,6 +88,12 @@ READ
 # e/i| Arr|  i |  N |  1  
    0   -1    0    0    3    ## Arr == a
 
+READ
+2 6 2 1 0 1
+# e/i| Arr  [1]|  i |  N |  1  
+   0   -1    0    0    0    5    ## Arr == c
+   0    0   -1    1    0    0    ## [1] == i
+
 # ----------------------------------------------  2.4 Body
 # Statement body is provided
 1
@@ -97,7 +103,7 @@ READ
 # List of original iterators
 i
 # Statement body expression
-b[i] = a;
+b[i] = a + c[i];
 </body>
 
 # =============================================== Extensions
@@ -107,12 +113,13 @@ b0 i b1
 
 <arrays>
 # Number of arrays
-4
+5
 # Mapping array-identifiers/array-names
 1 i
 2 N
 3 a
 4 b
+5 c
 </arrays>
 
 <coordinates>

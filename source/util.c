@@ -513,7 +513,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
   int start = ebody->start[index];
   int len = ebody->length[index];
 
-  if (start >= body_len || start + len >= body_len)
+  if (start >= body_len || start + len >= body_len || (start == -1 && len == -1))
     return;
 
   char *new_body;
@@ -600,7 +600,8 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
   // shift the start
   int diff = ebody->length[index] - len;
   for (i = index+1 ; i < ebody->nb_access ; i++)
-    ebody->start[i] += diff;
+    if (ebody->start[i] != -1)
+      ebody->start[i] += diff;
 }
 
 

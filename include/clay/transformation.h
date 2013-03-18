@@ -57,5 +57,6 @@ int clay_context(osl_scop_p, clay_array_p, clay_options_p);
 int clay_dimreorder(osl_scop_p, clay_array_p, int, clay_array_p, clay_options_p);
 int clay_dimprivatize(osl_scop_p, clay_array_p, int, int, clay_options_p);
 int clay_dimcontract(osl_scop_p, clay_array_p, int, int, clay_options_p);
+// WIP int clay_dimserialize(osl_scop_p, clay_array_p, int, int, int, clay_options_p);
 
 #endif

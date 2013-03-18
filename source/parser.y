@@ -487,6 +487,14 @@ void clay_parser_exec_function(char *name) {
                                        *((int*)clay_params->args[2]),
                                        clay_parser_options);
       break;
+/*  WIP   case CLAY_FUNCTION_DIMSERIALIZE:
+      status_result = clay_dimserialize(clay_parser_scop,
+                                        clay_params->args[0],
+                                        *((int*)clay_params->args[1]),
+                                        *((int*)clay_params->args[2]),
+                                        *((int*)clay_params->args[3]),
+                                        clay_parser_options);
+      break;*/
     default:
       fprintf(stderr, "[Clay] Error: can't call the function %s (%s).\n", 
               functions[i].name, __func__);

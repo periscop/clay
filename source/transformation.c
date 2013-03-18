@@ -97,7 +97,6 @@ int clay_reorder(osl_scop_p scop,
 
   CLAY_BETA_IS_LOOP(beta_loop, statement);
   
-  // TODO NOTE : we can optimize to not check twice this statement
   precision = statement->scattering->precision;
   while (statement != NULL) {
     if (clay_beta_check(statement, beta_loop)) {
@@ -158,7 +157,6 @@ int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
 
   CLAY_BETA_CHECK_DEPTH(beta, depth, statement);
 
-  // TODO NOTE : we can optimize to not check twice this statement
   precision = statement->scattering->precision;
   while (statement != NULL) {
     if (clay_beta_check(statement, beta)) {
@@ -225,7 +223,6 @@ int clay_interchange(osl_scop_p scop,
   if (depth_1 == depth_2)
     return CLAY_SUCCESS;
   
-  // TODO NOTE : we can optimize to not check twice this statement
   precision = statement->scattering->precision;
   while (statement != NULL) {
   
@@ -590,7 +587,6 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
   if (pretty)
     statement = scop->statement; // TODO optimization...
         
-  // TODO NOTE : we can optimize to not check twice this statement
   while (statement != NULL) {
     scattering = statement->scattering;
     if (clay_beta_check(statement, beta)) {
@@ -798,7 +794,6 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
   while (statement != NULL) {
     scattering = statement->scattering;
     
-    // TODO NOTE : we can optimize to not check twice this statement
     if (clay_beta_check(statement, beta_loop)) {
       
       // create the body with symbols for the substitution
@@ -1221,15 +1216,15 @@ int clay_dimreorder(osl_scop_p scop,
  * Privatize an access
  * \param[in,out] scop
  * \param[in] beta
- * \param[in] depth
  * \param[in] access_ident   ident of the access array
+ * \param[in] depth
  * \param[in] options
  * \return                  Status
  */
 int clay_dimprivatize(osl_scop_p scop,
                       clay_array_p beta,
-                      int depth,
                       int access_ident,
+                      int depth,
                       clay_options_p options) {
 
   /* Description
@@ -1278,8 +1273,6 @@ int clay_dimprivatize(osl_scop_p scop,
     return CLAY_SUCCESS;
   }
 
-  // TODO : optimization, don't restart at the beginning of the scop
-
   return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
 }
 
@@ -1289,15 +1282,15 @@ int clay_dimprivatize(osl_scop_p scop,
  * Contract an access (remove a dimension)
  * \param[in,out] scop
  * \param[in] beta
- * \param[in] depth
  * \param[in] access_ident   ident of the access array
+ * \param[in] depth
  * \param[in] options
  * \return                  Status
  */
 int clay_dimcontract(osl_scop_p scop,
                      clay_array_p beta,
-                     int depth,
                      int access_ident,
+                     int depth,
                      clay_options_p options) {
   /* Description
    * Remove the line/column at the depth level
@@ -1317,15 +1310,77 @@ int clay_dimcontract(osl_scop_p scop,
     osl_relation_p a = access->elt;
 
     int row = clay_util_relation_get_line(a, depth);
-    osl_relation_remove_row(a, row);
-    osl_relation_remove_column(a, depth+1);
-    a->nb_columns--;
-    a->nb_output_dims--;
+    if (row != -1) {
+      osl_relation_remove_row(a, row);
+      osl_relation_remove_column(a, depth+1); // remove output dim
+      a->nb_columns--;
+      a->nb_output_dims--;
+    }
 
     return CLAY_SUCCESS;
   }
 
-  // TODO : optimization, don't restart at the beginning of the scop
+  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
+}
+
+
+/**
+ * clay_dimserialize function:
+ * Serialize an access (merge dimensions at depth and depth+1)
+ * \param[in,out] scop
+ * \param[in] beta
+ * \param[in] access_ident   ident of the access array
+ * \param[in] depth
+ * \param[in] factor
+ * \param[in] options
+ * \return                  Status
+ */
+int clay_dimserialize(osl_scop_p scop,
+                      clay_array_p beta,
+                      int access_ident,
+                      int depth,
+                      int factor,
+                      clay_options_p options) {
+
+  /* WIP */
+
+  /* Description
+   * 
+   */
+
+  if (depth <= 0)
+    return CLAY_ERROR_DEPTH_OVERFLOW;
+
+  osl_statement_p stmt = clay_beta_find(scop->statement, beta);
+  if (!stmt)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  CLAY_BETA_CHECK_DEPTH(beta, depth, stmt);
+
+  // core of the function
+  int aux(osl_relation_list_p access) {
+    int i;
+    osl_relation_p a = access->elt;
+
+    int row  = clay_util_relation_get_line(a, depth); // i
+    int row2 = clay_util_relation_get_line(a, depth+1); // j
+    if (row != -1 && row2 != -1) {
+
+      // i * factor
+      osl_int_set_si(a->precision, 
+                     &a->m[row][1 + a->nb_output_dims + (depth-1)],
+                     factor);
+
+      // i(params + const) * factor
+      for (i = 1 + a->nb_output_dims + a->nb_input_dims ;
+           i < a->nb_columns-1 ; i++)
+        osl_int_set_si(a->precision, 
+                       &a->m[row][i],
+                       factor);
+    }
+
+    return CLAY_SUCCESS;
+  }
 
   return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
 }

@@ -58,6 +58,7 @@ int clay_function_context_type[]     = {ARRAY_T};
 int clay_function_dimreorder_type[]  = {ARRAY_T, INTEGER_T, ARRAY_T};
 int clay_function_dimprivatize_type[] = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_dimcontract_type[] = {ARRAY_T, INTEGER_T, INTEGER_T};
+// WIP int clay_function_dimserialize_type[] = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -140,13 +141,18 @@ const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "dimprivatize",
-    "dimprivatize(ident, uint depth, uint #access)",
+    "dimprivatize(ident, uint #access, uint depth)",
     NULL, clay_function_dimprivatize_type, 3, 0
   },
   {
     "dimcontract",
-    "dimcontract(ident, uint depth, uint #access)",
+    "dimcontract(ident, uint #access, uint depth)",
     NULL, clay_function_dimcontract_type, 3, 0
-  }
+  }/*,
+  {
+    "dimserialize",
+    "dimserialize(ident, uint #access, uint depth, int factor)",
+    NULL, clay_function_dimserialize_type, 4, 0
+  }*/
 
 };

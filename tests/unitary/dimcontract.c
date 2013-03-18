@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   dimcontract([0], 1, 3); # 3 == a
+   dimcontract([0], 3, 1); # 3 == a
 */
 
 for (i = 0 ; i <= N ; i++) {
