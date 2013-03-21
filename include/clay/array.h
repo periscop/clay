@@ -68,6 +68,7 @@ void              clay_array_free(clay_array_p);
 void              clay_array_print(FILE*, clay_array_p);
 clay_array_p      clay_array_clone(clay_array_p);
 void              clay_array_concat(clay_array_p, clay_array_p);
+int               clay_array_equal(clay_array_p, clay_array_p);
 
 clay_list_p       clay_list_malloc();
 void              clay_list_add(clay_list_p, clay_array_p);
