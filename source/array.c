@@ -89,8 +89,9 @@ void clay_array_free(clay_array_p arr) {
  * Print the array like this : [0,1,2,3,4,5,6]
  * \param[in] out   file where to print
  * \param[in] arr
+ * \param[in] cr    if 1, it will print a \n at the end
  */
-void clay_array_print(FILE *out, clay_array_p arr) {
+void clay_array_print(FILE *out, clay_array_p arr, int cr) {
   if (arr == NULL) {
     fprintf(out, "NULL\n");
     return;
@@ -102,7 +103,10 @@ void clay_array_print(FILE *out, clay_array_p arr) {
   }
   if(arr->size > 0)
     fprintf(out, "%d", arr->data[i]);
-  fprintf(out, "]\n");
+  fprintf(out, "]");
+
+  if (cr)
+    fprintf(out, "\n");
 }
 
 
@@ -195,11 +199,11 @@ void clay_list_print(FILE *out, clay_list_p l) {
   int i;
   fprintf(out, "{");
   for (i = 0 ; i < l->size-1 ; i++) {
-    clay_array_print(out, l->data[i]);
+    clay_array_print(out, l->data[i], 0);
     fprintf(out, ",");
   }
   if(l->size > 0)
-    clay_array_print(out, l->data[i]);
+    clay_array_print(out, l->data[i], 0);
   fprintf(out, "}\n");
 }
 
