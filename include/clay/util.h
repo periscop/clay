@@ -42,6 +42,7 @@
 #endif
 
 #include <clay/array.h>
+#include <clay/list.h>
 #include <osl/scop.h>
 #include <osl/statement.h>
 #include <osl/relation.h>

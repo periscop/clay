@@ -51,6 +51,7 @@
 
 #include <clay/transformation.h>
 #include <clay/array.h>
+#include <clay/list.h>
 #include <clay/macros.h>
 #include <clay/options.h>
 #include <clay/errors.h>

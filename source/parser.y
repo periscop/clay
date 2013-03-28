@@ -46,6 +46,7 @@
 
   #include <clay/macros.h>
   #include <clay/array.h>
+  #include <clay/list.h>
   #include <clay/transformation.h>
   #include <clay/prototype_function.h>
   #include <clay/errors.h>

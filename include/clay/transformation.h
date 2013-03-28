@@ -39,6 +39,7 @@
 
 #include <osl/scop.h>
 #include <clay/array.h>
+#include <clay/list.h>
 #include <clay/options.h>
 
 int clay_split(osl_scop_p, clay_array_p, int, clay_options_p);

@@ -39,6 +39,7 @@
 #include <clay/prototype_function.h>
 #include <clay/macros.h>
 #include <clay/array.h>
+#include <clay/list.h>
 
 
 /**

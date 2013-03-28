@@ -38,7 +38,6 @@
 #define CLAY_ARRAY_H
 
 #define CLAY_ARRAY_INIT_SIZE 10
-#define CLAY_LIST_INIT_SIZE 3
 
 #include <stdio.h>
 
@@ -51,17 +50,6 @@ struct clay_array {
 typedef struct clay_array clay_array_t;
 typedef struct clay_array* clay_array_p;
 
-
-struct clay_list {
-  clay_array_p *data;
-  int size;
-  int available;
-};
-
-typedef struct clay_list clay_list_t;
-typedef struct clay_list* clay_list_p;
-
-
 clay_array_p      clay_array_malloc();
 void              clay_array_add(clay_array_p, int);
 void              clay_array_free(clay_array_p);
@@ -69,12 +57,5 @@ void              clay_array_print(FILE*, clay_array_p, int);
 clay_array_p      clay_array_clone(clay_array_p);
 void              clay_array_concat(clay_array_p, clay_array_p);
 int               clay_array_equal(clay_array_p, clay_array_p);
-
-clay_list_p       clay_list_malloc();
-void              clay_list_add(clay_list_p, clay_array_p);
-void              clay_list_free(clay_list_p);
-void              clay_list_print(FILE*, clay_list_p);
-void              clay_list_clear(clay_list_p);
-
 
 #endif

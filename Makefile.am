@@ -70,6 +70,7 @@ lib_LTLIBRARIES = libclay.la
 pkginclude_HEADERS = \
 	include/clay/clay.h \
 	include/clay/array.h \
+	include/clay/list.h \
 	include/clay/options.h \
 	include/clay/ident.h \
 	include/clay/beta.h \
@@ -96,6 +97,7 @@ libclay_la_SOURCES  = \
   source/parser.y \
   source/scanner.l \
   source/array.c \
+  source/list.c \
   source/ident.c \
   source/options.c \
   source/betatree.c \
