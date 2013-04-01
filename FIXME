@@ -1,0 +1,3 @@
+- clay read only the first scop in the chain list
+- regenerate access with inequalities
+- pip_close in candl (memleak)
