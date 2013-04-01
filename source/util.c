@@ -508,6 +508,13 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
   const int precision = access->precision;
   int i, j, k, row, val, print_plus;
 
+  // check if there are no inequ
+  for (i = 0 ; i < access->nb_rows ; i++) {
+    if (!osl_int_zero(precision, access->m[i][0]))
+      CLAY_error("I don't know how to regenerate access with inequalities");
+  }
+
+
   char *body = ebody->body->expression->string[0];
   int body_len = strlen(body);
   int start = ebody->start[index];
