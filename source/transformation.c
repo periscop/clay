@@ -1326,28 +1326,72 @@ int clay_dimcontract(osl_scop_p scop,
 
 
 /**
- * clay_dimserialize function:
- * Serialize an access (merge dimensions at depth and depth+1)
+ * clay_addarray function:
+ * Add a new referenced array in the arrays extensions.
+ * Be sure that the id is not used !
  * \param[in,out] scop
- * \param[in] beta
- * \param[in] access_ident   ident of the access array
- * \param[in] depth
- * \param[in] factor
+ * \param[in] name          string name
+ * \param[in] id            new id
  * \param[in] options
  * \return                  Status
  */
-int clay_dimserialize(osl_scop_p scop,
-                      clay_array_p beta,
-                      int access_ident,
-                      int depth,
-                      int factor,
-                      clay_options_p options) {
+int clay_addarray(osl_scop_p scop,
+                  char *name,
+                  int id,
+                  clay_options_p options) {
 
-  /* WIP */
+  osl_arrays_p arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
+  if (!arrays)
+    return CLAY_ERROR_ARRAYS_EXT_EMPTY;
 
-  /* Description
+  int i;
+  int sz = arrays->nb_names;
+  for (i = 0 ; i < sz ; i++)
+    if (arrays->id[i] == id)
+      return CLAY_ERROR_ID_EXISTS;
+
+  arrays->nb_names++;
+  CLAY_realloc(arrays->id, int*, sizeof(int) * (sz+1));
+  CLAY_realloc(arrays->names, char**, sizeof(char*) * sz+1);
+
+  arrays->id[sz] = id;
+  arrays->names[sz] = strdup(name);
+
+  return CLAY_SUCCESS;
+}
+
+
+/**
+ * clay_datacopy function:
+ * This function will generate a loop to copy all data from the array
+ * `array_id_original' to a new array `array_id_copy'. Use the function
+ * addarray to associate a new array to an id. A domain and a scattering
+ * is needed to generate the loop to copy the data. They are just a 
+ * copy from the domain/scattering of the first statement which correponds
+ * to the `beta_get_domain'. The loop is generated before or after `beta',
+ * it depends of the `insert_before' value.
+ * Note: that the variable `array_copy_name' must be declared before the
+ * #pragma scop, otherwise the compilation will fail.
+ * \param[in,out] scop
+ * \param[in] beta             the beta to insert the loop (before or after)
+ * \param[in] array_copy_name  new variable
+ * \param[in] array_id_original
+ * \param[in] beta_get_domain  domain/scattering are copied from this beta
+ * \param[in] insert_before
+ * \param[in] options
+ * \return                  Status
+ */
+/*int clay_datacopy(osl_scop_p scop,
+                  clay_array_p beta,
+                  int array_id_copy,
+                  int array_id_original,
+                  clay_array_p beta_get_domain,
+                  int insert_before,
+                  clay_options_p options) {
+
+   Description
    * 
-   */
+   
 
   if (depth <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
@@ -1356,33 +1400,8 @@ int clay_dimserialize(osl_scop_p scop,
   if (!stmt)
     return CLAY_ERROR_BETA_NOT_FOUND;
 
-  CLAY_BETA_CHECK_DEPTH(beta, depth, stmt);
+  
 
-  // core of the function
-  int aux(osl_relation_list_p access) {
-    int i;
-    osl_relation_p a = access->elt;
-
-    int row  = clay_util_relation_get_line(a, depth); // i
-    int row2 = clay_util_relation_get_line(a, depth+1); // j
-    if (row != -1 && row2 != -1) {
-
-      // i * factor
-      osl_int_set_si(a->precision, 
-                     &a->m[row][1 + a->nb_output_dims + (depth-1)],
-                     factor);
-
-      // i(params + const) * factor
-      for (i = 1 + a->nb_output_dims + a->nb_input_dims ;
-           i < a->nb_columns-1 ; i++)
-        osl_int_set_si(a->precision, 
-                       &a->m[row][i],
-                       factor);
-    }
-
-    return CLAY_SUCCESS;
-  }
-
-  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
-}
+  return CLAY_SUCCESS;
+}*/
 

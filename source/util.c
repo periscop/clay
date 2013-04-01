@@ -514,6 +514,18 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
       CLAY_error("I don't know how to regenerate access with inequalities");
   }
 
+  // check identity matrix in output dims
+  int n;
+  for (j = 0 ; j < access->nb_output_dims ; j++) {
+    n = 0;
+    for (i = 0 ; i < access->nb_rows ; i++)
+      if (!osl_int_zero(precision, access->m[i][j+1])) {
+        if (n >= 1)
+          CLAY_error("I don't know how to regenerate access with "
+                     "dependences in output dims");
+        n++;
+      }
+  }
 
   char *body = ebody->body->expression->string[0];
   int body_len = strlen(body);

@@ -61,11 +61,12 @@ void clay_options_list_functions() {
   int i;
   printf(
   "Types:\n\n"
-  "array: [n1, n2, ...]\n"
-  "       array of integer\n\n"
-  "bool:  1 | 0 | true | false\n\n"
-  "list:  {n1, n2, ... | n3, n4, ... | ...}\n"
-  "       list of arrays\n\n"
+  "array:  [n1, n2, ...]\n"
+  "        array of integer\n\n"
+  "bool:   1 | 0 | true | false\n\n"
+  "string: \"blah\" (a string is used to identify a variable)\n\n"
+  "list:   {n1, n2, ... | n3, n4, ... | ...}\n"
+  "        list of arrays\n\n"
  
   "ident: array:    Refers to a beta vector, loop or statement\n\n"
   "       Sn:       where n >= 0\n\n"

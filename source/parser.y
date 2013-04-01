@@ -205,6 +205,17 @@ args:
       clay_betatree_free(tree);
     }
 
+  | // string (can contains only variable name)
+    '"' IDENT_NAME '"'
+    {
+      clay_prototype_function_args_add(clay_params, $2, STRING_T);
+    }
+  |
+    args ',' '"' IDENT_NAME '"'
+    {
+      clay_prototype_function_args_add(clay_params, $4, STRING_T);
+    }
+
   | // a list
     args ',' '{' list_of_array '}' 
   | 
@@ -488,14 +499,13 @@ void clay_parser_exec_function(char *name) {
                                        *((int*)clay_params->args[2]),
                                        clay_parser_options);
       break;
-/*  WIP   case CLAY_FUNCTION_DIMSERIALIZE:
-      status_result = clay_dimserialize(clay_parser_scop,
-                                        clay_params->args[0],
-                                        *((int*)clay_params->args[1]),
-                                        *((int*)clay_params->args[2]),
-                                        *((int*)clay_params->args[3]),
-                                        clay_parser_options);
-      break;*/
+    case CLAY_FUNCTION_ADDARRAY:
+      status_result = clay_addarray(clay_parser_scop,
+                                    (char*) clay_params->args[0],
+                                    *((int*)clay_params->args[1]),
+                                    clay_parser_options);
+      break;
+
     default:
       fprintf(stderr, "[Clay] Error: can't call the function %s (%s).\n", 
               functions[i].name, __func__);
@@ -589,6 +599,13 @@ void clay_parser_print_error(int status_result) {
       break;
     case CLAY_ERROR_CANT_PRIVATIZE:
       fprintf(stderr,"[Clay] Error: line %d, privatization failed\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_ARRAYS_EXT_EMPTY:
+      fprintf(stderr,"[Clay] Error: arrays extensions is empty\n");
+      break;
+    case CLAY_ERROR_ID_EXISTS:
+      fprintf(stderr,"[Clay] Error: line %d, the id already exists\n",
               clay_yylineno);
       break;
     default:

@@ -59,5 +59,7 @@
 #define CLAY_ERROR_REORDER_ARRAY_SIZE        20
 #define CLAY_ERROR_REORDER_OVERFLOW_VALUE    21
 #define CLAY_ERROR_CANT_PRIVATIZE            22
+#define CLAY_ERROR_ARRAYS_EXT_EMPTY          23
+#define CLAY_ERROR_ID_EXISTS                 24
 
 #endif

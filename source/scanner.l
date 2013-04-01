@@ -90,7 +90,6 @@ false              {
                      return INTEGER;
                    }
 
-
 S[0-9]+            {
                      clay_yylval.ival = atoi(clay_yytext+1);
                      return IDENT_STMT;
