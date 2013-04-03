@@ -36,7 +36,7 @@
 
 #include <stdlib.h>
 #include <clay/functions.h>
-#include <clay/prototype_function.h>
+#include <clay/data.h>
 
 
 // Authorized functions in Clay
@@ -59,100 +59,111 @@ int clay_function_dimreorder_type[]   = {ARRAY_T, INTEGER_T, ARRAY_T};
 int clay_function_dimprivatize_type[] = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_dimcontract_type[]  = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_addarray_type[]     = {STRING_T, INTEGER_T};
+int clay_function_getbetaloop_type[]  = {INTEGER_T};
+int clay_function_print_type[]        = {MULTI_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
-const clay_prototype_function_t functions[CLAY_FUNCTIONS_TOTAL] = 
+const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] = 
 {
   {
     "split",      
-    "split(ident, uint depth)",
-    NULL, clay_function_split_type, 2, 0
+    "split(array beta, uint depth)",
+    VOID_T, clay_function_split_type, 2
   },
   {
     "reorder",
-    "reorder(ident:loop, array neworder)",
-    NULL, clay_function_reorder_type, 2, 0
+    "reorder(array beta_loop, array neworder)",
+    VOID_T, clay_function_reorder_type, 2
   },
   {
     "interchange", 
-    "interchange(ident:inner, uint depth_1, uint depth_2, bool pretty)",
-    NULL, clay_function_interchange_type, 4, 0
+    "interchange(array beta_inner, uint depth_1, uint depth_2, bool pretty)",
+    VOID_T, clay_function_interchange_type, 4
   },
   {
     "reverse",
     "reverse(ident, uint depth)",
-    NULL, clay_function_reverse_type, 2, 0
+    VOID_T, clay_function_reverse_type, 2
   },
   {
     "fuse",
-    "fuse(ident:loop)",
-    NULL, clay_function_fuse_type, 1, 0
+    "fuse(array beta_loop)",
+    VOID_T, clay_function_fuse_type, 1
   },
   {
     "skew",      
-    "skew(ident, uint depth, int coeff)",
-    NULL, clay_function_skew_type, 3, 0
+    "skew(array beta, uint depth, int coeff)",
+    VOID_T, clay_function_skew_type, 3
   },
   {
     "iss",    
-    "iss(ident:loop, list inequation { ((output,) params,)) const }",
-    NULL, clay_function_iss_type, 2, 0
+    "iss(array beta_loop, list inequation { ((output,) params,)) const }",
+    VOID_T, clay_function_iss_type, 2
   },
   {
     "stripmine",
-    "stripmine(ident, uint depth, uint size, bool pretty)",
-    NULL, clay_function_stripmine_type, 4, 0
+    "stripmine(array beta, uint depth, uint size, bool pretty)",
+    VOID_T, clay_function_stripmine_type, 4
   },
   {
     "unroll",  
-    "unroll(ident:loop, uint factor)",
-    NULL, clay_function_unroll_type, 2, 0
+    "unroll(array beta_loop, uint factor)",
+    VOID_T, clay_function_unroll_type, 2
   },
   {
     "unroll_noepilog",
-    "unroll_noepilog(ident:loop, uint factor)",
-    NULL, clay_function_unroll_type, 2, 0
+    "unroll_noepilog(array beta_loop, uint factor)",
+    VOID_T, clay_function_unroll_type, 2
   },
   {
     "tile",    
-    "tile(ident, uint depth, uint depth_outer, uint size, bool pretty)",
-    NULL, clay_function_tile_type, 5, 0
+    "tile(array beta, uint depth, uint depth_outer, uint size, bool pretty)",
+    VOID_T, clay_function_tile_type, 5
   },
   {
     "shift",   
-    "shift(ident, uint depth, list vector { ((output,) (params,)) const })",
-    NULL, clay_function_shift_type, 3, 0
+    "shift(array beta, uint depth, list vector { ((output,) (params,)) const })",
+    VOID_T, clay_function_shift_type, 3
   },
   {
     "peel",   
-    "peel(ident:loop,  list inequation { (params,) const })",
-    NULL, clay_function_peel_type, 2, 0
+    "peel(array beta_loop,  list inequation { (params,) const })",
+    VOID_T, clay_function_peel_type, 2
   },
   {
     "context", 
     "context(array vector)",
-    NULL, clay_function_context_type, 1, 0
+    VOID_T, clay_function_context_type, 1
   },
   {
     "dimreorder",
-    "dimreorder(ident, uint #access, array neworder)",
-    NULL, clay_function_dimreorder_type, 3, 0
+    "dimreorder(array beta, uint #access, array neworder)",
+    VOID_T, clay_function_dimreorder_type, 3
   },
   {
     "dimprivatize",
-    "dimprivatize(ident, uint #access, uint depth)",
-    NULL, clay_function_dimprivatize_type, 3, 0
+    "dimprivatize(array beta, uint #access, uint depth)",
+    VOID_T, clay_function_dimprivatize_type, 3
   },
   {
     "dimcontract",
-    "dimcontract(ident, uint #access, uint depth)",
-    NULL, clay_function_dimcontract_type, 3, 0
+    "dimcontract(array beta, uint #access, uint depth)",
+    VOID_T, clay_function_dimcontract_type, 3
   },
   {
     "addarray",
     "addarray(string name, uint id)",
-    NULL, clay_function_addarray_type, 2, 0
+    VOID_T, clay_function_addarray_type, 2
+  },
+  {
+    "get_beta_loop",
+    "array get_beta_loop(uint n)",
+    ARRAY_T, clay_function_getbetaloop_type, 1
+  },
+  {
+    "print",
+    "void print(multi)",
+    VOID_T, clay_function_print_type, 1
   }
-
 };

@@ -2,7 +2,7 @@
    /*--------------------------------------------------------------------+
     |                              Clay                                  |
     |--------------------------------------------------------------------|
-    |                             errors.h                               |
+    |                             data.h                                 |
     |--------------------------------------------------------------------|
     |                    First version: 03/04/2012                       |
     +--------------------------------------------------------------------+
@@ -32,36 +32,38 @@
  | Clay, the Chunky Loop Alteration wizardrY                                |
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
- 
-#ifndef CLAY_ERRORS_H
-#define CLAY_ERRORS_H
 
-#define CLAY_SUCCESS                         0
-#define CLAY_ERROR_BETA_NOT_FOUND            1
-#define CLAY_ERROR_NOT_BETA_LOOP             2
-//#define CLAY_ERROR_NOT_BETA_STMT             3 // NOT USED
-#define CLAY_ERROR_REORDER_ARRAY_TOO_SMALL   4
-#define CLAY_ERROR_DEPTH_OVERFLOW            5
-#define CLAY_ERROR_WRONG_COEFF               6
-#define CLAY_ERROR_BETA_EMPTY                7
-#define CLAY_ERROR_BETA_NOT_IN_A_LOOP        8
-#define CLAY_ERROR_WRONG_BLOCK_SIZE          9
-#define CLAY_ERROR_WRONG_FACTOR              10
-#define CLAY_ERROR_UNKNOWN_FUNCTION          11
-#define CLAY_ERROR_NB_ARGS                   12
-#define CLAY_ERROR_INVALID_TYPE              13
-#define CLAY_ERROR_DEPTH_OUTER               14
-#define CLAY_ERROR_VECTOR_EMPTY              15
-#define CLAY_ERROR_IDENT_STMT_NOT_FOUND      16
-#define CLAY_ERROR_IDENT_NAME_NOT_FOUND      17
-#define CLAY_ERROR_INEQU                     18
-#define CLAY_ERROR_VECTOR                    19
-#define CLAY_ERROR_REORDER_ARRAY_SIZE        20
-#define CLAY_ERROR_REORDER_OVERFLOW_VALUE    21
-#define CLAY_ERROR_CANT_PRIVATIZE            22
-#define CLAY_ERROR_ARRAYS_EXT_EMPTY          23
-#define CLAY_ERROR_ID_EXISTS                 24
-#define CLAY_ERROR_UNK_VAR                   25
-#define CLAY_ERROR_VAR_NULL                  26
 
+#ifndef CLAY_DATA_H
+#define CLAY_DATA_H
+
+#include <stdio.h>
+
+#define INTEGER_T             0
+#define VOID_T                1
+#define ARRAY_T               2
+#define STRING_T              3
+#define LIST_T                4
+#define REF_T                 5
+#define UNDEF_T               6
+#define MULTI_T               7
+
+struct clay_data {
+  int type;
+  union {
+    int integer;
+    void *obj;
+  } data;
+};
+
+typedef struct    clay_data  clay_data_t;
+typedef struct    clay_data* clay_data_p;
+
+clay_data_p  clay_data_malloc(int);
+void         clay_data_free(clay_data_p);
+void         clay_data_clear(clay_data_p);
+void         clay_data_print(FILE*, clay_data_p);
+clay_data_p  clay_data_clone(clay_data_p);
+  
 #endif
+

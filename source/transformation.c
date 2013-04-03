@@ -1389,9 +1389,9 @@ int clay_addarray(osl_scop_p scop,
                   int insert_before,
                   clay_options_p options) {
 
-   Description
+  * Description
    * 
-   
+   *
 
   if (depth <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
@@ -1403,5 +1403,5 @@ int clay_addarray(osl_scop_p scop,
   
 
   return CLAY_SUCCESS;
-}*/
-
+}
+*/

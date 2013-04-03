@@ -2,7 +2,7 @@
    /*--------------------------------------------------------------------+
     |                              Clay                                  |
     |--------------------------------------------------------------------|
-    |                             errors.h                               |
+    |                             list.h                                 |
     |--------------------------------------------------------------------|
     |                    First version: 03/04/2012                       |
     +--------------------------------------------------------------------+
@@ -33,35 +33,29 @@
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
  
-#ifndef CLAY_ERRORS_H
-#define CLAY_ERRORS_H
 
-#define CLAY_SUCCESS                         0
-#define CLAY_ERROR_BETA_NOT_FOUND            1
-#define CLAY_ERROR_NOT_BETA_LOOP             2
-//#define CLAY_ERROR_NOT_BETA_STMT             3 // NOT USED
-#define CLAY_ERROR_REORDER_ARRAY_TOO_SMALL   4
-#define CLAY_ERROR_DEPTH_OVERFLOW            5
-#define CLAY_ERROR_WRONG_COEFF               6
-#define CLAY_ERROR_BETA_EMPTY                7
-#define CLAY_ERROR_BETA_NOT_IN_A_LOOP        8
-#define CLAY_ERROR_WRONG_BLOCK_SIZE          9
-#define CLAY_ERROR_WRONG_FACTOR              10
-#define CLAY_ERROR_UNKNOWN_FUNCTION          11
-#define CLAY_ERROR_NB_ARGS                   12
-#define CLAY_ERROR_INVALID_TYPE              13
-#define CLAY_ERROR_DEPTH_OUTER               14
-#define CLAY_ERROR_VECTOR_EMPTY              15
-#define CLAY_ERROR_IDENT_STMT_NOT_FOUND      16
-#define CLAY_ERROR_IDENT_NAME_NOT_FOUND      17
-#define CLAY_ERROR_INEQU                     18
-#define CLAY_ERROR_VECTOR                    19
-#define CLAY_ERROR_REORDER_ARRAY_SIZE        20
-#define CLAY_ERROR_REORDER_OVERFLOW_VALUE    21
-#define CLAY_ERROR_CANT_PRIVATIZE            22
-#define CLAY_ERROR_ARRAYS_EXT_EMPTY          23
-#define CLAY_ERROR_ID_EXISTS                 24
-#define CLAY_ERROR_UNK_VAR                   25
-#define CLAY_ERROR_VAR_NULL                  26
+#ifndef CLAY_LIST_H
+#define CLAY_LIST_H
+
+#define CLAY_LIST_INIT_SIZE 3
+
+#include <stdio.h>
+#include <clay/array.h>
+
+struct clay_list {
+  clay_array_p *data;
+  int size;
+  int available;
+};
+
+typedef struct clay_list clay_list_t;
+typedef struct clay_list* clay_list_p;
+
+clay_list_p       clay_list_malloc();
+void              clay_list_add(clay_list_p, clay_array_p);
+void              clay_list_free(clay_list_p);
+void              clay_list_print(FILE*, clay_list_p);
+void              clay_list_clear(clay_list_p);
+clay_list_p       clay_list_clone(clay_list_p);
 
 #endif

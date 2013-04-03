@@ -53,7 +53,7 @@ for name in $FILES; do
   fi
 
   if [ $n -ne 0 ]; then
-    echo "\n\033[31m[ FAIL ] \c"
+    echo -e "\n\033[31m[ FAIL ] \c"
     cat /tmp/clay_scop_stderr
     echo -e "\033[0m"
   else

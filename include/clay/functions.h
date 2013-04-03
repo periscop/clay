@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL           18
+  #define CLAY_FUNCTIONS_TOTAL           20
   
   #define CLAY_FUNCTION_SPLIT             0
   #define CLAY_FUNCTION_REORDER           1
@@ -56,5 +56,15 @@
   #define CLAY_FUNCTION_DIMPRIVATIZE     15
   #define CLAY_FUNCTION_DIMCONTRACT      16
   #define CLAY_FUNCTION_ADDARRAY         17
+  #define CLAY_FUNCTION_GETBETALOOP      18
+  #define CLAY_FUNCTION_PRINT            19
+
+typedef struct {
+  char *name;
+  char *string;
+  int ret;
+  int *args;
+  int argc;
+}clay_prototype_t;
   
 #endif

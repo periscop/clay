@@ -79,7 +79,8 @@ pkginclude_HEADERS = \
 	include/clay/util.h \
 	include/clay/errors.h \
 	include/clay/functions.h \
-  include/clay/prototype_function.h \
+  include/clay/data.h \
+  include/clay/stack.h \
 	include/clay/transformation.h
 
 DEFAULT_INCLUDES = -I.
@@ -104,7 +105,8 @@ libclay_la_SOURCES  = \
   source/util.c \
   source/beta.c \
   source/functions.c \
-  source/prototype_function.c \
+  source/data.c \
+  source/stack.c \
   source/transformation.c
 
 #############################################################################

@@ -90,50 +90,17 @@ false              {
                      return INTEGER;
                    }
 
-S[0-9]+            {
-                     clay_yylval.ival = atoi(clay_yytext+1);
-                     return IDENT_STMT;
-                   }
-
-L[0-9]+            {
-                     clay_yylval.ival = atoi(clay_yytext+1);
-                     return IDENT_LOOP;
-                   }
-
-
 [a-zA-Z_][a-zA-Z0-9_]* {
                      clay_yylval.sval = strdup(clay_yytext);
-                     return IDENT_NAME;
+                     return IDENT;
+                   }
+
+[a-zA-Z_][a-zA-Z0-9_]*\( {
+                     clay_yylval.sval = strdup(clay_yytext);
+                     return IDENT_FUNCTION;
                    }
 
 {SEPARATOR}        { ; }
-
-\[                 {
-                     clay_array_p a = clay_array_malloc();
-                     clay_prototype_function_args_add(clay_params, a, ARRAY_T);
-                     return '[';
-                   }
-
-\{                 {
-                     is_in_a_list = 1;
-                     clay_list_p l = clay_list_malloc();
-                     clay_list_add(l, clay_array_malloc());
-                     clay_prototype_function_args_add(clay_params, l, LIST_T);
-                     return '{';
-                   }
-
-\|                 {
-                     if (is_in_a_list) {
-                       clay_list_p l = clay_params->args[clay_params->argc-1];
-                       clay_list_add(l, clay_array_malloc());
-                     }
-                     return '|';
-                   }
-
-\}                 {
-                     is_in_a_list = 0;
-                     return '}'; 
-                   }
 
 \n                 { }
 .                  { return clay_yytext[0]; }

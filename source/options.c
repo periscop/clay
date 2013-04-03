@@ -38,10 +38,9 @@
 #include <string.h>
 #include <clay/macros.h>
 #include <clay/options.h>
-#include <clay/prototype_function.h>
 #include <clay/functions.h>
 
-extern const clay_prototype_function_t functions[];
+extern const clay_prototype_t functions[];
 
 
 /**
@@ -68,31 +67,23 @@ void clay_options_list_functions() {
   "list:   {n1, n2, ... | n3, n4, ... | ...}\n"
   "        list of arrays\n\n"
  
-  "ident: array:    Refers to a beta vector, loop or statement\n\n"
-  "       Sn:       where n >= 0\n\n"
-  "                 Refers to the `n'th statement\n\n"
-  "       Ln:       where n >= 0\n"
-  "                 Refers to the `n'th loop\n"
-  "                 Special case : L0 <=> []\n\n"
-  "       variable: Original iterator name of a loop (without quotes)\n"
-  "                 The variable will be converted to a beta vector\n"
-  "                 example: fuse(i)\n"
-  "                 (experimental)\n\n"
-  
-  "ident:loop    The ident corresponds to a loop\n"
-  "ident:inner   In the interchange, it corresponds to the inner loop\n"
-  "              (or statement)\n\n"
+  "beta_loop    The ident corresponds to a loop\n"
+  "beta_inner   In the interchange, it corresponds to the inner loop\n"
+  "             (or statement)\n\n"
 
   "Available functions:\n\n");
   
   for (i = 0 ; i < CLAY_FUNCTIONS_TOTAL ; i++)
-    printf("  %s\n", functions[i].prototype);
+    printf("  %s\n", functions[i].string);
 
   printf("\n"
-         "You don't necessarily need all the output dims, paramaters or the constant.\n"
-         "For example, if you want to set output dims, but you don't want params, you\n"
-         "can do this : {0,1 | | }, where [0,1] is for the output dims\n"
-         "You can also just put the first values.\n\n"
+         "Notes:\n\n"
+         "For the function get_beta_loop, the value n could be 0. In this\n"
+         "case the beta will be []\n\n"
+         "You don't necessarily need all the output dims, paramaters or the\n"
+         "constant. For example, if you want to set output dims, but you don't\n"
+         "want params, you can do this : {0,1 | | }, where [0,1] is for the\n"
+         "output dims. You can also just put the first values.\n\n"
          "Warning: in the output part, don't put the transition columns\n"
          "         example: if the output dims are : {0 i 0 j 0}, just do {Ni, Nj}\n");
 }

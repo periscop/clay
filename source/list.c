@@ -2,7 +2,7 @@
    /*--------------------------------------------------------------------+
     |                              Clay                                  |
     |--------------------------------------------------------------------|
-    |                             errors.h                               |
+    |                             list.c                                 |
     |--------------------------------------------------------------------|
     |                    First version: 03/04/2012                       |
     +--------------------------------------------------------------------+
@@ -32,36 +32,82 @@
  | Clay, the Chunky Loop Alteration wizardrY                                |
  | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
  +--------------------------------------------------------------------------*/
- 
-#ifndef CLAY_ERRORS_H
-#define CLAY_ERRORS_H
 
-#define CLAY_SUCCESS                         0
-#define CLAY_ERROR_BETA_NOT_FOUND            1
-#define CLAY_ERROR_NOT_BETA_LOOP             2
-//#define CLAY_ERROR_NOT_BETA_STMT             3 // NOT USED
-#define CLAY_ERROR_REORDER_ARRAY_TOO_SMALL   4
-#define CLAY_ERROR_DEPTH_OVERFLOW            5
-#define CLAY_ERROR_WRONG_COEFF               6
-#define CLAY_ERROR_BETA_EMPTY                7
-#define CLAY_ERROR_BETA_NOT_IN_A_LOOP        8
-#define CLAY_ERROR_WRONG_BLOCK_SIZE          9
-#define CLAY_ERROR_WRONG_FACTOR              10
-#define CLAY_ERROR_UNKNOWN_FUNCTION          11
-#define CLAY_ERROR_NB_ARGS                   12
-#define CLAY_ERROR_INVALID_TYPE              13
-#define CLAY_ERROR_DEPTH_OUTER               14
-#define CLAY_ERROR_VECTOR_EMPTY              15
-#define CLAY_ERROR_IDENT_STMT_NOT_FOUND      16
-#define CLAY_ERROR_IDENT_NAME_NOT_FOUND      17
-#define CLAY_ERROR_INEQU                     18
-#define CLAY_ERROR_VECTOR                    19
-#define CLAY_ERROR_REORDER_ARRAY_SIZE        20
-#define CLAY_ERROR_REORDER_OVERFLOW_VALUE    21
-#define CLAY_ERROR_CANT_PRIVATIZE            22
-#define CLAY_ERROR_ARRAYS_EXT_EMPTY          23
-#define CLAY_ERROR_ID_EXISTS                 24
-#define CLAY_ERROR_UNK_VAR                   25
-#define CLAY_ERROR_VAR_NULL                  26
 
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <clay/macros.h>
+#include <clay/list.h>
+
+
+clay_list_p clay_list_malloc() {
+  clay_list_p l;
+  CLAY_malloc(l, clay_list_p, sizeof(clay_list_t));
+  CLAY_malloc(l->data, clay_array_p*, sizeof(clay_array_p) * CLAY_LIST_INIT_SIZE);
+  l->size = 0;
+  l->available = CLAY_ARRAY_INIT_SIZE;
+  return l;
+}
+
+
+void clay_list_add(clay_list_p l, clay_array_p a) {
+  if (l->size >= l->available) {
+    l->available *= 2;
+    CLAY_realloc(l->data, clay_array_p*, sizeof(clay_array_p) * l->available);
+  }
+  l->data[l->size] = a;
+  (l->size)++;
+}
+
+
+void clay_list_free(clay_list_p l) {
+  if (l) {
+    int i;
+    for (i = 0 ; i < l->size ; i++)
+      clay_array_free(l->data[i]);
+    free(l->data);
+    free(l);
+  }
+}
+
+
+void clay_list_print(FILE *out, clay_list_p l) {
+  if (l == NULL) {
+    fprintf(out, "NULL\n");
+    return;
+  }
+  int i;
+  fprintf(out, "{");
+  for (i = 0 ; i < l->size-1 ; i++) {
+    clay_array_print(out, l->data[i], 0);
+    fprintf(out, ",");
+  }
+  if(l->size > 0)
+    clay_array_print(out, l->data[i], 0);
+  fprintf(out, "}\n");
+}
+
+
+void clay_list_clear(clay_list_p l) {
+  int i;
+  for (i = 0 ; i < l->size ; i++) {
+    l->data[i]->size = 0;
+  }
+}
+
+
+clay_list_p clay_list_clone(clay_list_p l) {
+  clay_list_p newl = clay_list_malloc();
+  clay_array_p tmp, orig;
+  int i, j;
+  for (i = 0 ; i < l->size ; i++) {
+    tmp = clay_array_malloc();
+    orig = l->data[i];
+
+    for (j = 0 ; j < orig->size ; j++)
+      clay_array_add(tmp, orig->data[j]);
+
+    clay_list_add(newl, tmp);
+  }
+  return newl;
+}

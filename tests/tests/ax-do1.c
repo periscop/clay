@@ -8,7 +8,7 @@ int main()
   /* ax-do kernel */
 #pragma scop
 /* Clay
-split(S0, 1);
+split([0,0], 1);
 tile([1, 0], 2, 1, 32, 1);
 fuse([0]);
 */
