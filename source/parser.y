@@ -438,6 +438,7 @@ void clay_parser_exec_function(char *name) {
   int status_result = 0;
   clay_betatree_p tree;
   int integer;
+  void *data;
   clay_data_p result = NULL;
 
   switch (i) {
@@ -571,6 +572,23 @@ void clay_parser_exec_function(char *name) {
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
       result = &clay_parser_current;
       clay_betatree_free(tree);
+      break;
+    case CLAY_FUNCTION_GETBETASTMT:
+      integer = clay_parser_stack.stack[top].data.integer;
+      clay_parser_current.type = ARRAY_T;
+      clay_parser_current.data.obj = clay_ident_find_stmt(clay_parser_scop, integer);
+      if (!clay_parser_current.data.obj)
+        clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+      result = &clay_parser_current;
+      break;
+    case CLAY_FUNCTION_GETBETALOOPBYNAME:
+      data = clay_parser_stack.stack[top].data.obj;
+      clay_parser_current.type = ARRAY_T;
+      clay_parser_current.data.obj = 
+                clay_ident_find_iterator(clay_parser_scop, (char*) data);
+      if (!clay_parser_current.data.obj)
+        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+      result = &clay_parser_current;
       break;
     case CLAY_FUNCTION_PRINT:
       clay_data_print(stderr, &clay_parser_stack.stack[top]);

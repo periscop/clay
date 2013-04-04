@@ -60,6 +60,8 @@ int clay_function_dimprivatize_type[] = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_dimcontract_type[]  = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_addarray_type[]     = {STRING_T, INTEGER_T};
 int clay_function_getbetaloop_type[]  = {INTEGER_T};
+int clay_function_getbetastmt_type[]  = {INTEGER_T};
+int clay_function_getbetaloopbyname_type[]  = {STRING_T};
 int clay_function_print_type[]        = {MULTI_T};
 
 
@@ -158,8 +160,18 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "get_beta_loop",
-    "array get_beta_loop(uint n)",
+    "array get_beta_loop(uint n >= 0)",
     ARRAY_T, clay_function_getbetaloop_type, 1
+  },
+  {
+    "get_beta_stmt",
+    "array get_beta_stmt(uint n >= 0)",
+    ARRAY_T, clay_function_getbetastmt_type, 1
+  },
+  {
+    "get_beta_loop_by_name",
+    "array get_beta_loop_by_name(string iterator)",
+    ARRAY_T, clay_function_getbetaloopbyname_type, 1
   },
   {
     "print",
