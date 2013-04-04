@@ -79,11 +79,12 @@ void      clay_parser_file(osl_scop_p, FILE*, clay_options_p);
 
 
 int main(int argc, char * argv[]) {
+
   osl_scop_p scop = NULL;
   osl_generic_p x, last;
   osl_clay_p clay_tag;
   clay_options_p options;
-  
+
   // Read command line parameters
   options = clay_options_read(argc, argv);
   if (options->print_infos) {

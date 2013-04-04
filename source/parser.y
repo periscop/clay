@@ -227,12 +227,12 @@ expr:
       clay_list_p l = clay_list_malloc();
       clay_parser_current.data.obj = l;
       clay_list_add(l, clay_array_malloc());
-      clay_stack_push(&clay_parser_stack, &clay_parser_current);
     }
     list_of_array
     '}'
     {
       is_in_a_list = 0;
+      clay_stack_push(&clay_parser_stack, &clay_parser_current);
     }
 
   | 
@@ -240,10 +240,12 @@ expr:
     {
       clay_parser_current.type = ARRAY_T;
       clay_parser_current.data.obj = clay_array_malloc();
-      clay_stack_push(&clay_parser_stack, &clay_parser_current);
     }
     list_of_integer
     ']'
+    {
+      clay_stack_push(&clay_parser_stack, &clay_parser_current);
+    }
   ;
 
 
@@ -563,37 +565,46 @@ void clay_parser_exec_function(char *name) {
                                     clay_parser_stack.stack[top].data.integer,
                                     clay_parser_options);
       break;
+
     case CLAY_FUNCTION_GETBETALOOP:
       tree = clay_betatree_create(clay_parser_scop);
       integer = clay_parser_stack.stack[top].data.integer;
       clay_parser_current.type = ARRAY_T;
       clay_parser_current.data.obj = clay_ident_find_loop(tree, integer);
+
       if (!clay_parser_current.data.obj)
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+
       result = &clay_parser_current;
       clay_betatree_free(tree);
       break;
+
     case CLAY_FUNCTION_GETBETASTMT:
       integer = clay_parser_stack.stack[top].data.integer;
       clay_parser_current.type = ARRAY_T;
       clay_parser_current.data.obj = clay_ident_find_stmt(clay_parser_scop, integer);
+
       if (!clay_parser_current.data.obj)
         clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+
       result = &clay_parser_current;
       break;
+
     case CLAY_FUNCTION_GETBETALOOPBYNAME:
       data = clay_parser_stack.stack[top].data.obj;
       clay_parser_current.type = ARRAY_T;
       clay_parser_current.data.obj = 
                 clay_ident_find_iterator(clay_parser_scop, (char*) data);
+
       if (!clay_parser_current.data.obj)
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+
       result = &clay_parser_current;
       break;
+
     case CLAY_FUNCTION_PRINT:
       clay_data_print(stderr, &clay_parser_stack.stack[top]);
       break;
-
 
     default:
       fprintf(stderr, "[Clay] Error: can't call the function %s (%s).\n", 
@@ -606,7 +617,6 @@ void clay_parser_exec_function(char *name) {
   for (i = 0 ; i < unref->size ; i++)
     clay_parser_stack.stack[unref->data[i]].type = UNDEF_T;
   clay_array_free(unref);
-
 
   // clear args on the stack
   for (i = 0 ; i < nb_args ; i++)

@@ -8,8 +8,8 @@ int main()
   /* ax-do kernel */
 #pragma scop
 /* Clay
-split([0,1], 1);
-stripmine(j, 2, 32, 1);
+split([0,0], 1);
+stripmine([1,0], 2, 32, 1);
 */
   for (i1=1;i1<=n;i1++) {                 
     c[i1] = 0 ;                       

@@ -45,7 +45,7 @@ clay_list_p clay_list_malloc() {
   CLAY_malloc(l, clay_list_p, sizeof(clay_list_t));
   CLAY_malloc(l->data, clay_array_p*, sizeof(clay_array_p) * CLAY_LIST_INIT_SIZE);
   l->size = 0;
-  l->available = CLAY_ARRAY_INIT_SIZE;
+  l->available = CLAY_LIST_INIT_SIZE;
   return l;
 }
 
@@ -55,6 +55,7 @@ void clay_list_add(clay_list_p l, clay_array_p a) {
     l->available *= 2;
     CLAY_realloc(l->data, clay_array_p*, sizeof(clay_array_p) * l->available);
   }
+
   l->data[l->size] = a;
   (l->size)++;
 }

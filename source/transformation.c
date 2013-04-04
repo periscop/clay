@@ -1087,7 +1087,7 @@ int clay_peel(osl_scop_p scop,
   // index-set spliting
   ret = clay_iss(scop, beta_loop, new_peeling, &beta_max, options);
 
-  // we don't free ALL with clay_list_free, because there iare arrays in
+  // we don't free ALL with clay_list_free, because there are arrays in
   // common with `peeling'
   clay_array_free(arr_dims);
   if (peeling->size == 1)
