@@ -63,5 +63,6 @@
 #define CLAY_ERROR_ID_EXISTS                 24
 #define CLAY_ERROR_UNK_VAR                   25
 #define CLAY_ERROR_VAR_NULL                  26
+#define CLAY_ERROR_CANT_CALL_SUBFUNC         27
 
 #endif

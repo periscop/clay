@@ -87,6 +87,10 @@
   // Current nb args of a clay function
   int nb_args = 0;
 
+  // Function call level, for now we can't do this f(g())
+  // we have to use a temp variable
+  int level = 0;
+
   // Authorized functions in Clay (defined in functions.c)
   extern const clay_prototype_t functions[];
 
@@ -152,11 +156,14 @@ line:
 
       clay_stack_clear(&clay_parser_stack);
       free($1);
+
+      level = 0;
     }
 
   | expr ';'
     {
       clay_stack_clear(&clay_parser_stack);
+      level = 0;
     }
   ;
 
@@ -164,8 +171,12 @@ expr:
   |
     IDENT_FUNCTION 
     {
+      if (level >= 1)
+        clay_parser_print_error(CLAY_ERROR_CANT_CALL_SUBFUNC);
+
       $1[strlen($1)-1] = '\0'; // remove the '('
       nb_args = 0;
+      level++;
     }
     args ')'
     {
@@ -686,6 +697,12 @@ void clay_parser_print_error(int status_result) {
       break;
     case CLAY_ERROR_VAR_NULL:
       fprintf(stderr,"[Clay] Error: line %d, the variable was not defined\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_CANT_CALL_SUBFUNC:
+      fprintf(stderr,"[Clay] Error: line %d, sorry you can't at the moment call\n"
+                     "       a function in an other function. Please use a temp\n"
+                     "       variable.\n",
               clay_yylineno);
       break;
     default:
