@@ -38,6 +38,7 @@
 #include <string.h>
 
 #include <osl/scop.h>
+#include <osl/extensions/arrays.h>
 
 #include <clay/macros.h>
 #include <clay/array.h>
@@ -150,6 +151,20 @@ clay_array_p clay_ident_find_loop(clay_betatree_p tree, int ident) {
   free(count);
   
   return beta;
+}
+
+
+int clay_ident_find_access(osl_scop_p scop, char *string) {
+  int i;
+  osl_arrays_p arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
+  if (!arrays)
+    return -1;
+
+  for (i = 0 ; i < arrays->nb_names ; i++)
+    if (strcmp(string, arrays->names[i]) == 0)
+      return arrays->id[i];
+
+  return -1;
 }
 
 

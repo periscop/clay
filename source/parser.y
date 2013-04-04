@@ -91,6 +91,11 @@
   // we have to use a temp variable
   int level = 0;
 
+  // Save the index in the stack on which data are unref
+  // it's use to get the data of variables
+  // when the function is finish the data will not to be to freed
+  clay_array_p clay_parser_unref;
+
   // Authorized functions in Clay (defined in functions.c)
   extern const clay_prototype_t functions[];
 
@@ -326,6 +331,7 @@ void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
   clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
   
+  clay_parser_unref = clay_array_malloc();
   clay_stack_init(&clay_parser_stack);
   is_in_a_list = 0;
   clay_yyin = input;
@@ -335,6 +341,7 @@ void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
   // Quit
   clay_scanner_free();
   clay_parser_free_vars();
+  clay_array_free(clay_parser_unref);
 }
 
 
@@ -348,6 +355,7 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
   clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
   
+  clay_parser_unref = clay_array_malloc();
   clay_stack_init(&clay_parser_stack);
   is_in_a_list = 0;
   clay_yy_scan_string(input);
@@ -356,6 +364,7 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
   // Quit
   clay_scanner_free();
   clay_parser_free_vars();
+  clay_array_free(clay_parser_unref);
 }
 
 
@@ -369,10 +378,7 @@ void clay_parser_exec_function(char *name) {
   int top = clay_parser_stack.sp;
   clay_data_p tmp;
 
-  // save the index in the stack on which data are unref
-  // it's use to get the data of variables
-  // when the function is finish we don't have to free the variable
-  clay_array_p unref = clay_array_malloc();
+
   
   // search the function name
   i = 0;
@@ -421,7 +427,7 @@ void clay_parser_exec_function(char *name) {
         tmp = (clay_data_p) clay_parser_stack.stack[k].data.obj;
         clay_parser_stack.stack[k].type = tmp->type;
         clay_parser_stack.stack[k].data = tmp->data;
-        clay_array_add(unref, k);
+        clay_array_add(clay_parser_unref, k);
       }
 
       if (clay_parser_stack.stack[k].type != functions[i].args[j]) {
@@ -602,6 +608,18 @@ void clay_parser_exec_function(char *name) {
       result = &clay_parser_current;
       break;
 
+    case CLAY_FUNCTION_GETACCESS:
+      data = clay_parser_stack.stack[top].data.obj;
+      clay_parser_current.type = INTEGER_T;
+      clay_parser_current.data.integer =
+               clay_ident_find_access(clay_parser_scop, (char*) data);
+
+      if (clay_parser_current.data.integer == -1)
+        clay_parser_print_error(CLAY_ERROR_ACCESS_NOT_FOUND);
+
+      result = &clay_parser_current;
+      break;
+
     case CLAY_FUNCTION_PRINT:
       clay_data_print(stderr, &clay_parser_stack.stack[top]);
       break;
@@ -614,9 +632,10 @@ void clay_parser_exec_function(char *name) {
   }
 
   // don't free data which are unref
-  for (i = 0 ; i < unref->size ; i++)
-    clay_parser_stack.stack[unref->data[i]].type = UNDEF_T;
-  clay_array_free(unref);
+  for (i = 0 ; i < clay_parser_unref->size ; i++)
+    clay_parser_stack.stack[clay_parser_unref->data[i]].type = UNDEF_T;
+
+  clay_parser_unref->size = 0; // small optimization, don't remalloc each time
 
   // clear args on the stack
   for (i = 0 ; i < nb_args ; i++)
@@ -733,6 +752,10 @@ void clay_parser_print_error(int status_result) {
                      "       variable.\n",
               clay_yylineno);
       break;
+    case CLAY_ERROR_ACCESS_NOT_FOUND:
+      fprintf(stderr,"[Clay] Error: line %d, the access was not found\n",
+              clay_yylineno);
+      break;
     default:
       fprintf(stderr,"[Clay] Error: unknown error %d (%s)\n", 
               status_result, __func__);
@@ -742,73 +765,4 @@ void clay_parser_print_error(int status_result) {
   exit(status_result);
 }
 
-/*
-  | // Snum
-    IDENT_STMT
-    {
-      clay_parser_beta = clay_ident_find_stmt(clay_parser_scop, $1);
-      if (!clay_parser_beta) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
-      }
-      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
-    }
-  |
-    args ',' IDENT_STMT
-    {
-      clay_parser_beta = clay_ident_find_stmt(clay_parser_scop, $3);
-      if (!clay_parser_beta) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
-      }
-      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
-    }
-
-  | // iterator name
-    IDENT
-    {
-      clay_parser_beta = clay_ident_find_iterator(clay_parser_scop, $1);
-      if (!clay_parser_beta) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
-      }
-      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
-      free($1);
-    }
-  |
-    args ',' IDENT_NAME
-    {
-      clay_parser_beta = clay_ident_find_iterator(clay_parser_scop, $3);
-      if (!clay_parser_beta) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
-      }
-      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
-      free($3);
-    }
-
-
-  | // Lnum
-    IDENT_LOOP
-    {
-      // create the tree
-      // we need to recompute it because after each function the tree changes
-      clay_betatree_p tree = clay_betatree_create(clay_parser_scop);
-      clay_parser_beta = clay_ident_find_loop(tree, $1);
-      if (!clay_parser_beta) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
-      }
-      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
-      clay_betatree_free(tree);
-    }
-  |
-    args ',' IDENT_LOOP
-    {
-      // create the tree
-      // we need to recompute it because after each function the tree changes
-      clay_betatree_p tree = clay_betatree_create(clay_parser_scop);
-      clay_parser_beta = clay_ident_find_loop(tree, $3);
-      if (!clay_parser_beta) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
-      }
-      clay_prototype_function_args_add(clay_params, clay_parser_beta, ARRAY_T);
-      clay_betatree_free(tree);
-    }
-*/
 

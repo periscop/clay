@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL           22
+  #define CLAY_FUNCTIONS_TOTAL           23
   
   #define CLAY_FUNCTION_SPLIT             0
   #define CLAY_FUNCTION_REORDER           1
@@ -59,7 +59,8 @@
   #define CLAY_FUNCTION_GETBETALOOP      18
   #define CLAY_FUNCTION_GETBETASTMT      19
   #define CLAY_FUNCTION_GETBETALOOPBYNAME 20
-  #define CLAY_FUNCTION_PRINT            21
+  #define CLAY_FUNCTION_GETACCESS        21
+  #define CLAY_FUNCTION_PRINT            22
 
 typedef struct {
   char *name;

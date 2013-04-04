@@ -62,6 +62,7 @@ int clay_function_addarray_type[]     = {STRING_T, INTEGER_T};
 int clay_function_getbetaloop_type[]  = {INTEGER_T};
 int clay_function_getbetastmt_type[]  = {INTEGER_T};
 int clay_function_getbetaloopbyname_type[]  = {STRING_T};
+int clay_function_getaccess_type[]    = {STRING_T};
 int clay_function_print_type[]        = {MULTI_T};
 
 
@@ -70,92 +71,92 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
 {
   {
     "split",      
-    "split(array beta, uint depth)",
+    "void split(array beta, uint depth)",
     VOID_T, clay_function_split_type, 2
   },
   {
     "reorder",
-    "reorder(array beta_loop, array neworder)",
+    "void reorder(array beta_loop, array neworder)",
     VOID_T, clay_function_reorder_type, 2
   },
   {
     "interchange", 
-    "interchange(array beta_inner, uint depth_1, uint depth_2, bool pretty)",
+    "void interchange(array beta_inner, uint depth_1, uint depth_2, bool pretty)",
     VOID_T, clay_function_interchange_type, 4
   },
   {
     "reverse",
-    "reverse(ident, uint depth)",
+    "void reverse(ident, uint depth)",
     VOID_T, clay_function_reverse_type, 2
   },
   {
     "fuse",
-    "fuse(array beta_loop)",
+    "void fuse(array beta_loop)",
     VOID_T, clay_function_fuse_type, 1
   },
   {
     "skew",      
-    "skew(array beta, uint depth, int coeff)",
+    "void skew(array beta, uint depth, int coeff)",
     VOID_T, clay_function_skew_type, 3
   },
   {
     "iss",    
-    "iss(array beta_loop, list inequation { ((output,) params,)) const }",
+    "void iss(array beta_loop, list inequation { ((output,) params,)) const }",
     VOID_T, clay_function_iss_type, 2
   },
   {
     "stripmine",
-    "stripmine(array beta, uint depth, uint size, bool pretty)",
+    "void stripmine(array beta, uint depth, uint size, bool pretty)",
     VOID_T, clay_function_stripmine_type, 4
   },
   {
     "unroll",  
-    "unroll(array beta_loop, uint factor)",
+    "void unroll(array beta_loop, uint factor)",
     VOID_T, clay_function_unroll_type, 2
   },
   {
     "unroll_noepilog",
-    "unroll_noepilog(array beta_loop, uint factor)",
+    "void unroll_noepilog(array beta_loop, uint factor)",
     VOID_T, clay_function_unroll_type, 2
   },
   {
     "tile",    
-    "tile(array beta, uint depth, uint depth_outer, uint size, bool pretty)",
+    "void tile(array beta, uint depth, uint depth_outer, uint size, bool pretty)",
     VOID_T, clay_function_tile_type, 5
   },
   {
     "shift",   
-    "shift(array beta, uint depth, list vector { ((output,) (params,)) const })",
+    "void shift(array beta, uint depth, list vector { ((output,) (params,)) const })",
     VOID_T, clay_function_shift_type, 3
   },
   {
     "peel",   
-    "peel(array beta_loop,  list inequation { (params,) const })",
+    "void peel(array beta_loop,  list inequation { (params,) const })",
     VOID_T, clay_function_peel_type, 2
   },
   {
     "context", 
-    "context(array vector)",
+    "void context(array vector)",
     VOID_T, clay_function_context_type, 1
   },
   {
     "dimreorder",
-    "dimreorder(array beta, uint #access, array neworder)",
+    "void dimreorder(array beta, uint #access, array neworder)",
     VOID_T, clay_function_dimreorder_type, 3
   },
   {
     "dimprivatize",
-    "dimprivatize(array beta, uint #access, uint depth)",
+    "void dimprivatize(array beta, uint #access, uint depth)",
     VOID_T, clay_function_dimprivatize_type, 3
   },
   {
     "dimcontract",
-    "dimcontract(array beta, uint #access, uint depth)",
+    "void dimcontract(array beta, uint #access, uint depth)",
     VOID_T, clay_function_dimcontract_type, 3
   },
   {
     "addarray",
-    "addarray(string name, uint id)",
+    "void addarray(string name, uint id)",
     VOID_T, clay_function_addarray_type, 2
   },
   {
@@ -173,6 +174,12 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     "array get_beta_loop_by_name(string iterator)",
     ARRAY_T, clay_function_getbetaloopbyname_type, 1
   },
+  {
+    "get_access",
+    "int get_access(string name)",
+    INTEGER_T, clay_function_getaccess_type, 1
+  },
+
   {
     "print",
     "void print(multi)",

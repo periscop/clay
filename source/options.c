@@ -60,16 +60,19 @@ void clay_options_list_functions() {
   int i;
   printf(
   "Types:\n\n"
-  "array:  [n1, n2, ...]\n"
-  "        array of integer\n\n"
-  "bool:   1 | 0 | true | false\n\n"
-  "string: \"blah\" (a string is used to identify a variable)\n\n"
-  "list:   {n1, n2, ... | n3, n4, ... | ...}\n"
-  "        list of arrays\n\n"
+  "  array:  [n1, n2, ...]\n"
+  "          array of integer\n\n"
+  "  bool:   1 | 0 | true | false\n\n"
+  "  string: \"blah\" (a string is used to identify a variable)\n\n"
+  "  list:   {n1, n2, ... | n3, n4, ... | ...}\n"
+  "          list of arrays\n\n"
+  "  multi:  any object/variable\n\n"
  
-  "beta_loop    The ident corresponds to a loop\n"
-  "beta_inner   In the interchange, it corresponds to the inner loop\n"
-  "             (or statement)\n\n"
+  "  beta_loop    The ident corresponds to a loop\n"
+  "  beta_inner   In the interchange, it corresponds to the inner loop\n"
+  "               (or statement)\n\n"
+
+  "Variables: For the moment only variables a-z are available.\n\n"
 
   "Available functions:\n\n");
   
