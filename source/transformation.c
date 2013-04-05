@@ -1326,18 +1326,17 @@ int clay_dimcontract(osl_scop_p scop,
 
 
 /**
- * clay_addarray function:
- * Add a new referenced array in the arrays extensions.
- * Be sure that the id is not used !
+ * clay_add_array function:
+ * Add a new array in the arrays extensions.
  * \param[in,out] scop
  * \param[in] name          string name
- * \param[in] id            new id
+ * \param[in] result        return the new id
  * \param[in] options
  * \return                  Status
  */
-int clay_addarray(osl_scop_p scop,
+int clay_add_array(osl_scop_p scop,
                   char *name,
-                  int id,
+                  int *result,
                   clay_options_p options) {
 
   osl_arrays_p arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
@@ -1346,18 +1345,102 @@ int clay_addarray(osl_scop_p scop,
 
   int i;
   int sz = arrays->nb_names;
+
+  if (sz == 0)
+    return CLAY_SUCCESS;
+
   for (i = 0 ; i < sz ; i++)
-    if (arrays->id[i] == id)
+    if (strcmp(arrays->names[i], name) == 0)
       return CLAY_ERROR_ID_EXISTS;
 
-  arrays->nb_names++;
-  CLAY_realloc(arrays->id, int*, sizeof(int) * (sz+1));
-  CLAY_realloc(arrays->names, char**, sizeof(char*) * sz+1);
+  int id = arrays->id[0];
 
+  for (i = 1 ; i < sz ; i++)
+    if (arrays->id[i] > id)
+      id = arrays->id[i];
+
+  arrays->nb_names++;
+
+  // I don't know why, there is a valgrind warning when I use CLAY_realloc
+  arrays->id = realloc(arrays->id, sizeof(int) * (sz+1));
+  arrays->names = realloc(arrays->names, sizeof(char*) * (sz+1));
+
+  id++;
+  
   arrays->id[sz] = id;
   arrays->names[sz] = strdup(name);
 
+  *result = id;
+
   return CLAY_SUCCESS;
+}
+
+/**
+ * clay_get_array_id function:
+ * Search the array name in the arrays extension
+ * \param[in,out] scop
+ * \param[in] name          string name
+ * \param[in] result        return the id
+ * \param[in] options
+ * \return                  Status
+ */
+int clay_get_array_id(osl_scop_p scop,
+                      char *name,
+                      int *result,
+                      clay_options_p options) {
+
+  osl_arrays_p arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
+  if (!arrays)
+    return CLAY_ERROR_ARRAYS_EXT_EMPTY;
+
+  int i;
+  int sz = arrays->nb_names;
+  int id = -1;
+
+  for (i = 0 ; i < sz ; i++)
+    if (strcmp(arrays->names[i], name) == 0) {
+      id = arrays->id[i];
+      break;
+    }
+
+  if (id == -1)
+    return CLAY_ERROR_ARRAY_NOT_FOUND;
+
+  *result = id;
+
+  return CLAY_SUCCESS;
+}
+
+
+/**
+ * clay_replace_array function:
+ * Replace an ident array by another in each access
+ * \param[in,out] scop
+ * \param[in] last_id
+ * \param[in] new_id
+ * \param[in] options
+ * \return    Status
+ */
+int clay_replace_array(osl_scop_p scop,
+                       int last_id,
+                       int new_id,
+                       clay_options_p options) {
+
+  int aux(osl_relation_list_p access) {
+    osl_relation_p a = access->elt;
+
+    // here row is != -1, because the function aux shouldn't be called
+    int row = clay_util_relation_get_line(a, 0); 
+    osl_int_set_si(a->precision, &a->m[row][a->nb_columns-1], new_id);
+
+    return CLAY_SUCCESS;
+  }
+
+  clay_array_p beta = clay_array_malloc();
+  int ret = clay_util_foreach_access(scop, beta, last_id, aux, 1);
+  clay_array_free(beta);
+
+  return ret;
 }
 
 
@@ -1365,7 +1448,7 @@ int clay_addarray(osl_scop_p scop,
  * clay_datacopy function:
  * This function will generate a loop to copy all data from the array
  * `array_id_original' to a new array `array_id_copy'. Use the function
- * addarray to associate a new array to an id. A domain and a scattering
+ * add_array to insert a new array in the scop. A domain and a scattering
  * is needed to generate the loop to copy the data. They are just a 
  * copy from the domain/scattering of the first statement which correponds
  * to the `beta_get_domain'. The loop is generated before or after `beta',

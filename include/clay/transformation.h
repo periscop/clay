@@ -58,6 +58,8 @@ int clay_context(osl_scop_p, clay_array_p, clay_options_p);
 int clay_dimreorder(osl_scop_p, clay_array_p, int, clay_array_p, clay_options_p);
 int clay_dimprivatize(osl_scop_p, clay_array_p, int, int, clay_options_p);
 int clay_dimcontract(osl_scop_p, clay_array_p, int, int, clay_options_p);
-int clay_addarray(osl_scop_p, char*, int, clay_options_p);
+int clay_add_array(osl_scop_p, char*, int*, clay_options_p);
+int clay_replace_array(osl_scop_p, int, int, clay_options_p);
+int clay_get_array_id(osl_scop_p, char*, int*, clay_options_p);
 
 #endif

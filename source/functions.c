@@ -58,12 +58,13 @@ int clay_function_context_type[]      = {ARRAY_T};
 int clay_function_dimreorder_type[]   = {ARRAY_T, INTEGER_T, ARRAY_T};
 int clay_function_dimprivatize_type[] = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_dimcontract_type[]  = {ARRAY_T, INTEGER_T, INTEGER_T};
-int clay_function_addarray_type[]     = {STRING_T, INTEGER_T};
+int clay_function_addarray_type[]     = {STRING_T};
 int clay_function_getbetaloop_type[]  = {INTEGER_T};
 int clay_function_getbetastmt_type[]  = {INTEGER_T};
 int clay_function_getbetaloopbyname_type[]  = {STRING_T};
-int clay_function_getaccess_type[]    = {STRING_T};
+int clay_function_getarrayid_type[]   = {STRING_T};
 int clay_function_print_type[]        = {MULTI_T};
+int clay_function_replacearray_type[] = {INTEGER_T, INTEGER_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -155,9 +156,9 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     VOID_T, clay_function_dimcontract_type, 3
   },
   {
-    "addarray",
-    "void addarray(string name, uint id)",
-    VOID_T, clay_function_addarray_type, 2
+    "add_array",
+    "int add_array(string name)",
+    INTEGER_T, clay_function_addarray_type, 1
   },
   {
     "get_beta_loop",
@@ -175,14 +176,18 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     ARRAY_T, clay_function_getbetaloopbyname_type, 1
   },
   {
-    "get_access",
-    "int get_access(string name)",
-    INTEGER_T, clay_function_getaccess_type, 1
+    "get_array_id",
+    "int get_array_id(string name)",
+    INTEGER_T, clay_function_getarrayid_type, 1
   },
-
   {
     "print",
     "void print(multi)",
     VOID_T, clay_function_print_type, 1
+  },
+  {
+    "replace_array",
+    "void replace_array(uint last_id, uint new_id)",
+    VOID_T, clay_function_replacearray_type, 2
   }
 };

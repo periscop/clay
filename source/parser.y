@@ -447,181 +447,218 @@ void clay_parser_exec_function(char *name) {
   clay_betatree_p tree;
   int integer;
   void *data;
-  clay_data_p result = NULL;
+  clay_data_t result;
+  result.type = UNDEF_T;
 
   switch (i) {
     case CLAY_FUNCTION_SPLIT:
-      status_result = clay_split(clay_parser_scop,
-                                 clay_parser_stack.stack[top-1].data.obj, 
-                                 clay_parser_stack.stack[top].data.integer, 
-                                 clay_parser_options);
+      status_result = clay_split(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_REORDER:
-      status_result = clay_reorder(clay_parser_scop, 
-                                   clay_parser_stack.stack[top-1].data.obj, 
-                                   clay_parser_stack.stack[top].data.obj, 
-                                   clay_parser_options);
+      status_result = clay_reorder(
+          clay_parser_scop, 
+          clay_parser_stack.stack[top-1].data.obj, 
+          clay_parser_stack.stack[top].data.obj, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_INTERCHANGE:
-      status_result = clay_interchange(clay_parser_scop, 
-                                       clay_parser_stack.stack[top-3].data.obj, 
-                                       clay_parser_stack.stack[top-2].data.integer, 
-                                       clay_parser_stack.stack[top-1].data.integer, 
-                                       clay_parser_stack.stack[top].data.integer, 
-                                       clay_parser_options);
+      status_result = clay_interchange(
+          clay_parser_scop, 
+          clay_parser_stack.stack[top-3].data.obj, 
+          clay_parser_stack.stack[top-2].data.integer, 
+          clay_parser_stack.stack[top-1].data.integer, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_REVERSE:
-      status_result = clay_reverse(clay_parser_scop, 
-                                   clay_parser_stack.stack[top-1].data.obj, 
-                                   clay_parser_stack.stack[top].data.integer, 
-                                   clay_parser_options);
+      status_result = clay_reverse(
+          clay_parser_scop, 
+          clay_parser_stack.stack[top-1].data.obj, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_FUSE:
-      status_result = clay_fuse(clay_parser_scop,
-                                clay_parser_stack.stack[top].data.obj, 
-                                clay_parser_options);
+      status_result = clay_fuse(
+          clay_parser_scop,
+          clay_parser_stack.stack[top].data.obj, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_SKEW:
-      status_result = clay_skew(clay_parser_scop,
-                                clay_parser_stack.stack[top-2].data.obj, 
-                                clay_parser_stack.stack[top-1].data.integer, 
-                                clay_parser_stack.stack[top].data.integer, 
-                                clay_parser_options);
+      status_result = clay_skew(
+        clay_parser_scop,
+        clay_parser_stack.stack[top-2].data.obj, 
+        clay_parser_stack.stack[top-1].data.integer, 
+        clay_parser_stack.stack[top].data.integer, 
+        clay_parser_options);
       break;
+
     case CLAY_FUNCTION_ISS:
-      status_result = clay_iss(clay_parser_scop,
-                               clay_parser_stack.stack[top-1].data.obj, 
-                               clay_parser_stack.stack[top].data.obj, 
-                               NULL,
-                               clay_parser_options);
+      status_result = clay_iss(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj, 
+          clay_parser_stack.stack[top].data.obj, 
+          NULL,
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_STRIPMINE:
-      status_result = clay_stripmine(clay_parser_scop,
-                                     clay_parser_stack.stack[top-3].data.obj, 
-                                     clay_parser_stack.stack[top-2].data.integer, 
-                                     clay_parser_stack.stack[top-1].data.integer, 
-                                     clay_parser_stack.stack[top].data.integer, 
-                                     clay_parser_options);
+      status_result = clay_stripmine(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-3].data.obj, 
+          clay_parser_stack.stack[top-2].data.integer, 
+          clay_parser_stack.stack[top-1].data.integer, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_UNROLL:
-      status_result = clay_unroll(clay_parser_scop,
-                                  clay_parser_stack.stack[top-1].data.obj, 
-                                  clay_parser_stack.stack[top].data.integer, 
-                                  1,
-                                  clay_parser_options);
+      status_result = clay_unroll(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj, 
+          clay_parser_stack.stack[top].data.integer, 
+          1,
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_UNROLL_NOEPILOG:
-      status_result = clay_unroll(clay_parser_scop,
-                                  clay_parser_stack.stack[top-1].data.obj, 
-                                  clay_parser_stack.stack[top].data.integer, 
-                                  0,
-                                  clay_parser_options);
+      status_result = clay_unroll(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj, 
+          clay_parser_stack.stack[top].data.integer, 
+          0,
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_TILE:
-      status_result = clay_tile(clay_parser_scop,
-                                clay_parser_stack.stack[top-4].data.obj, 
-                                clay_parser_stack.stack[top-3].data.integer, 
-                                clay_parser_stack.stack[top-2].data.integer, 
-                                clay_parser_stack.stack[top-1].data.integer, 
-                                clay_parser_stack.stack[top].data.integer, 
-                                clay_parser_options);
+      status_result = clay_tile(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-4].data.obj, 
+          clay_parser_stack.stack[top-3].data.integer, 
+          clay_parser_stack.stack[top-2].data.integer, 
+          clay_parser_stack.stack[top-1].data.integer, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_SHIFT:
-      status_result = clay_shift(clay_parser_scop,
-                                 clay_parser_stack.stack[top-2].data.obj, 
-                                 clay_parser_stack.stack[top-1].data.integer, 
-                                 clay_parser_stack.stack[top].data.obj, 
-                                 clay_parser_options);
+      status_result = clay_shift(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-2].data.obj, 
+          clay_parser_stack.stack[top-1].data.integer, 
+          clay_parser_stack.stack[top].data.obj, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_PEEL:
-      status_result = clay_peel(clay_parser_scop,
-                                clay_parser_stack.stack[top-1].data.obj, 
-                                clay_parser_stack.stack[top].data.obj, 
-                                clay_parser_options);
+      status_result = clay_peel(
+        clay_parser_scop,
+        clay_parser_stack.stack[top-1].data.obj, 
+        clay_parser_stack.stack[top].data.obj, 
+        clay_parser_options);
       break;
+
     case CLAY_FUNCTION_CONTEXT:
-      status_result = clay_context(clay_parser_scop,
-                                   clay_parser_stack.stack[top].data.obj, 
-                                   clay_parser_options);
+      status_result = clay_context(
+          clay_parser_scop,
+          clay_parser_stack.stack[top].data.obj, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_DIMREORDER:
-      status_result = clay_dimreorder(clay_parser_scop,
-                                      clay_parser_stack.stack[top-2].data.obj, 
-                                      clay_parser_stack.stack[top-1].data.integer, 
-                                      clay_parser_stack.stack[top].data.obj, 
-                                      clay_parser_options);
+      status_result = clay_dimreorder(
+        clay_parser_scop,
+        clay_parser_stack.stack[top-2].data.obj, 
+        clay_parser_stack.stack[top-1].data.integer, 
+        clay_parser_stack.stack[top].data.obj, 
+        clay_parser_options);
       break;
+
     case CLAY_FUNCTION_DIMPRIVATIZE:
-      status_result = clay_dimprivatize(clay_parser_scop,
-                                        clay_parser_stack.stack[top-2].data.obj, 
-                                        clay_parser_stack.stack[top-1].data.integer, 
-                                        clay_parser_stack.stack[top].data.integer, 
-                                        clay_parser_options);
+      status_result = clay_dimprivatize(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-2].data.obj, 
+          clay_parser_stack.stack[top-1].data.integer, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_DIMCONTRACT:
-      status_result = clay_dimcontract(clay_parser_scop,
-                                       clay_parser_stack.stack[top-2].data.obj, 
-                                       clay_parser_stack.stack[top-1].data.integer, 
-                                       clay_parser_stack.stack[top].data.integer, 
-                                       clay_parser_options);
+      status_result = clay_dimcontract(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-2].data.obj, 
+          clay_parser_stack.stack[top-1].data.integer, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
       break;
+
     case CLAY_FUNCTION_ADDARRAY:
-      status_result = clay_addarray(clay_parser_scop,
-                                    clay_parser_stack.stack[top-1].data.obj,
-                                    clay_parser_stack.stack[top].data.integer,
-                                    clay_parser_options);
+      result.type = INTEGER_T;
+      status_result = clay_add_array(
+          clay_parser_scop,
+          clay_parser_stack.stack[top].data.obj,
+          &result.data.integer,
+          clay_parser_options);
       break;
 
     case CLAY_FUNCTION_GETBETALOOP:
       tree = clay_betatree_create(clay_parser_scop);
       integer = clay_parser_stack.stack[top].data.integer;
-      clay_parser_current.type = ARRAY_T;
-      clay_parser_current.data.obj = clay_ident_find_loop(tree, integer);
+      result.type = ARRAY_T;
+      result.data.obj = clay_ident_find_loop(tree, integer);
 
-      if (!clay_parser_current.data.obj)
+      if (!result.data.obj)
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
 
-      result = &clay_parser_current;
       clay_betatree_free(tree);
       break;
 
     case CLAY_FUNCTION_GETBETASTMT:
       integer = clay_parser_stack.stack[top].data.integer;
-      clay_parser_current.type = ARRAY_T;
-      clay_parser_current.data.obj = clay_ident_find_stmt(clay_parser_scop, integer);
+      result.type = ARRAY_T;
+      result.data.obj = clay_ident_find_stmt(clay_parser_scop, integer);
 
-      if (!clay_parser_current.data.obj)
+      if (!result.data.obj)
         clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
-
-      result = &clay_parser_current;
       break;
 
     case CLAY_FUNCTION_GETBETALOOPBYNAME:
       data = clay_parser_stack.stack[top].data.obj;
-      clay_parser_current.type = ARRAY_T;
-      clay_parser_current.data.obj = 
-                clay_ident_find_iterator(clay_parser_scop, (char*) data);
-
-      if (!clay_parser_current.data.obj)
+      result.type = ARRAY_T;
+      result.data.obj = clay_ident_find_iterator(clay_parser_scop,  
+                                                 (char*) data);
+      if (!result.data.obj)
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
-
-      result = &clay_parser_current;
       break;
 
-    case CLAY_FUNCTION_GETACCESS:
+    case CLAY_FUNCTION_GETARRAYID:
       data = clay_parser_stack.stack[top].data.obj;
-      clay_parser_current.type = INTEGER_T;
-      clay_parser_current.data.integer =
-               clay_ident_find_access(clay_parser_scop, (char*) data);
-
-      if (clay_parser_current.data.integer == -1)
-        clay_parser_print_error(CLAY_ERROR_ACCESS_NOT_FOUND);
-
-      result = &clay_parser_current;
+      result.type = INTEGER_T;
+      status_result = clay_get_array_id(
+          clay_parser_scop, 
+          (char*) data,
+          &result.data.integer,
+          clay_parser_options);
       break;
 
     case CLAY_FUNCTION_PRINT:
       clay_data_print(stderr, &clay_parser_stack.stack[top]);
+      break;
+
+    case CLAY_FUNCTION_REPLACEARRAY:
+      status_result = clay_replace_array(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.integer,
+          clay_parser_stack.stack[top].data.integer,
+          clay_parser_options);
       break;
 
     default:
@@ -642,8 +679,8 @@ void clay_parser_exec_function(char *name) {
     clay_data_clear(clay_stack_pop(&clay_parser_stack));
 
   // push result
-  if (result)
-    clay_stack_push(&clay_parser_stack, result);
+  if (result.type != UNDEF_T)
+    clay_stack_push(&clay_parser_stack, &result);
 
   // check errors
   if (status_result != CLAY_SUCCESS)
@@ -752,8 +789,8 @@ void clay_parser_print_error(int status_result) {
                      "       variable.\n",
               clay_yylineno);
       break;
-    case CLAY_ERROR_ACCESS_NOT_FOUND:
-      fprintf(stderr,"[Clay] Error: line %d, the access was not found\n",
+    case CLAY_ERROR_ARRAY_NOT_FOUND:
+      fprintf(stderr,"[Clay] Error: line %d, the array was not found\n",
               clay_yylineno);
       break;
     default:
