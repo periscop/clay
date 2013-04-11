@@ -111,7 +111,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/dimreorder.c \
 	$(top_srcdir)/tests/unitary/dimprivatize_simple.c \
 	$(top_srcdir)/tests/unitary/dimcontract.c \
-	$(top_srcdir)/tests/unitary/datacopy.c
+	$(top_srcdir)/tests/unitary/datacopy.c \
+	$(top_srcdir)/tests/unitary/block.c
 	
 
 FAIL_TEST_FILES = \

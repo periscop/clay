@@ -1452,9 +1452,10 @@ int clay_replace_array(osl_scop_p scop,
  * is needed to generate the loop to copy the data. They are just a 
  * copy from the domain/scattering of the first statement which correponds
  * to the `beta_get_domain'. The orignal id or the copy id must be in this
- * beta. The first which is found will be used to copy the array access.
- * Genarally you will use replace_array before calling datacopy, that's why
- * the array_id_copy can be in the scop.
+ * beta (in the list of access relation). Genarally you will use replace_array
+ * before calling datacopy, that's why the array_id_copy can be in the scop.
+ * The first access relation which is found will be used to generate an access 
+ * for the original id and the copy id.
  * \param[in,out] scop
  * \param[in] array_id_copy     new variable
  * \param[in] array_id_original
@@ -1624,6 +1625,129 @@ int clay_datacopy(osl_scop_p scop,
 
   if (options && options->normalize)
     clay_beta_normalize(scop); 
+
+  return CLAY_SUCCESS;
+}
+
+
+/**
+ * clay_block function:
+ * \param[in,out] scop
+ * \param[in] beta_stmt1
+ * \param[in] beta_stmt2
+ * \param[in] options
+ * \return                     Status
+ */
+int clay_block(osl_scop_p scop,
+               clay_array_p beta_stmt1,
+               clay_array_p beta_stmt2,
+               clay_options_p options) {
+
+  /* Description
+   * concat '{' + body(stmt_1) + body(stmt_2) + '}'
+   * update extbody if needed
+   * concat access(stmt_1) + access(stmt_2)
+   * remove stmt_2
+   */
+
+  if (beta_stmt1->size != beta_stmt2->size)
+    return CLAY_ERROR_BETAS_NOT_SAME_DIMS;
+
+  // search statements and check betas
+
+  osl_statement_p stmt_1 = clay_beta_find(scop->statement, beta_stmt1);
+  if (!stmt_1)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  osl_statement_p stmt_2 = clay_beta_find(scop->statement, beta_stmt2);
+  if (!stmt_2)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  CLAY_BETA_IS_STMT(beta_stmt1, stmt_1);
+  CLAY_BETA_IS_STMT(beta_stmt2, stmt_2);
+
+  if (!osl_relation_equal(stmt_1->domain, stmt_2->domain))
+    return CLAY_ERROR_BETAS_NOT_SAME_DOMAIN;
+
+  int i;
+  int is_extbody_1, is_extbody_2;
+
+  char **expr_left;
+  char **expr_right;
+  char *new_expr;
+
+  osl_extbody_p ebody_1, ebody_2;
+
+  // get the body string
+
+  is_extbody_1 = osl_generic_has_URI(stmt_1->body, OSL_URI_EXTBODY);
+  expr_left = is_extbody_1
+    ? ((osl_extbody_p) stmt_1->body->data)->body->expression->string
+    : ((osl_body_p) stmt_1->body->data)->expression->string;
+
+  is_extbody_2 = osl_generic_has_URI(stmt_2->body, OSL_URI_EXTBODY);
+  expr_right = is_extbody_2
+    ? ((osl_extbody_p) stmt_2->body->data)->body->expression->string
+    : ((osl_body_p) stmt_2->body->data)->expression->string;
+
+  if (is_extbody_1 != is_extbody_2)
+    return CLAY_ERROR_ONE_HAS_EXTBODY;
+
+  // update extbody
+  if (is_extbody_1) {
+    ebody_1 = stmt_1->body->data;
+    ebody_2 = stmt_2->body->data;
+
+    // shift for the '{'
+    for (i = 0 ; i < ebody_1->nb_access ; i++) {
+      if (ebody_1->start[i] != -1)
+        ebody_1->start[i]++;
+    }
+
+    int offset = 1 + strlen(expr_left[0]);
+
+    // shift the right part
+    for (i = 0 ; i < ebody_2->nb_access ; i++) {
+      if (ebody_2->start[i] != -1)
+        ebody_2->start[i] += offset;
+
+      // concat with the extbody 2
+      osl_extbody_add(ebody_1, ebody_2->start[i], ebody_2->length[i]);
+    }
+
+  }
+
+  // generate the new body string
+  new_expr = (char*) malloc(strlen(expr_left[0]) + strlen(expr_right[0]) + 3);
+  strcpy(new_expr, "{");
+  strcat(new_expr, expr_left[0]);
+  strcat(new_expr, expr_right[0]);
+  strcat(new_expr, "}");
+
+  free(expr_left[0]);
+  expr_left[0] = new_expr;
+
+  // concat all the access array
+  osl_relation_list_p access = stmt_1->access;
+  if (access) {
+    while (access->next)
+      access = access->next;
+  }
+  access->next = stmt_2->access;
+  stmt_2->access = NULL;
+
+  // search the stmt 2 and remove it in the chain list
+  osl_statement_p s = scop->statement;
+  if (s) {
+    while (s->next) {
+      if (s->next == stmt_2) {
+        s->next = s->next->next;
+        osl_statement_free(stmt_2);
+        break;
+      }
+      s = s->next;
+    }
+  }
 
   return CLAY_SUCCESS;
 }

@@ -56,6 +56,13 @@
   } while (0)
 
 
+#define CLAY_BETA_IS_STMT(beta, statement)                          \
+  do {                                                              \
+    if (beta->size*2-1 != statement->scattering->nb_output_dims)    \
+      return CLAY_ERROR_NOT_BETA_STMT;                              \
+  } while (0)
+
+
 #define CLAY_BETA_CHECK_DEPTH(beta, depth, statement)               \
   do {                                                              \
     /* check if it's a statement */                                 \

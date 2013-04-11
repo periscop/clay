@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL           26
+  #define CLAY_FUNCTIONS_TOTAL           27
   
   #define CLAY_FUNCTION_SPLIT             0
   #define CLAY_FUNCTION_REORDER           1
@@ -64,6 +64,7 @@
   #define CLAY_FUNCTION_REPLACEARRAY     23
   #define CLAY_FUNCTION_DATACOPY         24
   #define CLAY_FUNCTION_BREAK            25
+  #define CLAY_FUNCTION_BLOCK            26
 
 typedef struct {
   char *name;

@@ -66,6 +66,7 @@ int clay_function_getarrayid_type[]   = {STRING_T};
 int clay_function_print_type[]        = {MULTI_T};
 int clay_function_replacearray_type[] = {INTEGER_T, INTEGER_T};
 int clay_function_datacopy_type[]     = {INTEGER_T, INTEGER_T, ARRAY_T, INTEGER_T, ARRAY_T};
+int clay_function_block_type[]        = {ARRAY_T, ARRAY_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -201,5 +202,10 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     "break",
     "void break()",
     VOID_T, NULL, 0
+  },
+  {
+    "block",
+    "void block(array beta_stmt1, beta_stmt2)",
+    VOID_T, clay_function_block_type, 2
   }
 };

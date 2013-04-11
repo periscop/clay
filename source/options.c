@@ -79,7 +79,7 @@ void clay_options_list_functions() {
   for (i = 0 ; i < CLAY_FUNCTIONS_TOTAL ; i++)
     printf("  %s\n", functions[i].string);
 
-  printf("\n"
+  printf("\n\n"
          "Notes:\n\n"
          "For the function get_beta_loop, the value n could be 0. In this\n"
          "case the beta will be []\n\n"

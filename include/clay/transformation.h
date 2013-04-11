@@ -62,5 +62,6 @@ int clay_add_array(osl_scop_p, char*, int*, clay_options_p);
 int clay_replace_array(osl_scop_p, int, int, clay_options_p);
 int clay_get_array_id(osl_scop_p, char*, int*, clay_options_p);
 int clay_datacopy(osl_scop_p, int, int, clay_array_p, int, clay_array_p, clay_options_p);
+int clay_block(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
 
 #endif

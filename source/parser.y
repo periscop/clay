@@ -688,6 +688,14 @@ void clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
+    case CLAY_FUNCTION_BLOCK:
+      status_result = clay_block(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj,
+          clay_parser_stack.stack[top].data.obj,
+          clay_parser_options);
+      break;
+
     default:
       fprintf(stderr, "[Clay] Error: can't call the function %s (%s).\n", 
               functions[i].name, __func__);
@@ -727,6 +735,10 @@ void clay_parser_print_error(int status_result) {
       break;
     case CLAY_ERROR_NOT_BETA_LOOP:
       fprintf(stderr,"[Clay] Error: line %d: the beta is not a loop\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_NOT_BETA_STMT:
+      fprintf(stderr,"[Clay] Error: line %d: the beta is not a statement\n",
               clay_yylineno);
       break;
     case CLAY_ERROR_REORDER_ARRAY_TOO_SMALL:
@@ -821,8 +833,21 @@ void clay_parser_print_error(int status_result) {
               clay_yylineno);
       break;
     case CLAY_ERROR_ARRAY_NOT_FOUND_IN_THE_BETA:
-      fprintf(stderr,"[Clay] Error: line %d, the array was not found in\n"
-                     "       the given beta\n",
+      fprintf(stderr,
+              "[Clay] Error: line %d, the array was not found in the given beta\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_BETAS_NOT_SAME_DIMS:
+      fprintf(stderr,"[Clay] Error: line %d, the betas don't have the same dimensions\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_BETAS_NOT_SAME_DOMAIN:
+      fprintf(stderr,"[Clay] Error: line %d, the betas don't have the same domain\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_ONE_HAS_EXTBODY:
+      fprintf(stderr,"[Clay] Error: line %d, one of the statement has an extbody\n"
+                     "       but the other one\n",
               clay_yylineno);
       break;
     default:

@@ -39,7 +39,7 @@
 #define CLAY_SUCCESS                         0
 #define CLAY_ERROR_BETA_NOT_FOUND            1
 #define CLAY_ERROR_NOT_BETA_LOOP             2
-//#define CLAY_ERROR_NOT_BETA_STMT             3 // NOT USED
+#define CLAY_ERROR_NOT_BETA_STMT             3
 #define CLAY_ERROR_REORDER_ARRAY_TOO_SMALL   4
 #define CLAY_ERROR_DEPTH_OVERFLOW            5
 #define CLAY_ERROR_WRONG_COEFF               6
@@ -66,5 +66,8 @@
 #define CLAY_ERROR_CANT_CALL_SUBFUNC         27
 #define CLAY_ERROR_ARRAY_NOT_FOUND           28
 #define CLAY_ERROR_ARRAY_NOT_FOUND_IN_THE_BETA 29
+#define CLAY_ERROR_BETAS_NOT_SAME_DIMS       30
+#define CLAY_ERROR_BETAS_NOT_SAME_DOMAIN     31
+#define CLAY_ERROR_ONE_HAS_EXTBODY           32
 
 #endif
