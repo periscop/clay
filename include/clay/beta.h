@@ -42,9 +42,6 @@
 #include <osl/relation.h>
 #include <clay/array.h>
 
-#ifndef bool
-#define bool short
-#endif
 
 // NOTE : a beta is just a clay_array_p
 

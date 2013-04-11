@@ -65,6 +65,7 @@ int clay_function_getbetaloopbyname_type[]  = {STRING_T};
 int clay_function_getarrayid_type[]   = {STRING_T};
 int clay_function_print_type[]        = {MULTI_T};
 int clay_function_replacearray_type[] = {INTEGER_T, INTEGER_T};
+int clay_function_datacopy_type[]     = {INTEGER_T, INTEGER_T, ARRAY_T, INTEGER_T, ARRAY_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -189,5 +190,16 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     "replace_array",
     "void replace_array(uint last_id, uint new_id)",
     VOID_T, clay_function_replacearray_type, 2
+  },
+  {
+    "datacopy",
+    "void datacopy(uint id_copy, uint id_orig, array beta_insert,\n"
+    "                bool before, array beta_get_domain)",
+    VOID_T, clay_function_datacopy_type, 5
+  },
+  {
+    "break",
+    "void break()",
+    VOID_T, NULL, 0
   }
 };

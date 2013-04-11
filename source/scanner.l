@@ -35,6 +35,7 @@
  
 
 %{
+  #include <ctype.h>
   #include <parser.h>
   #include <clay/array.h>
   #include <clay/list.h>
@@ -46,6 +47,9 @@
   
   extern clay_prototype_function_p  clay_params;
   extern int is_in_a_list;
+
+  char* trim(char*);
+
 
 //extern YYLTYPE clay_yylloc;
 //extern YYSTYPE clay_yylval;;
@@ -90,14 +94,26 @@ false              {
                      return INTEGER;
                    }
 
+[a-zA-Z_][a-zA-Z0-9_]*{SEPARATOR}\({SEPARATOR}\) {
+                     // remove the ')'
+                     clay_yytext[strlen(clay_yytext)-1] = '\0';
+                     char *tmp = trim(clay_yytext);
+                     // remove the '('
+                     tmp[strlen(tmp)-1] = '\0';
+                     clay_yylval.sval = strdup(trim(tmp));
+                     return IDENT_FUNCTION_NO_ARGS;
+                  }
+
+[a-zA-Z_][a-zA-Z0-9_]*{SEPARATOR}\( {
+                     // remove the '('
+                     clay_yytext[strlen(clay_yytext)-1] = '\0';
+                     clay_yylval.sval = strdup(trim(clay_yytext));
+                     return IDENT_FUNCTION;
+                   }
+
 [a-zA-Z_][a-zA-Z0-9_]* {
                      clay_yylval.sval = strdup(clay_yytext);
                      return IDENT;
-                   }
-
-[a-zA-Z_][a-zA-Z0-9_]*\( {
-                     clay_yylval.sval = strdup(clay_yytext);
-                     return IDENT_FUNCTION;
                    }
 
 {SEPARATOR}        { ; }
@@ -126,4 +142,25 @@ void clay_scanner_free() {
  */
 void clay_scanner_initialize() {
   clay_yy_flush_buffer(YY_CURRENT_BUFFER);
+}
+
+char *trim(char *str) {
+  // taken here :
+  // http://stackoverflow.com/questions/122616/how-do-i-trim-leading-trailing-whitespace-in-a-standard-way
+  char *end;
+
+  // Trim leading space
+  while(isspace(*str)) str++;
+
+  if(*str == 0)  // All spaces?
+    return str;
+
+  // Trim trailing space
+  end = str + strlen(str) - 1;
+  while(end > str && isspace(*end)) end--;
+
+  // Write new null terminator
+  *(end+1) = 0;
+
+  return str;
 }

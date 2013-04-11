@@ -114,6 +114,7 @@
 %token <ival> INTEGER
 %token <sval> IDENT 
 %token <sval> IDENT_FUNCTION 
+%token <sval> IDENT_FUNCTION_NO_ARGS 
 %token COMMENT
 
 %start start
@@ -173,13 +174,28 @@ line:
   ;
 
 expr:
+    IDENT_FUNCTION_NO_ARGS
+    {
+      if (level >= 1)
+        clay_parser_print_error(CLAY_ERROR_CANT_CALL_SUBFUNC);
+
+      nb_args = 0;
+      level++;
+
+      if (strcmp($1, "break") == 0) {
+        free($1);
+        YYACCEPT;
+      }
+
+      clay_parser_exec_function($1);
+      free($1);
+    }
   |
     IDENT_FUNCTION 
     {
       if (level >= 1)
         clay_parser_print_error(CLAY_ERROR_CANT_CALL_SUBFUNC);
 
-      $1[strlen($1)-1] = '\0'; // remove the '('
       nb_args = 0;
       level++;
     }
@@ -408,7 +424,7 @@ void clay_parser_exec_function(char *name) {
   
   if (nb_args != functions[i].argc) {
       fprintf(stderr, 
-        "[Clay] Error: line %d, in `%s' takes %d arguments\n"
+        "[Clay] Error: line %d, `%s' takes %d arguments\n"
         "[Clay] prototype is: %s\n", 
         clay_yylineno, name, functions[i].argc, functions[i].string);
       exit(CLAY_ERROR_NB_ARGS);
@@ -661,6 +677,17 @@ void clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
+    case CLAY_FUNCTION_DATACOPY:
+      status_result = clay_datacopy(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-4].data.integer,
+          clay_parser_stack.stack[top-3].data.integer,
+          clay_parser_stack.stack[top-2].data.obj,
+          clay_parser_stack.stack[top-1].data.integer,
+          clay_parser_stack.stack[top].data.obj,
+          clay_parser_options);
+      break;
+
     default:
       fprintf(stderr, "[Clay] Error: can't call the function %s (%s).\n", 
               functions[i].name, __func__);
@@ -791,6 +818,11 @@ void clay_parser_print_error(int status_result) {
       break;
     case CLAY_ERROR_ARRAY_NOT_FOUND:
       fprintf(stderr,"[Clay] Error: line %d, the array was not found\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_ARRAY_NOT_FOUND_IN_THE_BETA:
+      fprintf(stderr,"[Clay] Error: line %d, the array was not found in\n"
+                     "       the given beta\n",
               clay_yylineno);
       break;
     default:

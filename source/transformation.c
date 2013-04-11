@@ -1451,40 +1451,179 @@ int clay_replace_array(osl_scop_p scop,
  * add_array to insert a new array in the scop. A domain and a scattering
  * is needed to generate the loop to copy the data. They are just a 
  * copy from the domain/scattering of the first statement which correponds
- * to the `beta_get_domain'. The loop is generated before or after `beta',
- * it depends of the `insert_before' value.
- * Note: that the variable `array_copy_name' must be declared before the
- * #pragma scop, otherwise the compilation will fail.
+ * to the `beta_get_domain'. The orignal id or the copy id must be in this
+ * beta. The first which is found will be used to copy the array access.
+ * Genarally you will use replace_array before calling datacopy, that's why
+ * the array_id_copy can be in the scop.
  * \param[in,out] scop
- * \param[in] beta             the beta to insert the loop (before or after)
- * \param[in] array_copy_name  new variable
+ * \param[in] array_id_copy     new variable
  * \param[in] array_id_original
+ * \param[in] beta             the loop is insert after the beta
  * \param[in] beta_get_domain  domain/scattering are copied from this beta
- * \param[in] insert_before
+ *                             the original or copy id must be in the list of 
+ *                             access of this beta
  * \param[in] options
- * \return                  Status
+ * \return                     Status
  */
-/*int clay_datacopy(osl_scop_p scop,
-                  clay_array_p beta,
+int clay_datacopy(osl_scop_p scop,
                   int array_id_copy,
                   int array_id_original,
-                  clay_array_p beta_get_domain,
+                  clay_array_p beta_insert,
                   int insert_before,
+                  clay_array_p beta_get_domain,
                   clay_options_p options) {
 
-  * Description
-   * 
-   *
+  /* Description
+   * - search the statement S beta_get_domain
+   * - search the array array_id_original or array_id_copy in the list of
+   *   access in the given statement
+   * - clone the found access array
+   * - reclone this access and put the other array id (it depends which
+   *   id is found in the second step)
+   * - search the beta_insert
+   * - shift all the beta after or before beta_insert to let the place of the
+   *   new statement
+   * - copy domain + scattering of S in a new statement (and add this one in
+   *   the scop)
+   *   warning: there is no optimization on the scattering, if dimension is
+   *   not useful, it will not be removed.
+   * - put the 2 access arrays in this statement
+   * - generate body
+   */
 
-  if (depth <= 0)
-    return CLAY_ERROR_DEPTH_OVERFLOW;
+  osl_relation_p scattering;
+  int row;
 
-  osl_statement_p stmt = clay_beta_find(scop->statement, beta);
-  if (!stmt)
+  // TODO : global vars ??
+  osl_arrays_p arrays;
+  osl_scatnames_p scatnames;
+  osl_strings_p params;
+  arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
+  scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
+  params = osl_generic_lookup(scop->parameters, OSL_URI_STRINGS);
+
+  if (beta_insert->size == 0)
+    return CLAY_ERROR_BETA_EMPTY;
+
+  // search the beta where we have to insert the new loop
+  osl_statement_p stmt_1 = clay_beta_find(scop->statement, beta_insert);
+  if (!stmt_1)
     return CLAY_ERROR_BETA_NOT_FOUND;
 
+  // search the beta which is need to copy the domain and scattering
+  osl_statement_p stmt_2 = clay_beta_find(scop->statement, beta_get_domain);
+  if (!stmt_2)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  // copy the domain/scattering
+  osl_statement_p copy = osl_statement_malloc();
+  copy->domain = osl_relation_clone(stmt_2->domain);
+  copy->scattering = osl_relation_clone(stmt_2->scattering);
+
+
+  // create an extbody and copy the original iterators
+
+  int is_extbody = osl_generic_has_URI(stmt_2->body, OSL_URI_EXTBODY);
+  osl_extbody_p ebody = osl_extbody_malloc();
+  ebody->body = osl_body_malloc();
+
+  // body string (it will be regenerated)
+  ebody->body->expression = osl_strings_encapsulate(strdup("@ = @;"));
+
+  // copy iterators
+  ebody->body->iterators = is_extbody
+    ? osl_strings_clone(((osl_extbody_p) stmt_2->body->data)->body->iterators) 
+    : osl_strings_clone(((osl_body_p) stmt_2->body->data)->iterators);
+
+  // 2 access coordinates
+  osl_extbody_add(ebody, 0, 1);
+  osl_extbody_add(ebody, 4, 1);
+
+  copy->body = osl_generic_shell(ebody, osl_extbody_interface());
+
+
+  // search the array_id_original in the beta_get_domain
   
+  osl_relation_list_p access = stmt_2->access;
+  osl_relation_p a;
+  int id;
+
+  while (access) {
+    a = access->elt;
+    id = osl_relation_get_array_id(a);
+    if (id == array_id_original || id == array_id_copy)
+      break;
+    access = access->next;
+  }
+
+  if (!access)
+    return CLAY_ERROR_ARRAY_NOT_FOUND_IN_THE_BETA;
+
+  // matrix of the copied array
+  a = osl_relation_nclone(a, 1);
+  a->type = OSL_TYPE_WRITE;
+  osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], array_id_copy);
+  copy->access = osl_relation_list_malloc();
+  copy->access->elt = a;
+
+  // put the found array id
+  osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], id);
+
+  clay_util_body_regenerate_access(ebody, a, 0, arrays, scatnames, params);
+
+  // matrix of the original array
+  a = osl_relation_nclone(a, 1);
+  a->type = OSL_TYPE_READ;
+  copy->access->next = osl_relation_list_malloc();
+  copy->access->next->elt = a;
+  copy->access->next->next = NULL;
+
+  // put the other id
+  if (id == array_id_original)
+    osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], array_id_copy);
+  else
+    osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], array_id_original);
+
+  clay_util_body_regenerate_access(ebody, a, 1, arrays, scatnames, params);
+
+
+  // remove the unused dims in the scattering
+
+  /*
+  for (j = 0 ; j < a->nb_input_dims ; j++) {
+    for (i = 0 ; i < a->nb_rows ; i++)
+      row = clay_util_relation_get_line(a, i);
+  }
+  */
+
+
+  // let the place to the new loop
+
+  scattering = copy->scattering;
+
+  if (insert_before) {
+    clay_beta_shift_before(scop->statement, beta_insert, 1);
+
+    // set the beta : it's the beta[0]
+    row = clay_util_relation_get_line(scattering, 0);
+    osl_int_set_si(scattering->precision, 
+                   &scattering->m[row][scattering->nb_columns-1],
+                   beta_insert->data[0]);
+  } else {
+    clay_beta_shift_after(scop->statement, beta_insert, 1);
+
+    // set the beta : it's the beta[0] + 1
+    row = clay_util_relation_get_line(scattering, 0);
+    osl_int_set_si(scattering->precision, 
+                   &scattering->m[row][scattering->nb_columns-1],
+                   beta_insert->data[0]+1);
+  }
+
+  copy->next = scop->statement;
+  scop->statement = copy;
+
+  if (options && options->normalize)
+    clay_beta_normalize(scop); 
 
   return CLAY_SUCCESS;
 }
-*/

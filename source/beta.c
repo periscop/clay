@@ -460,7 +460,9 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
 
 /**
  * clay_beta_shift_before function:
- * Shift one on all the statements that are before or on the beta vector
+ * Shift before the statement wich corresponds to the beta. It's pratically
+ * the same function as clay_beta_shift_after but it's equal or after, not
+ * strictly after. If the beta is empty, the function does nothing.
  * \param[in,out] statement Statements list
  * \param[in] beta          Beta vector 
  * \param[in] depth         Depth level to shift, >= 1
@@ -478,7 +480,7 @@ void clay_beta_shift_before(osl_statement_p statement, clay_array_p beta,
   (beta_parent)->size = depth-1;
   
   while (statement != NULL) {
-    if (!clay_statement_is_before(statement, beta)) {
+    if (!clay_statement_is_before(statement, beta)) { // after or equal
       if (clay_beta_check(statement, beta_parent)) {
         scattering = statement->scattering;
         if (column < scattering->nb_output_dims) {
@@ -497,7 +499,8 @@ void clay_beta_shift_before(osl_statement_p statement, clay_array_p beta,
 
 /**
  * clay_beta_shift_after function:
- * Shift one on all the statements that are after (strictly)
+ * Shift after (strictly) the statement which corresponds to the beta.
+ * If the beta is empty, the function does nothing.
  * \param[in,out] statement Statements list
  * \param[in] beta          Beta vector 
  * \param[in] depth         Depth level to shift, >= 1

@@ -65,5 +65,6 @@
 #define CLAY_ERROR_VAR_NULL                  26
 #define CLAY_ERROR_CANT_CALL_SUBFUNC         27
 #define CLAY_ERROR_ARRAY_NOT_FOUND           28
+#define CLAY_ERROR_ARRAY_NOT_FOUND_IN_THE_BETA 29
 
 #endif
