@@ -652,6 +652,7 @@ int clay_util_arrays_search(osl_arrays_p arrays, int id) {
  *                             The function takes an osl_relation_list_p in 
  *                             parameter (the elt can be modified) and must 
  *                             return a define error or CLAY_SUCCESS
+ * \param[in] args             args of `func'
  * \param[in] regenerate_body  If 1: after each call to func, 
  *                             clay_util_body_regenerate_access is also called
  * \return                     Return a define error or CLAY_SUCCESS
@@ -659,7 +660,8 @@ int clay_util_arrays_search(osl_arrays_p arrays, int id) {
 int clay_util_foreach_access(osl_scop_p scop,
                              clay_array_p beta,
                              int access_name,
-                             int (*func)(osl_relation_list_p),
+                             int (*func)(osl_relation_list_p, void*),
+                             void *args,
                              int regenerate_body) {
 
   osl_statement_p stmt = scop->statement;
@@ -703,7 +705,7 @@ int clay_util_foreach_access(osl_scop_p scop,
           }
 
           // call the function
-          ret = (*func)(access);
+          ret = (*func)(access, args);
           if (ret != CLAY_SUCCESS) {
             fprintf(stderr, "%s\n",
               ((osl_extbody_p) stmt->body->data)->body->expression->string[0]);

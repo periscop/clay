@@ -1157,6 +1157,38 @@ int clay_context(osl_scop_p scop, clay_array_p vector,
 }
 
 
+static int clay_dimreorder_aux(osl_relation_list_p access,
+                               void *args) {
+  clay_array_p neworder = args;
+  osl_relation_p a = access->elt;
+
+  if (a->nb_output_dims-1 != neworder->size) {
+    fprintf(stderr, "[Clay] Warning: can't reorder dims on this statement: ");
+    return CLAY_ERROR_REORDER_ARRAY_SIZE;
+  }
+
+  osl_relation_p tmp = osl_relation_nclone(a, 1);
+  int i, j;
+
+  for (i = 0 ; i < neworder->size ; i++) {
+    if (neworder->data[i] < 0 ||
+        neworder->data[i] >= a->nb_output_dims-1)
+      return CLAY_ERROR_REORDER_OVERFLOW_VALUE;
+
+    if (i+2 != neworder->data[i]+2)
+      for (j = 0 ; j < a->nb_rows ; j++)
+        osl_int_assign(a->precision, 
+                       &tmp->m[j][i+2],
+                       a->m[j][neworder->data[i]+2]);
+  }
+
+  osl_relation_free(a);
+  access->elt = tmp;
+
+  return CLAY_SUCCESS;
+}
+
+
 /**
  * clay_dimreorder function:
  * Reorder the dimensions of access_ident
@@ -1178,37 +1210,44 @@ int clay_dimreorder(osl_scop_p scop,
    * The first output dim is not used ( => access name) 
    */
 
-  // core of the function
-  int aux(osl_relation_list_p access) {
-    osl_relation_p a = access->elt;
+  // core of the function : clay_dimreorder_aux
 
-    if (a->nb_output_dims-1 != neworder->size) {
-      fprintf(stderr, "[Clay] Warning: can't reorder dims on this statement: ");
-      return CLAY_ERROR_REORDER_ARRAY_SIZE;
+  return clay_util_foreach_access(scop, beta, access_ident, 
+                                  clay_dimreorder_aux, neworder, 1);
+}
+
+
+static int clay_dimprivatize_aux(osl_relation_list_p access, void *args) {
+  int depth = *((int*) args);
+  osl_relation_p a = access->elt;
+
+  // check if the iterator is not used
+  int i;
+  for (i = 0 ; i < a->nb_rows ; i++) {
+    if (!osl_int_zero(a->precision, a->m[i][a->nb_output_dims + depth])) {
+      fprintf(stderr, 
+          "[Clay] Warning: can't privatize this statement\n"
+          "                the dim (depth=%d) seems to be already used\n"
+          "                the depth is the depth in the loops\n"
+          "                ", depth);
+      return CLAY_ERROR_CANT_PRIVATIZE;
     }
-
-    osl_relation_p tmp = osl_relation_nclone(a, 1);
-    int i, j;
-
-    for (i = 0 ; i < neworder->size ; i++) {
-      if (neworder->data[i] < 0 ||
-          neworder->data[i] >= a->nb_output_dims-1)
-        return CLAY_ERROR_REORDER_OVERFLOW_VALUE;
-
-      if (i+2 != neworder->data[i]+2)
-        for (j = 0 ; j < a->nb_rows ; j++)
-          osl_int_assign(a->precision, 
-                         &tmp->m[j][i+2],
-                         a->m[j][neworder->data[i]+2]);
-    }
-
-    osl_relation_free(a);
-    access->elt = tmp;
-
-    return CLAY_SUCCESS;
   }
 
-  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
+  a->nb_output_dims++;
+
+  osl_relation_insert_blank_column(a, a->nb_output_dims);
+  osl_relation_insert_blank_row(a, a->nb_rows);
+
+  osl_int_set_si(a->precision, 
+                 &a->m[a->nb_rows-1][a->nb_output_dims],
+                 -1);
+
+  osl_int_set_si(a->precision,
+                 &a->m[a->nb_rows-1][a->nb_output_dims + depth],
+                 1);
+
+  return CLAY_SUCCESS;
 }
 
 
@@ -1241,40 +1280,26 @@ int clay_dimprivatize(osl_scop_p scop,
 
   CLAY_BETA_CHECK_DEPTH(beta, depth, stmt);
 
-  // core of the function
-  int aux(osl_relation_list_p access) {
-    osl_relation_p a = access->elt;
+  // core of the function : clay_dimprivatize_aux
 
-    // check if the iterator is not used
-    int i;
-    for (i = 0 ; i < a->nb_rows ; i++) {
-      if (!osl_int_zero(a->precision, a->m[i][a->nb_output_dims + depth])) {
-        fprintf(stderr, 
-            "[Clay] Warning: can't privatize this statement\n"
-            "                the dim (depth=%d) seems to be already used\n"
-            "                the depth is the depth in the loops\n"
-            "                ", depth);
-        return CLAY_ERROR_CANT_PRIVATIZE;
-      }
-    }
+  return clay_util_foreach_access(scop, beta, access_ident,
+                                  clay_dimprivatize_aux, &depth, 1);
+}
 
-    a->nb_output_dims++;
 
-    osl_relation_insert_blank_column(a, a->nb_output_dims);
-    osl_relation_insert_blank_row(a, a->nb_rows);
+static int clay_dimcontract_aux(osl_relation_list_p access, void *args) {
+  int depth = *((int*) args);
+  osl_relation_p a = access->elt;
 
-    osl_int_set_si(a->precision, 
-                   &a->m[a->nb_rows-1][a->nb_output_dims],
-                   -1);
-
-    osl_int_set_si(a->precision,
-                   &a->m[a->nb_rows-1][a->nb_output_dims + depth],
-                   1);
-
-    return CLAY_SUCCESS;
+  int row = clay_util_relation_get_line(a, depth);
+  if (row != -1) {
+    osl_relation_remove_row(a, row);
+    osl_relation_remove_column(a, depth+1); // remove output dim
+    a->nb_columns--;
+    a->nb_output_dims--;
   }
 
-  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
+  return CLAY_SUCCESS;
 }
 
 
@@ -1306,22 +1331,10 @@ int clay_dimcontract(osl_scop_p scop,
 
   CLAY_BETA_CHECK_DEPTH(beta, depth, stmt);
 
-  // core of the function
-  int aux(osl_relation_list_p access) {
-    osl_relation_p a = access->elt;
+  // core of the function : clay_dimcontract_aux
 
-    int row = clay_util_relation_get_line(a, depth);
-    if (row != -1) {
-      osl_relation_remove_row(a, row);
-      osl_relation_remove_column(a, depth+1); // remove output dim
-      a->nb_columns--;
-      a->nb_output_dims--;
-    }
-
-    return CLAY_SUCCESS;
-  }
-
-  return clay_util_foreach_access(scop, beta, access_ident, aux, 1);
+  return clay_util_foreach_access(scop, beta, access_ident, 
+                                  clay_dimcontract_aux, &depth, 1);
 }
 
 
@@ -1412,6 +1425,17 @@ int clay_get_array_id(osl_scop_p scop,
 }
 
 
+static int clay_replace_array_aux(osl_relation_list_p access, void *args) {
+  int new_id = *((int*) args);
+  osl_relation_p a = access->elt;
+
+  // here row is != -1, because the function aux shouldn't be called
+  int row = clay_util_relation_get_line(a, 0); 
+  osl_int_set_si(a->precision, &a->m[row][a->nb_columns-1], new_id);
+
+  return CLAY_SUCCESS;
+}
+
 /**
  * clay_replace_array function:
  * Replace an ident array by another in each access
@@ -1426,18 +1450,11 @@ int clay_replace_array(osl_scop_p scop,
                        int new_id,
                        clay_options_p options) {
 
-  int aux(osl_relation_list_p access) {
-    osl_relation_p a = access->elt;
-
-    // here row is != -1, because the function aux shouldn't be called
-    int row = clay_util_relation_get_line(a, 0); 
-    osl_int_set_si(a->precision, &a->m[row][a->nb_columns-1], new_id);
-
-    return CLAY_SUCCESS;
-  }
+  // core of the function : clay_replace_array_aux
 
   clay_array_p beta = clay_array_malloc();
-  int ret = clay_util_foreach_access(scop, beta, last_id, aux, 1);
+  int ret = clay_util_foreach_access(scop, beta, last_id,
+                                     clay_replace_array_aux, &new_id, 1);
   clay_array_free(beta);
 
   return ret;
@@ -1748,6 +1765,9 @@ int clay_block(osl_scop_p scop,
       s = s->next;
     }
   }
+
+  if (options && options->normalize)
+    clay_beta_normalize(scop); 
 
   return CLAY_SUCCESS;
 }
