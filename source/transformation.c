@@ -1466,13 +1466,14 @@ int clay_replace_array(osl_scop_p scop,
  * This function will generate a loop to copy all data from the array
  * `array_id_original' to a new array `array_id_copy'. Use the function
  * add_array to insert a new array in the scop. A domain and a scattering
- * is needed to generate the loop to copy the data. They are just a 
- * copy from the domain/scattering of the first statement which correponds
- * to the `beta_get_domain'. The orignal id or the copy id must be in this
- * beta (in the list of access relation). Genarally you will use replace_array
- * before calling datacopy, that's why the array_id_copy can be in the scop.
- * The first access relation which is found will be used to generate an access 
- * for the original id and the copy id.
+ * is needed to generate the loop to copy the data. They is a copy
+ * from the domain/scattering of the first statement which corresponds
+ * to the `beta_get_domain'. There is just a modification on the domain to
+ * remove unused loops (iter >= 1 && iter <= -1 is set). The orignal id or
+ * the copy id must be in this beta (in the list of access relation). Genarally
+ * you will use replace_array before calling datacopy, that's why the
+ * array_id_copy can be in the scop.  The first access relation which is found
+ * will be used to generate an access for the original id and the copy id.
  * \param[in,out] scop
  * \param[in] array_id_copy     new variable
  * \param[in] array_id_original
@@ -1503,14 +1504,14 @@ int clay_datacopy(osl_scop_p scop,
    *   new statement
    * - copy domain + scattering of S in a new statement (and add this one in
    *   the scop)
-   *   warning: there is no optimization on the scattering, if dimension is
-   *   not useful, it will not be removed.
+   * - for each unused iterators we put iter >= 1 && iter <= -1 in the domain
+   *   to remove the loop at the generation of code
    * - put the 2 access arrays in this statement
    * - generate body
    */
 
   osl_relation_p scattering;
-  int row;
+  int row, i, j;
 
   // TODO : global vars ??
   osl_arrays_p arrays;
@@ -1560,7 +1561,7 @@ int clay_datacopy(osl_scop_p scop,
   copy->body = osl_generic_shell(ebody, osl_extbody_interface());
 
 
-  // search the array_id_original in the beta_get_domain
+  // search the array_id in the beta_get_domain
   
   osl_relation_list_p access = stmt_2->access;
   osl_relation_p a;
@@ -1584,9 +1585,6 @@ int clay_datacopy(osl_scop_p scop,
   copy->access = osl_relation_list_malloc();
   copy->access->elt = a;
 
-  // put the found array id
-  osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], id);
-
   clay_util_body_regenerate_access(ebody, a, 0, arrays, scatnames, params);
 
   // matrix of the original array
@@ -1595,30 +1593,49 @@ int clay_datacopy(osl_scop_p scop,
   copy->access->next = osl_relation_list_malloc();
   copy->access->next->elt = a;
   copy->access->next->next = NULL;
-
-  // put the other id
-  if (id == array_id_original)
-    osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], array_id_copy);
-  else
-    osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], array_id_original);
+  osl_int_set_si(a->precision, &a->m[0][a->nb_columns-1], array_id_original);
 
   clay_util_body_regenerate_access(ebody, a, 1, arrays, scatnames, params);
 
 
-  // remove the unused dims in the scattering
-
-  /*
+  // remove the unused dim in the scattering (modify the domain of the loop)
   for (j = 0 ; j < a->nb_input_dims ; j++) {
-    for (i = 0 ; i < a->nb_rows ; i++)
-      row = clay_util_relation_get_line(a, i);
+    int found = 0;
+
+    // search an unused input dims
+    for (i = 0 ; i < a->nb_rows ; i++) {
+      if (!osl_int_zero(a->precision, a->m[i][1 + a->nb_output_dims + j])) {
+        found = 1;
+        break;
+      }
+    }
+
+    // unused
+    if (!found) {
+      int k, t;
+      osl_relation_p domain = copy->domain;
+      for (i = 0 ; i < domain->nb_rows ; i++) {
+        t = osl_int_get_si(domain->precision, domain->m[i][1 + j]);
+
+        if (t != 0) {
+          for (k = 1 ; k < domain->nb_columns-1 ; k++)
+            if (k != 1+j)
+              osl_int_set_si(domain->precision, &domain->m[i][k], 0);
+
+          // set iter <= -1 && iter >= 1  ==> no solutions, so no loop !
+          if (t > 0)
+            osl_int_set_si(domain->precision, &domain->m[i][k], -1);
+          else
+            osl_int_set_si(domain->precision, &domain->m[i][k], 1);
+        }
+      }
+    }
   }
-  */
 
 
   // let the place to the new loop
 
   scattering = copy->scattering;
-
   if (insert_before) {
     clay_beta_shift_before(scop->statement, beta_insert, 1);
 

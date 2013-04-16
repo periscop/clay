@@ -47,16 +47,16 @@ SCATTERING
 WRITE
 3 9 3 2 0 2
 # e/i| Arr  [1]  [2]|  i    j |  N    M |  1  
-   0   -1    0    0    0    0    0    0    8    ## Arr == b_copy
-   0    0    0   -1    0    1    0    0    0    ## [2] == j
-   0    0   -1    0    1    0    0    0    0    ## [1] == i
+   0   -1    0    0    0    0    0    0    6    ## Arr == b
+   0    0   -1    0    0    1    0    0    0    ## [1] == j
+   0    0    0   -1    1    0    0    0    0    ## [2] == i
 
 READ
 3 9 3 2 0 2
 # e/i| Arr  [1]  [2]|  i    j |  N    M |  1  
-   0   -1    0    0    0    0    0    0    6    ## Arr == b
-   0    0   -1    0    0    1    0    0    0    ## [1] == j
-   0    0    0   -1    1    0    0    0    0    ## [2] == i
+   0   -1    0    0    0    0    0    0    8    ## Arr == b_copy
+   0    0    0   -1    0    1    0    0    0    ## [2] == j
+   0    0   -1    0    1    0    0    0    0    ## [1] == i
 
 # ----------------------------------------------  1.4 Body
 # Statement body is provided
@@ -67,7 +67,7 @@ READ
 # List of original iterators
 i j
 # Statement body expression
-b_copy[i][j] = b[j][i];
+b[j][i] = b_copy[i][j];
 </body>
 
 # =============================================== Statement 2
@@ -99,16 +99,16 @@ SCATTERING
 WRITE
 3 9 3 2 0 2
 # e/i| Arr  [1]  [2]|  i    j |  N    M |  1  
-   0   -1    0    0    0    0    0    0    7    ## Arr == a_copy
-   0    0    0   -1    0    1    0    0    0    ## [2] == j
-   0    0   -1    0    1    0    0    0    0    ## [1] == i
+   0   -1    0    0    0    0    0    0    5    ## Arr == a
+   0    0   -1    0    0    1    0    0    0    ## [1] == j
+   0    0    0   -1    1    0    0    0    0    ## [2] == i
 
 READ
 3 9 3 2 0 2
 # e/i| Arr  [1]  [2]|  i    j |  N    M |  1  
-   0   -1    0    0    0    0    0    0    5    ## Arr == a
-   0    0   -1    0    0    1    0    0    0    ## [1] == j
-   0    0    0   -1    1    0    0    0    0    ## [2] == i
+   0   -1    0    0    0    0    0    0    7    ## Arr == a_copy
+   0    0    0   -1    0    1    0    0    0    ## [2] == j
+   0    0   -1    0    1    0    0    0    0    ## [1] == i
 
 # ----------------------------------------------  2.4 Body
 # Statement body is provided
@@ -119,7 +119,7 @@ READ
 # List of original iterators
 i j
 # Statement body expression
-a_copy[i][j] = a[j][i];
+a[j][i] = a_copy[i][j];
 </body>
 
 # =============================================== Statement 3

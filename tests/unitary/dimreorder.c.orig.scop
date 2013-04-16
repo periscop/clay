@@ -90,9 +90,9 @@ READ
 # Statement body is provided
 1
 <extbody>
-# Number of access
+# Number of accesses
 2
-# Mapping start/length
+# Access coordinates (start/length)
 0 10
 13 21
 # Number of original iterators

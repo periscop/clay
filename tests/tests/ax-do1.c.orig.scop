@@ -77,9 +77,9 @@ WRITE
 # Statement body is provided
 1
 <extbody>
-# Number of access
+# Number of accesses
 1
-# Mapping start/length
+# Access coordinates (start/length)
 0 5
 # Number of original iterators
 1
@@ -143,9 +143,9 @@ READ
 # Statement body is provided
 1
 <extbody>
-# Number of access
+# Number of accesses
 4
-# Mapping start/length
+# Access coordinates (start/length)
 0 5
 8 5
 16 8
