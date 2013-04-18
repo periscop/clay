@@ -74,8 +74,8 @@
  * \return                  Status
  */
 int clay_reorder(osl_scop_p scop, 
-                  clay_array_p beta_loop, clay_array_p neworder,
-                  clay_options_p options) {
+                 clay_array_p beta_loop, clay_array_p neworder,
+                 clay_options_p options) {
 
   /* Description:
    * Modify the beta in function of the values in the neworder array.
@@ -134,7 +134,7 @@ int clay_reorder(osl_scop_p scop,
  * \param[in] options
  * \return                  Status
  */
-int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
+int clay_reverse(osl_scop_p scop, clay_array_p beta, unsigned int depth,
                  clay_options_p options) {
  
   /* Description:
@@ -190,7 +190,8 @@ int clay_reverse(osl_scop_p scop, clay_array_p beta, int depth,
  * \return                  Status
  */
 int clay_interchange(osl_scop_p scop, 
-                      clay_array_p beta, int depth_1, int depth_2,
+                      clay_array_p beta, 
+                      unsigned int depth_1, unsigned int depth_2,
                       int pretty,
                       clay_options_p options) {
   /* Description:
@@ -279,7 +280,7 @@ int clay_interchange(osl_scop_p scop,
  * \param[in] options
  * \return                  Status
  */
-int clay_split(osl_scop_p scop, clay_array_p beta, int depth,
+int clay_split(osl_scop_p scop, clay_array_p beta, unsigned int depth,
                clay_options_p options) {
 
   /* Description:
@@ -391,7 +392,7 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
  * \return                  Status
  */
 int clay_skew(osl_scop_p scop, 
-              clay_array_p beta, int depth, int coeff,
+              clay_array_p beta, unsigned int depth, unsigned int coeff,
               clay_options_p options) {
 
   /* Description:
@@ -546,7 +547,8 @@ int clay_iss(osl_scop_p scop,
  * \param[in] options
  * \return                  Status
  */
-int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size, 
+int clay_stripmine(osl_scop_p scop, clay_array_p beta, 
+                   unsigned int depth, unsigned int size, 
                    int pretty, clay_options_p options) {
   
   /* Description:
@@ -708,17 +710,12 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta, int depth, int size,
 }
 
 
-/**
- * clay_unroll function:
- * Unroll a loop 
- * \param[in,out] scop
- * \param[in] beta_loop     Loop beta vector
- * \param[in] factor        > 0
- * \param[in] setepilog     if true the epilog will be added
- * \param[in] options
- * \return                  Status
+/** clay_unroll function: Unroll a loop \param[in,out] scop \param[in]
+ * beta_loop     Loop beta vector \param[in] factor        > 0 \param[in]
+ * setepilog     if true the epilog will be added \param[in] options \return
+ * Status
  */
-int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
+int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
                 int setepilog, clay_options_p options) {
 
   /* Description:
@@ -935,8 +932,8 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, int factor,
  * \return                  Status
  */
 int clay_tile(osl_scop_p scop, 
-              clay_array_p beta, int depth, int depth_outer, int size,
-              int pretty, clay_options_p options) {
+              clay_array_p beta, unsigned int depth, unsigned int depth_outer,
+              unsigned int size, int pretty, clay_options_p options) {
 
   /* Description:
    * stripmine + interchange
@@ -975,7 +972,7 @@ int clay_tile(osl_scop_p scop,
  * \return                  Status
  */
 int clay_shift(osl_scop_p scop, 
-               clay_array_p beta, int depth, clay_list_p vector,
+               clay_array_p beta, unsigned int depth, clay_list_p vector,
                clay_options_p options) {
 
   /* Description:
@@ -1201,7 +1198,7 @@ static int clay_dimreorder_aux(osl_relation_list_p access,
  */
 int clay_dimreorder(osl_scop_p scop,
                     clay_array_p beta,
-                    int access_ident,
+                    unsigned int access_ident,
                     clay_array_p neworder,
                     clay_options_p options) {
 
@@ -1263,8 +1260,8 @@ static int clay_dimprivatize_aux(osl_relation_list_p access, void *args) {
  */
 int clay_dimprivatize(osl_scop_p scop,
                       clay_array_p beta,
-                      int access_ident,
-                      int depth,
+                      unsigned int access_ident,
+                      unsigned int depth,
                       clay_options_p options) {
 
   /* Description
@@ -1315,8 +1312,8 @@ static int clay_dimcontract_aux(osl_relation_list_p access, void *args) {
  */
 int clay_dimcontract(osl_scop_p scop,
                      clay_array_p beta,
-                     int access_ident,
-                     int depth,
+                     unsigned int access_ident,
+                     unsigned int depth,
                      clay_options_p options) {
   /* Description
    * Remove the line/column at the depth level
@@ -1446,8 +1443,8 @@ static int clay_replace_array_aux(osl_relation_list_p access, void *args) {
  * \return    Status
  */
 int clay_replace_array(osl_scop_p scop,
-                       int last_id,
-                       int new_id,
+                       unsigned int last_id,
+                       unsigned int new_id,
                        clay_options_p options) {
 
   // core of the function : clay_replace_array_aux
@@ -1485,8 +1482,8 @@ int clay_replace_array(osl_scop_p scop,
  * \return                     Status
  */
 int clay_datacopy(osl_scop_p scop,
-                  int array_id_copy,
-                  int array_id_original,
+                  unsigned int array_id_copy,
+                  unsigned int array_id_original,
                   clay_array_p beta_insert,
                   int insert_before,
                   clay_array_p beta_get_domain,

@@ -632,7 +632,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
  * \param[in] id        The id to search
  * \return              Return the index in the arrays 
  */
-int clay_util_arrays_search(osl_arrays_p arrays, int id) {
+int clay_util_arrays_search(osl_arrays_p arrays, unsigned int id) {
   int i;
   for (i = 0 ; i < arrays->nb_names ; i++) {
     if (arrays->id[i] == id)
@@ -659,7 +659,7 @@ int clay_util_arrays_search(osl_arrays_p arrays, int id) {
  */
 int clay_util_foreach_access(osl_scop_p scop,
                              clay_array_p beta,
-                             int access_name,
+                             unsigned int access_name,
                              int (*func)(osl_relation_list_p, void*),
                              void *args,
                              int regenerate_body) {
