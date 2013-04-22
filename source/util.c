@@ -531,6 +531,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
   int body_len = strlen(body);
   int start = ebody->start[index];
   int len = ebody->length[index];
+  int is_zero; // if the line contains only zeros
 
   if (start >= body_len || start + len >= body_len || (start == -1 && len == -1))
     return;
@@ -569,34 +570,39 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
     osl_util_safe_strcat(&new_body, "[", &hwm);
 
+    is_zero = 1;
     print_plus = 0;
     k = 1 + access->nb_output_dims;
 
     // iterators
     for (j = 0 ; j < access->nb_input_dims ; j++, k++) {
       val = osl_int_get_si(precision, access->m[row][k]);
-      if (val != 0)
+      if (val != 0) {
         clay_util_name_sprint(&new_body,
                               &hwm, 
                               &print_plus,
                               val,
                               scatnames->names->string[j*2+1]);
+        is_zero = 0;
+      }
     }
 
     // params
     for (j = 0 ; j < access->nb_parameters ; j++, k++) {
       val = osl_int_get_si(precision, access->m[row][k]);
-      if (val != 0)
+      if (val != 0) {
         clay_util_name_sprint(&new_body,
                               &hwm, 
                               &print_plus,
                               val,
                               params->string[j]);
+        is_zero = 0;
+      }
     }
 
     // const
     val = osl_int_get_si(precision, access->m[row][k]);
-    if (val != 0)
+    if (val != 0 || is_zero)
       clay_util_name_sprint(&new_body,
                             &hwm, 
                             &print_plus,
