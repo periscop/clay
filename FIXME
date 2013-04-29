@@ -1,3 +1,26 @@
 - clay read only the first scop in the chain list
+
 - regenerate access with inequalities
+
 - pip_close in candl (memleak)
+
+- datacopy bug (taken from the polybench symm.c) :
+
+  If we have something like this :
+  for (i = 0 ; i < N ; i++)
+    for (j = 0 ; j < N ; j++)
+      for (k = 0 ; k < j - 1 ; k++)
+        a[i][k] = ...
+
+  The generated loop for the datacopy will fail :
+  for (i = 0 ; i < N ; i++)
+    for (k = 0 ; ; k++) // no end
+      a_copy[i][k] = a[i][k]
+
+  This is beacause there is no j in a[i][k] and the matrix domain is copied
+  from the original. Clay see that j is not used, and set in the domain :
+  j >= 1
+  j <= -1
+  This will remove the loop j in the datacopy.
+
+  But it's wrong, because k depends of j.

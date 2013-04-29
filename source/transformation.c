@@ -1595,11 +1595,11 @@ int clay_datacopy(osl_scop_p scop,
   clay_util_body_regenerate_access(ebody, a, 1, arrays, scatnames, params);
 
 
-  // remove the unused dim in the scattering (modify the domain of the loop)
+  // remove the unused dim in the scatterin (modify the domain of the loop)
   for (j = 0 ; j < a->nb_input_dims ; j++) {
     int found = 0;
 
-    // search an unused input dims
+    // search an unused input dims (if there is only 0 on the row)
     for (i = 0 ; i < a->nb_rows ; i++) {
       if (!osl_int_zero(a->precision, a->m[i][1 + a->nb_output_dims + j])) {
         found = 1;
