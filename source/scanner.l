@@ -40,12 +40,10 @@
   #include <clay/array.h>
   #include <clay/list.h>
   #include <clay/macros.h>
-  #include <clay/prototype_function.h>
 
   void clay_scanner_free();
   void clay_scanner_initialize();
   
-  extern clay_prototype_function_p  clay_params;
   extern int is_in_a_list;
 
   char* trim(char*);
