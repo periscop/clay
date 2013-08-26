@@ -61,9 +61,19 @@ Edit the redo.sh to modify the configuration.
     You can use the --nocandl to not check dependencies.
 
 
-Installation :
+Installation:
 $ ./redo.sh
 $ make install
+
+Alternative installation with CMake:
+$ mkdir build
+$ cd build
+$ cmake .. # -DCMAKE_INSTALL_PREFIX="/your/install/directory"
+$ make
+$ make test
+$ # make install # sudo make install # su -c "make install"
+$ make doc
+$ make doxygen
 
 
 SUPPORT
