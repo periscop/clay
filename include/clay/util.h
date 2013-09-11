@@ -50,6 +50,11 @@
 #include <osl/extensions/scatnames.h>
 #include <osl/extensions/arrays.h>
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 /*void
   clay_util_statement_insert_inequation
   (osl_statement_p, clay_array_p, int, int);*/
@@ -83,5 +88,9 @@ int   clay_util_arrays_search(osl_arrays_p, unsigned int);
 int clay_util_foreach_access(osl_scop_p, clay_array_p, unsigned int, 
                              int (*func)(osl_relation_list_p, void*), void*,
                              int);
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif

@@ -37,6 +37,11 @@
 #ifndef CLAY_OPTIONS_H
 #define CLAY_OPTIONS_H
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 
 struct clay_options {
   FILE *input;      /**< Input file. */
@@ -73,5 +78,9 @@ clay_options_p  clay_options_malloc();
 clay_options_p  clay_options_read(int, char**);
 void            clay_options_list_functions();
 
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif

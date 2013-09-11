@@ -41,6 +41,11 @@
 
 #define CLAY_STACK_MAX 16
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 struct clay_stack {
   clay_data_t stack[CLAY_STACK_MAX];
   int sp;
@@ -54,4 +59,8 @@ void         clay_stack_push(clay_stack_p, clay_data_p);
 clay_data_p  clay_stack_pop(clay_stack_p);
 void         clay_stack_clear(clay_stack_p);
   
+# if defined(__cplusplus)
+  }
+# endif
+
 #endif

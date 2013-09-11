@@ -42,6 +42,11 @@
 #include <stdio.h>
 #include <clay/array.h>
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 struct clay_list {
   clay_array_p *data;
   int size;
@@ -57,5 +62,9 @@ void              clay_list_free(clay_list_p);
 void              clay_list_print(FILE*, clay_list_p);
 void              clay_list_clear(clay_list_p);
 clay_list_p       clay_list_clone(clay_list_p);
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif

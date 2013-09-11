@@ -66,6 +66,11 @@
   #define CLAY_FUNCTION_BREAK            25
   #define CLAY_FUNCTION_BLOCK            26
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 typedef struct {
   char *name;
   char *string;
@@ -73,5 +78,9 @@ typedef struct {
   int *args;
   int argc;
 } clay_prototype_t;
-  
+
+# if defined(__cplusplus)
+  }
+# endif
+
 #endif

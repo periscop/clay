@@ -42,6 +42,11 @@
 #include <clay/list.h>
 #include <clay/options.h>
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 int clay_split(osl_scop_p, clay_array_p, unsigned int, clay_options_p);
 int clay_reorder(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
 int clay_interchange(osl_scop_p, clay_array_p, unsigned int, unsigned int, 
@@ -73,5 +78,9 @@ int clay_get_array_id(osl_scop_p, char*, int*, clay_options_p);
 int clay_datacopy(osl_scop_p, unsigned int, unsigned int, clay_array_p, int, 
                   clay_array_p, clay_options_p);
 int clay_block(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif

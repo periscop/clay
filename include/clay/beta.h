@@ -76,6 +76,11 @@
       return CLAY_ERROR_DEPTH_OVERFLOW;                             \
   } while(0)
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 
 int              clay_statement_is_after(osl_statement_p, clay_array_p);
 int              clay_statement_is_before(osl_statement_p, clay_array_p);
@@ -96,5 +101,9 @@ void             clay_beta_shift_before(osl_statement_p, clay_array_p, int);
 
 int              clay_scattering_check_zeros(osl_statement_p, int, int);
 
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif

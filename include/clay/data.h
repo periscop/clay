@@ -48,6 +48,11 @@
 #define UNDEF_T               6
 #define MULTI_T               7
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 struct clay_data {
   int type;
   union {
@@ -64,6 +69,10 @@ void         clay_data_free(clay_data_p);
 void         clay_data_clear(clay_data_p);
 void         clay_data_print(FILE*, clay_data_p);
 clay_data_p  clay_data_clone(clay_data_p);
-  
+
+# if defined(__cplusplus)
+  }
+# endif
+
 #endif
 

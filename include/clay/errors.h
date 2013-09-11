@@ -70,4 +70,13 @@
 #define CLAY_ERROR_BETAS_NOT_SAME_DOMAIN     31
 #define CLAY_ERROR_ONE_HAS_EXTBODY           32
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
+# if defined(__cplusplus)
+  }
+# endif
+
 #endif

@@ -37,5 +37,14 @@
 #define CLAY_H
 
 #include <clay/macros.h>
-  
+
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
+# if defined(__cplusplus)
+  }
+# endif
+
 #endif

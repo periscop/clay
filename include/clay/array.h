@@ -41,6 +41,11 @@
 
 #include <stdio.h>
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 struct clay_array {
   int *data;
   int size; // memory used
@@ -57,5 +62,9 @@ void              clay_array_print(FILE*, clay_array_p, int);
 clay_array_p      clay_array_clone(clay_array_p);
 void              clay_array_concat(clay_array_p, clay_array_p);
 int               clay_array_equal(clay_array_p, clay_array_p);
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif

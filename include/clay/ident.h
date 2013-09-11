@@ -41,6 +41,11 @@
 #include <clay/betatree.h>
 #include <clay/array.h>
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 
 clay_array_p      clay_ident_find_stmt(osl_scop_p, int);
 clay_array_p      clay_ident_find_iterator(osl_scop_p, char*);
@@ -48,5 +53,9 @@ clay_array_p      clay_ident_find_loop(clay_betatree_p, int);
 
 
 clay_array_p      clay_ident_find_loop_aux(clay_betatree_p, int, int*);
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif

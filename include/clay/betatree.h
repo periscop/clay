@@ -45,6 +45,11 @@
 
 #define CLAY_BETATREE_ALLOC_CREATE 30
 
+# if defined(__cplusplus)
+extern "C"
+  {
+# endif
+
 
 
 struct clay_betatree;
@@ -69,5 +74,9 @@ clay_betatree_p      clay_betatree_search(clay_betatree_p, int);
 void                 clay_betatree_push_beta(clay_betatree_p, clay_array_p);
 clay_betatree_p      clay_betatree_create(osl_scop_p);
 
+
+# if defined(__cplusplus)
+  }
+# endif
 
 #endif
