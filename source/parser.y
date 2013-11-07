@@ -44,6 +44,7 @@
   #include <osl/statement.h>
   #include <osl/vector.h>
 
+  #include <clay/clay.h>
   #include <clay/macros.h>
   #include <clay/array.h>
   #include <clay/list.h>
@@ -101,8 +102,6 @@
 
   // parser functions
   void clay_parser_exec_function(char *name);
-  void clay_parser_string(osl_scop_p, char*, clay_options_p);
-  void clay_parser_file(osl_scop_p, FILE*, clay_options_p);
   void clay_parser_print_error(int);
 %}
 

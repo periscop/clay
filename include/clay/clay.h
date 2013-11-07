@@ -36,13 +36,19 @@
 #ifndef CLAY_H
 #define CLAY_H
 
+#include <osl/scop.h>
+
 #include <clay/macros.h>
+#include <clay/options.h>
 
 # if defined(__cplusplus)
 extern "C"
   {
 # endif
 
+void clay_parser_string(osl_scop_p, char*, clay_options_p);
+void clay_parser_file(osl_scop_p, FILE*, clay_options_p);
+  
 # if defined(__cplusplus)
   }
 # endif

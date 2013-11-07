@@ -74,10 +74,6 @@
 #endif
 
 
-void clay_parser_string(osl_scop_p, char*, clay_options_p);
-void clay_parser_file(osl_scop_p, FILE*, clay_options_p);
-
-
 int main(int argc, char * argv[]) {
 
   osl_scop_p scop = NULL;
