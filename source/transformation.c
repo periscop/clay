@@ -1773,6 +1773,7 @@ int clay_block(osl_scop_p scop,
     while (s->next) {
       if (s->next == stmt_2) {
         s->next = s->next->next;
+        stmt_2->next = NULL; // prevent free from removing chained statements
         osl_statement_free(stmt_2);
         break;
       }

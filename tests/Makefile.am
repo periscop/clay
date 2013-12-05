@@ -112,8 +112,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/dimprivatize_simple.c \
 	$(top_srcdir)/tests/unitary/dimcontract.c \
 	$(top_srcdir)/tests/unitary/datacopy.c \
-	$(top_srcdir)/tests/unitary/block.c
-	
+	$(top_srcdir)/tests/unitary/block.c \
+	$(top_srcdir)/tests/unitary/block_inside.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \
