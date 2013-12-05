@@ -438,11 +438,12 @@ int clay_skew(osl_scop_p scop,
  * \param[in,out] scop
  * \param[in]  beta_loop         Beta loop
  * \param[in]  inequation array  {(([output, ...],) [param, ...],) [const]}
- * \param[out] beta_max          If NULL, the beta_max will not be returned
- *                               This the last beta which has the prefix
- *                               beta_loop.
+ * \param[out] beta_max          If NULL, the beta_max will not be returned.
+ *                               If function terminated successfully, the last
+ *                               beta which has the prefix beta_loop, NULL
+ *                               otherwise
  * \param[in]  options
- * \return                      Status
+ * \return                       Status
  */
 int clay_iss(osl_scop_p scop, 
              clay_array_p beta_loop, clay_list_p inequ,
@@ -456,12 +457,8 @@ int clay_iss(osl_scop_p scop,
 
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
-  if (inequ->size == 0)
-    return CLAY_SUCCESS;
   if (inequ->size > 3)
     return CLAY_ERROR_INEQU;
-  if (inequ->size == 0)
-    return CLAY_SUCCESS;
 
   osl_statement_p statement, newstatement;
   osl_relation_p scattering;
@@ -510,6 +507,10 @@ int clay_iss(osl_scop_p scop,
   } else {
     *ret_beta_max = beta_max;
   }
+
+  // ensure ret_beta_max is set up before returning success
+  if (inequ->size == 0)
+    return CLAY_SUCCESS;
 
   // insert the inequation on each statements
   while (statement != NULL) {
@@ -1096,9 +1097,8 @@ int clay_peel(osl_scop_p scop,
     // see clay_split
     clay_beta_shift_after(scop->statement, beta_max, 
                           beta_loop->size);
+    clay_array_free(beta_max);
   }
-
-  clay_array_free(beta_max);
 
   if (options && options->normalize)
     clay_beta_normalize(scop);
