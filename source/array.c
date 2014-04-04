@@ -71,6 +71,16 @@ void clay_array_add(clay_array_p arr, int i) {
 
 
 /**
+ * clay_array_remove_last function:
+ * Remove last element of the array if exists.
+ * \param[in,out] array A Clay array
+ */
+void clay_array_remove_last(clay_array_p array) {
+  if (array != NULL && array->size > 0) { --(array->size); }
+}
+
+
+/**
  * clay_array_free function: 
  * \param[in] arr
  */
