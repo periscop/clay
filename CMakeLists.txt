@@ -192,6 +192,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/parser.h" DESTINATION include/clay)
 	install(FILES clay-config.cmake DESTINATION lib/clay)
 	install(TARGETS clay_exe RUNTIME DESTINATION bin)
+	install(DIRECTORY tests DESTINATION share/clay FILES_MATCHING PATTERN "*.c")
 
 
 # Little help
