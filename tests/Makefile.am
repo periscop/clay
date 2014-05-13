@@ -112,8 +112,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/dimprivatize_simple.c \
 	$(top_srcdir)/tests/unitary/dimcontract.c \
 	$(top_srcdir)/tests/unitary/datacopy.c \
-	$(top_srcdir)/tests/unitary/block.c
-	
+	$(top_srcdir)/tests/unitary/block.c \
+	$(top_srcdir)/tests/unitary/block_inside.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \
@@ -123,6 +123,7 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/interchange_overflow_statement2.c \
 	$(top_srcdir)/tests/must_fail/interchange_overflow_statement.c \
 	$(top_srcdir)/tests/must_fail/iss_inequation.c \
+	$(top_srcdir)/tests/must_fail/peel_not_a_loop.c \
 	$(top_srcdir)/tests/must_fail/reorder_array_too_small.c \
 	$(top_srcdir)/tests/must_fail/reverse_overflow_loop.c \
 	$(top_srcdir)/tests/must_fail/reverse_overflow_statement.c \
