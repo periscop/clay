@@ -51,8 +51,8 @@ WRITE
    0   -1    0    0    0    3    ## Arr == a
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  1.4 Body
-# Statement body is provided
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -96,8 +96,8 @@ WRITE
    0   -1    0    0    0    4    ## Arr == b
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  2.4 Body
-# Statement body is provided
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -153,8 +153,8 @@ WRITE
    0   -1    0    0    0    7    ## Arr == e
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  3.4 Body
-# Statement body is provided
+# ----------------------------------------------  3.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -198,8 +198,8 @@ WRITE
    0   -1    0    0    0    6    ## Arr == d
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  4.4 Body
-# Statement body is provided
+# ----------------------------------------------  4.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -243,8 +243,8 @@ WRITE
    0   -1    0    0    0    8    ## Arr == f
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  5.4 Body
-# Statement body is provided
+# ----------------------------------------------  5.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -276,7 +276,7 @@ b0 i b1
 
 <coordinates>
 # File name
-block_inside.c
+./unitary/block_inside.c
 # Starting line and column
 2 0
 # Ending line and column

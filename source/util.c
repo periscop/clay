@@ -410,11 +410,13 @@ bool clay_util_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
  */
 int clay_util_statement_find_iterator(osl_statement_p statement, char *iter) {
   osl_body_p body;
+  osl_extbody_p extbody = NULL;
   
-  if (osl_generic_has_URI(statement->body, OSL_URI_EXTBODY))
-    body = ((osl_extbody_p) statement->body->data)->body;
+  extbody = osl_generic_lookup(statement->extension, OSL_URI_EXTBODY);
+  if (extbody)
+    body = extbody->body;
   else
-    body = (osl_body_p) statement->body->data;
+    body = osl_generic_lookup(statement->extension, OSL_URI_BODY);
 
   char **ptr = body->iterators->string;
   int i = 0;
@@ -440,19 +442,24 @@ void clay_util_scop_export_body(osl_scop_p scop) {
     return;
 
   osl_statement_p stmt = scop->statement;
-  osl_extbody_p ebody;
+  osl_extbody_p ebody = NULL;
+  osl_body_p body = NULL;
+  osl_generic_p gen = NULL;
 
   while (stmt) {
-    if (osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
-      ebody = stmt->body->data;
+    ebody = osl_generic_lookup(stmt->extension, OSL_URI_EXTBODY);
+    if (ebody!=NULL) {
 
-      osl_interface_free(stmt->body->interface);
-      stmt->body->interface = osl_body_interface();
-
-      stmt->body->data = ebody->body;
-
-      ebody->body = NULL;
-      osl_extbody_free(ebody);
+      body = osl_generic_lookup(stmt->extension, OSL_URI_BODY);
+      if (body) {
+        osl_generic_remove(&stmt->extension, OSL_URI_BODY);
+      }
+      body = osl_body_clone(ebody->body);
+      gen = osl_generic_shell(body, osl_body_interface());
+      osl_generic_add(&stmt->extension, gen);
+      osl_generic_remove(&stmt->extension, OSL_URI_EXTBODY);
+      ebody=NULL;
+      body=NULL;
     }
     stmt = stmt->next;
   }
@@ -673,6 +680,9 @@ int clay_util_foreach_access(osl_scop_p scop,
   osl_statement_p stmt = scop->statement;
   osl_relation_list_p access;
   osl_relation_p a;
+  osl_extbody_p ebody = NULL;
+  osl_body_p body = NULL;
+  osl_generic_p gen= NULL;
   int count_access;
   int found = 0;
   int ret;
@@ -704,32 +714,45 @@ int clay_util_foreach_access(osl_scop_p scop,
         if (osl_relation_get_array_id(a) == access_name) {
           found = 1;
 
-          if (!osl_generic_has_URI(stmt->body, OSL_URI_EXTBODY)) {
+          ebody = osl_generic_lookup(stmt->extension, OSL_URI_EXTBODY);
+          if (ebody==NULL) {
             CLAY_error("extbody uri not found on this statement");
             fprintf(stderr, "%s\n",
-              ((osl_body_p) stmt->body->data)->expression->string[0]);
+              ebody->body->expression->string[0]);
           }
 
           // call the function
           ret = (*func)(access, args);
           if (ret != CLAY_SUCCESS) {
             fprintf(stderr, "%s\n",
-              ((osl_extbody_p) stmt->body->data)->body->expression->string[0]);
+              ebody->body->expression->string[0]);
             return ret;
           }
 
           // re-generate the body
           if (regenerate_body) {
             clay_util_body_regenerate_access(
-                ((osl_extbody_p) stmt->body->data),
+                ebody,
                 access->elt,
                 count_access,
                 arrays,
                 scatnames,
                 params);
+
+
+            //synchronize extbody with body
+            body = osl_generic_lookup(stmt->extension, OSL_URI_BODY);
+            if (body) {
+              osl_generic_remove(&stmt->extension, OSL_URI_BODY);
+              body = osl_body_clone(ebody->body);
+              gen = osl_generic_shell(body, osl_body_interface());
+              osl_generic_add(&stmt->extension, gen);
+            }
           }
         }
 
+        ebody = NULL;
+        body  = NULL;
         access = access->next;
         count_access++;
       }

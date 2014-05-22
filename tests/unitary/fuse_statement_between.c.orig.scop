@@ -1,3 +1,4 @@
+[Clan] Info: parsing file #1 (./unitary/fuse_statement_between.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -66,9 +67,16 @@ WRITE
 # e/i| Arr|  N |  1  
    0   -1    0    1    ## Arr == a
 
-# ----------------------------------------------  1.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
+0
+# Statement body expression
+a = 0;
+</body>
+
 <extbody>
 # Number of accesses
 1
@@ -87,29 +95,38 @@ a = 0;
 # ----------------------------------------------  2.1 Domain
 DOMAIN
 3 4 1 0 0 1
-# e/i| i1 |  N |  1  
-   1    1    0    0    ## i1 >= 0
-   1   -1    1    0    ## -i1+N >= 0
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1    0    ## -i+N >= 0
    1    0    1    0    ## N >= 0
 
 # ----------------------------------------------  2.2 Scattering
 SCATTERING
 3 7 3 1 0 1
-# e/i| c1   c2   c3 | i1 |  N |  1  
+# e/i| c1   c2   c3 |  i |  N |  1  
    0   -1    0    0    0    0    1    ## c1 == 1
-   0    0   -1    0    1    0    0    ## c2 == i1
+   0    0   -1    0    1    0    0    ## c2 == i
    0    0    0   -1    0    0    0    ## c3 == 0
 
 # ----------------------------------------------  2.3 Access
 WRITE
 2 6 2 1 0 1
-# e/i| Arr  [1]| i1 |  N |  1  
+# e/i| Arr  [1]|  i |  N |  1  
    0   -1    0    0    0    4    ## Arr == b
-   0    0   -1    1    0    0    ## [1] == i1
+   0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  2.4 Body
-# Statement body is provided
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
 1
+# List of original iterators
+i
+# Statement body expression
+b[i] = 0;
+</body>
+
 <extbody>
 # Number of accesses
 1
@@ -143,9 +160,16 @@ WRITE
 # e/i| Arr|  N |  1  
    0   -1    0    5    ## Arr == c
 
-# ----------------------------------------------  3.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  3.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
+0
+# Statement body expression
+c = 0;
+</body>
+
 <extbody>
 # Number of accesses
 1
@@ -164,29 +188,38 @@ c = 0;
 # ----------------------------------------------  4.1 Domain
 DOMAIN
 3 4 1 0 0 1
-# e/i| i1 |  N |  1  
-   1    1    0    0    ## i1 >= 0
-   1   -1    1    0    ## -i1+N >= 0
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1    0    ## -i+N >= 0
    1    0    1    0    ## N >= 0
 
 # ----------------------------------------------  4.2 Scattering
 SCATTERING
 3 7 3 1 0 1
-# e/i| c1   c2   c3 | i1 |  N |  1  
+# e/i| c1   c2   c3 |  i |  N |  1  
    0   -1    0    0    0    0    3    ## c1 == 3
-   0    0   -1    0    1    0    0    ## c2 == i1
+   0    0   -1    0    1    0    0    ## c2 == i
    0    0    0   -1    0    0    0    ## c3 == 0
 
 # ----------------------------------------------  4.3 Access
 WRITE
 2 6 2 1 0 1
-# e/i| Arr  [1]| i1 |  N |  1  
+# e/i| Arr  [1]|  i |  N |  1  
    0   -1    0    0    0    6    ## Arr == t
-   0    0   -1    1    0    0    ## [1] == i1
+   0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  4.4 Body
-# Statement body is provided
+# ----------------------------------------------  4.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
 1
+# List of original iterators
+i
+# Statement body expression
+t[i] = 0;
+</body>
+
 <extbody>
 # Number of accesses
 1
@@ -207,29 +240,38 @@ t[i] = 0;
 # ----------------------------------------------  5.1 Domain
 DOMAIN
 3 4 1 0 0 1
-# e/i| i1 |  N |  1  
-   1    1    0    0    ## i1 >= 0
-   1   -1    1    0    ## -i1+N >= 0
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1    0    ## -i+N >= 0
    1    0    1    0    ## N >= 0
 
 # ----------------------------------------------  5.2 Scattering
 SCATTERING
 3 7 3 1 0 1
-# e/i| c1   c2   c3 | i1 |  N |  1  
+# e/i| c1   c2   c3 |  i |  N |  1  
    0   -1    0    0    0    0    3    ## c1 == 3
-   0    0   -1    0    1    0    0    ## c2 == i1
+   0    0   -1    0    1    0    0    ## c2 == i
    0    0    0   -1    0    0    1    ## c3 == 1
 
 # ----------------------------------------------  5.3 Access
 WRITE
 2 6 2 1 0 1
-# e/i| Arr  [1]| i1 |  N |  1  
+# e/i| Arr  [1]|  i |  N |  1  
    0   -1    0    0    0    7    ## Arr == s
-   0    0   -1    1    0    0    ## [1] == i1
+   0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  5.4 Body
-# Statement body is provided
+# ----------------------------------------------  5.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
 1
+# List of original iterators
+i
+# Statement body expression
+s[i] = 0;
+</body>
+
 <extbody>
 # Number of accesses
 1
@@ -263,9 +305,16 @@ WRITE
 # e/i| Arr|  N |  1  
    0   -1    0    8    ## Arr == f
 
-# ----------------------------------------------  6.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  6.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
+0
+# Statement body expression
+f = 0;
+</body>
+
 <extbody>
 # Number of accesses
 1
