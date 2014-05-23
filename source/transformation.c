@@ -1320,7 +1320,6 @@ static int clay_dimcontract_aux(osl_relation_list_p access, void *args) {
   if (row != -1) {
     osl_relation_remove_row(a, row);
     osl_relation_remove_column(a, depth+1); // remove output dim
-    a->nb_columns--;
     a->nb_output_dims--;
   }
 
