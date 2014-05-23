@@ -1,3 +1,4 @@
+[Clan] Info: parsing file #1 (./must_fail/interchange_overflow_statement.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -64,9 +65,16 @@ WRITE
 # e/i| Arr|  1  
    0   -1    1    ## Arr == a
 
-# ----------------------------------------------  1.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
+0
+# Statement body expression
+a = 0;
+</body>
+
 <extbody>
 # Number of accesses
 1

@@ -1,3 +1,4 @@
+[Clan] Info: parsing file #1 (./unitary/block_inside.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -79,9 +80,9 @@ WRITE
    0   -1    0    0    0    3    ## Arr == a
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  1.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+2
 <body>
 # Number of original iterators
 1
@@ -90,6 +91,20 @@ i
 # Statement body expression
 a[i]++;
 </body>
+
+<extbody>
+# Number of accesses
+2
+# Access coordinates (start/length)
+-1 -1
+0 4
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+a[i]++;
+</extbody>
 
 # =============================================== Statement 2
 # Number of relations describing the statement:
@@ -124,9 +139,9 @@ WRITE
    0   -1    0    0    0    4    ## Arr == b
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  2.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
+2
 <body>
 # Number of original iterators
 1
@@ -135,6 +150,20 @@ i
 # Statement body expression
 b[i]++;
 </body>
+
+<extbody>
+# Number of accesses
+2
+# Access coordinates (start/length)
+-1 -1
+0 4
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+b[i]++;
+</extbody>
 
 # =============================================== Statement 3
 # Number of relations describing the statement:
@@ -169,9 +198,9 @@ WRITE
    0   -1    0    0    0    5    ## Arr == c
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  3.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  3.4 Statement Extensions
+# Number of Statement Extensions
+2
 <body>
 # Number of original iterators
 1
@@ -180,6 +209,20 @@ i
 # Statement body expression
 c[i]++;
 </body>
+
+<extbody>
+# Number of accesses
+2
+# Access coordinates (start/length)
+-1 -1
+0 4
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+c[i]++;
+</extbody>
 
 # =============================================== Statement 4
 # Number of relations describing the statement:
@@ -214,9 +257,9 @@ WRITE
    0   -1    0    0    0    6    ## Arr == d
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  4.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  4.4 Statement Extensions
+# Number of Statement Extensions
+2
 <body>
 # Number of original iterators
 1
@@ -225,6 +268,20 @@ i
 # Statement body expression
 d[i]++;
 </body>
+
+<extbody>
+# Number of accesses
+2
+# Access coordinates (start/length)
+-1 -1
+0 4
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+d[i]++;
+</extbody>
 
 # =============================================== Statement 5
 # Number of relations describing the statement:
@@ -259,9 +316,9 @@ WRITE
    0   -1    0    0    0    7    ## Arr == e
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  5.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  5.4 Statement Extensions
+# Number of Statement Extensions
+2
 <body>
 # Number of original iterators
 1
@@ -270,6 +327,20 @@ i
 # Statement body expression
 e[i]++;
 </body>
+
+<extbody>
+# Number of accesses
+2
+# Access coordinates (start/length)
+-1 -1
+0 4
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+e[i]++;
+</extbody>
 
 # =============================================== Statement 6
 # Number of relations describing the statement:
@@ -304,9 +375,9 @@ WRITE
    0   -1    0    0    0    8    ## Arr == f
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  6.4 Body
-# Statement body is provided
-1
+# ----------------------------------------------  6.4 Statement Extensions
+# Number of Statement Extensions
+2
 <body>
 # Number of original iterators
 1
@@ -315,6 +386,20 @@ i
 # Statement body expression
 f[i]++;
 </body>
+
+<extbody>
+# Number of accesses
+2
+# Access coordinates (start/length)
+-1 -1
+0 4
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+f[i]++;
+</extbody>
 
 # =============================================== Extensions
 <scatnames>
@@ -337,7 +422,7 @@ b0 i b1
 
 <coordinates>
 # File name
-block_inside.c
+./unitary/block_inside.c
 # Starting line and column
 2 0
 # Ending line and column

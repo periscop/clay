@@ -751,8 +751,12 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
   int last_level = -1;
   int current_level;
   
-  osl_body_p body;
-  osl_body_p newbody;
+  osl_body_p body = NULL;
+  osl_extbody_p ext_body = NULL;
+  osl_body_p newbody = NULL;
+  osl_extbody_p newextbody = NULL;
+  osl_body_p tmpbody = NULL;
+  osl_generic_p gen = NULL;
   char *expression;
   char **iterator;
   char *substitued;
@@ -763,7 +767,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
   int iterator_index = beta_loop->size-1;
   int iterator_size;
 
-  int is_extbody;
+  int is_extbody = 0;
   
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
@@ -798,10 +802,18 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
       // create the body with symbols for the substitution
       original_stmt = statement;
 
-      is_extbody = osl_generic_has_URI(statement->body, OSL_URI_EXTBODY);
-      body = is_extbody ?
-             ((osl_extbody_p) statement->body->data)->body :
-             (osl_body_p) statement->body->data;
+      ext_body = osl_generic_lookup(statement->extension,
+                               OSL_URI_EXTBODY);
+      if (ext_body) {
+        body = ext_body->body;
+        is_extbody = 1;
+      }
+      else {
+        body = (osl_body_p)osl_generic_lookup(statement->extension,
+                                OSL_URI_BODY);
+      }
+      if (body==NULL)
+        CLAY_error("Missing statement body\n");
 
       expression = body->expression->string[0];
       iterator[0] = (char*) body->iterators->string[iterator_index];
@@ -886,9 +898,14 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
         newexpression = clay_util_string_replace(substitution, replacement,
                                             substitued);
 
-        newbody = is_extbody ?
-                  ((osl_extbody_p) newstatement->body->data)->body :
-                  (osl_body_p) newstatement->body->data;
+        if (is_extbody) {
+          newextbody = osl_generic_lookup(newstatement->extension,
+                           OSL_URI_EXTBODY);
+          newbody = newextbody->body;
+        }
+        else {
+          newbody = osl_generic_lookup(newstatement->extension, OSL_URI_BODY);
+        }
 
         free(newbody->expression->string[0]);
         newbody->expression->string[0] = newexpression;
@@ -899,6 +916,17 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
                        &scattering->m[row][scattering->nb_columns-1],
                        order);
         
+        // synchronize extbody and body (if both are different)
+        if (is_extbody) {
+          tmpbody = osl_generic_lookup(newstatement->extension, OSL_URI_BODY);
+          if (tmpbody) {
+            osl_generic_remove(&newstatement->extension, OSL_URI_BODY);
+            tmpbody = osl_body_clone(newbody);
+            gen = osl_generic_shell(tmpbody, osl_body_interface());
+            osl_generic_add(&newstatement->extension, gen);
+          }
+        }
+
         // the order is not important in the statements list
         newstatement->next = statement->next;
         statement->next = newstatement;
@@ -1292,7 +1320,6 @@ static int clay_dimcontract_aux(osl_relation_list_p access, void *args) {
   if (row != -1) {
     osl_relation_remove_row(a, row);
     osl_relation_remove_column(a, depth+1); // remove output dim
-    a->nb_columns--;
     a->nb_output_dims--;
   }
 
@@ -1514,6 +1541,10 @@ int clay_datacopy(osl_scop_p scop,
   osl_arrays_p arrays;
   osl_scatnames_p scatnames;
   osl_strings_p params;
+  osl_body_p body = NULL;
+  osl_extbody_p extbody = NULL;
+  int is_extbody = 0;
+  osl_generic_p gen = NULL;
   arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
   scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
   params = osl_generic_lookup(scop->parameters, OSL_URI_STRINGS);
@@ -1538,8 +1569,6 @@ int clay_datacopy(osl_scop_p scop,
 
 
   // create an extbody and copy the original iterators
-
-  int is_extbody = osl_generic_has_URI(stmt_2->body, OSL_URI_EXTBODY);
   osl_extbody_p ebody = osl_extbody_malloc();
   ebody->body = osl_body_malloc();
 
@@ -1547,15 +1576,23 @@ int clay_datacopy(osl_scop_p scop,
   ebody->body->expression = osl_strings_encapsulate(strdup("@ = @;"));
 
   // copy iterators
-  ebody->body->iterators = is_extbody
-    ? osl_strings_clone(((osl_extbody_p) stmt_2->body->data)->body->iterators) 
-    : osl_strings_clone(((osl_body_p) stmt_2->body->data)->iterators);
+  extbody = osl_generic_lookup(stmt_2->extension, OSL_URI_EXTBODY);
+  if (extbody) {
+    ebody->body->iterators = osl_strings_clone(extbody->body->iterators);
+    is_extbody = 1;
+  }
+  else {
+    body = osl_generic_lookup(stmt_2->extension, OSL_URI_BODY);
+    ebody->body->iterators = osl_strings_clone(body->iterators);
+  }
 
   // 2 access coordinates
   osl_extbody_add(ebody, 0, 1);
   osl_extbody_add(ebody, 4, 1);
 
-  copy->body = osl_generic_shell(ebody, osl_extbody_interface());
+  gen = osl_generic_shell(ebody, osl_extbody_interface());
+  osl_generic_add(&copy->extension, gen);
+  // not creating a ebody's corresponding "body" in the new copy statement
 
 
   // search the array_id in the beta_get_domain
@@ -1701,33 +1738,49 @@ int clay_block(osl_scop_p scop,
     return CLAY_ERROR_BETAS_NOT_SAME_DOMAIN;
 
   int i;
-  int is_extbody_1, is_extbody_2;
+  int is_extbody_1 = 0;
+  int is_extbody_2 = 0;
 
   char **expr_left;
   char **expr_right;
   char *new_expr;
 
   osl_extbody_p ebody_1, ebody_2;
+  osl_body_p body_1, body_2;
+  osl_generic_p gen = NULL;
 
   // get the body string
 
-  is_extbody_1 = osl_generic_has_URI(stmt_1->body, OSL_URI_EXTBODY);
-  expr_left = is_extbody_1
-    ? ((osl_extbody_p) stmt_1->body->data)->body->expression->string
-    : ((osl_body_p) stmt_1->body->data)->expression->string;
+  ebody_1 = osl_generic_lookup(stmt_1->extension, OSL_URI_EXTBODY);
+  if (ebody_1) {
+    is_extbody_1 = 1;
+  }
+  else {
+    body_1 = osl_generic_lookup(stmt_1->extension, OSL_URI_BODY);
+  }
 
-  is_extbody_2 = osl_generic_has_URI(stmt_2->body, OSL_URI_EXTBODY);
-  expr_right = is_extbody_2
-    ? ((osl_extbody_p) stmt_2->body->data)->body->expression->string
-    : ((osl_body_p) stmt_2->body->data)->expression->string;
+  ebody_2 = osl_generic_lookup(stmt_2->extension, OSL_URI_EXTBODY);
+  if (ebody_2) {
+    is_extbody_2 = 1;
+  }
+  else {
+    body_2 = osl_generic_lookup(stmt_2->extension, OSL_URI_BODY);
+  }
 
   if (is_extbody_1 != is_extbody_2)
     return CLAY_ERROR_ONE_HAS_EXTBODY;
 
+
+  expr_left = is_extbody_1
+    ? ebody_1->body->expression->string
+    : body_1->expression->string;
+
+  expr_right = is_extbody_2
+    ? ebody_2->body->expression->string
+    : body_2->expression->string;
+
   // update extbody
   if (is_extbody_1) {
-    ebody_1 = stmt_1->body->data;
-    ebody_2 = stmt_2->body->data;
 
     // shift for the '{'
     for (i = 0 ; i < ebody_1->nb_access ; i++) {
@@ -1766,6 +1819,17 @@ int clay_block(osl_scop_p scop,
   }
   access->next = stmt_2->access;
   stmt_2->access = NULL;
+
+  // synchronize extbody with body for stmt_1
+  if (is_extbody_1) {
+    body_1 = osl_generic_lookup(stmt_1->extension, OSL_URI_BODY);
+    if (body_1) {
+      osl_generic_remove(&stmt_1->extension, OSL_URI_BODY);
+      body_1 = osl_body_clone(ebody_1->body);
+      gen = osl_generic_shell(body_1, osl_body_interface());
+      osl_generic_add(&stmt_1->extension, gen);
+    }
+  }
 
   // search the stmt 2 and remove it in the chain list
   osl_statement_p s = scop->statement;

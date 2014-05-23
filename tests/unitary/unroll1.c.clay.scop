@@ -46,8 +46,8 @@ WRITE
    0   -1    0    0    0    3    ## Arr == a
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  1.4 Body
-# Statement body is provided
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -84,8 +84,8 @@ WRITE
    0   -1    0    0    0    3    ## Arr == a
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  2.4 Body
-# Statement body is provided
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -124,8 +124,8 @@ WRITE
    0   -1    0    0    0    3    ## Arr == a
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  3.4 Body
-# Statement body is provided
+# ----------------------------------------------  3.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -164,8 +164,8 @@ WRITE
    0   -1    0    0    0    3    ## Arr == a
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  4.4 Body
-# Statement body is provided
+# ----------------------------------------------  4.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -204,8 +204,8 @@ WRITE
    0   -1    0    0    0    4    ## Arr == b
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  5.4 Body
-# Statement body is provided
+# ----------------------------------------------  5.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -242,8 +242,8 @@ WRITE
    0   -1    0    0    0    4    ## Arr == b
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  6.4 Body
-# Statement body is provided
+# ----------------------------------------------  6.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -282,8 +282,8 @@ WRITE
    0   -1    0    0    0    4    ## Arr == b
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  7.4 Body
-# Statement body is provided
+# ----------------------------------------------  7.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -322,8 +322,8 @@ WRITE
    0   -1    0    0    0    4    ## Arr == b
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  8.4 Body
-# Statement body is provided
+# ----------------------------------------------  8.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -362,8 +362,8 @@ WRITE
    0   -1    0    0    0    5    ## Arr == c
    0    0   -1    1    0    0    ## [1] == i
 
-# ----------------------------------------------  9.4 Body
-# Statement body is provided
+# ----------------------------------------------  9.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -400,8 +400,8 @@ WRITE
    0   -1    0    0    0    5    ## Arr == c
    0    0   -1    1    0    0    ## [1] == i
 
-# ---------------------------------------------- 10.4 Body
-# Statement body is provided
+# ---------------------------------------------- 10.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -440,8 +440,8 @@ WRITE
    0   -1    0    0    0    5    ## Arr == c
    0    0   -1    1    0    0    ## [1] == i
 
-# ---------------------------------------------- 11.4 Body
-# Statement body is provided
+# ---------------------------------------------- 11.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators
@@ -480,8 +480,8 @@ WRITE
    0   -1    0    0    0    5    ## Arr == c
    0    0   -1    1    0    0    ## [1] == i
 
-# ---------------------------------------------- 12.4 Body
-# Statement body is provided
+# ---------------------------------------------- 12.4 Statement Extensions
+# Number of Statement Extensions
 1
 <body>
 # Number of original iterators

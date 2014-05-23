@@ -53,7 +53,7 @@ if BUNDLED_CLOOG
 endif
 if BUNDLED_CANDL
     MAYBE_CANDL = candl
-    CANDL_LA = $(top_builddir)/cloog/libcandl.la
+    CANDL_LA = $(top_builddir)/candl/libcandl.la
 endif
 
 SUBDIRS         = $(MAYBE_OSL) $(MAYBE_CLAN) $(MAYBE_CLOOG) $(MAYBE_CANDL) doc tests
