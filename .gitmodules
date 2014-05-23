@@ -1,12 +1,12 @@
 [submodule "osl"]
 	path = osl
-	url = git://repo.or.cz/openscop.git
+	url = https://github.com/periscop/openscop.git
 [submodule "candl"]
 	path = candl
-	url = git://repo.or.cz/candl.git
+	url = https://github.com/periscop/candl.git
 [submodule "clan"]
 	path = clan
-	url = git://repo.or.cz/clan.git
+	url = https://github.com/periscop/clan.git
 [submodule "cloog"]
 	path = cloog
-	url = git://repo.or.cz/cloog.git
+	url = https://github.com/periscop/cloog.git
