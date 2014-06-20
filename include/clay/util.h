@@ -61,8 +61,12 @@ extern "C"
 
 void  clay_util_scop_export_body(osl_scop_p);
 
+void  clay_util_scattering_update_beta(osl_relation_p, clay_array_p);
+
 int   clay_util_relation_get_line(osl_relation_p, int);
 void  clay_util_relation_negate_row(osl_relation_p, int);
+void  clay_util_relation_insert_inequation(osl_relation_p, clay_list_p);
+void  clay_util_relation_set_vector(osl_relation_p, clay_list_p, int);
 
 int   clay_util_statement_find_iterator(osl_statement_p, char*);
 void  clay_util_statement_set_inequation(osl_statement_p, clay_list_p);
@@ -71,6 +75,9 @@ osl_statement_p clay_util_statement_insert(osl_statement_p,
                                            osl_statement_p,
                                            int,
                                            int);
+void  clay_util_statement_replace_beta(osl_statement_p,
+                                       clay_array_p,
+                                       clay_array_p);
 
 void  clay_util_array_output_dims_pad_zero(clay_array_p);
 bool  clay_util_scatnames_exists(osl_scatnames_p, char*);
