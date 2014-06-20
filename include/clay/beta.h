@@ -41,6 +41,7 @@
 #include <osl/statement.h>
 #include <osl/relation.h>
 #include <clay/array.h>
+#include <clay/list.h>
 
 
 // NOTE : a beta is just a clay_array_p
@@ -49,25 +50,25 @@
 #define CLAY_MAX_BETA_SIZE 20
 
 
-#define CLAY_BETA_IS_LOOP(beta, statement)                          \
+#define CLAY_BETA_IS_LOOP(beta, scattering)                         \
   do {                                                              \
-    if (beta->size*2-1 >= statement->scattering->nb_output_dims)    \
+    if (beta->size*2-1 >= scattering->nb_output_dims)               \
       return CLAY_ERROR_NOT_BETA_LOOP;                              \
   } while (0)
 
 
-#define CLAY_BETA_IS_STMT(beta, statement)                          \
+#define CLAY_BETA_IS_STMT(beta, scattering)                         \
   do {                                                              \
-    if (beta->size*2-1 != statement->scattering->nb_output_dims)    \
+    if (beta->size*2-1 != scattering->nb_output_dims)               \
       return CLAY_ERROR_NOT_BETA_STMT;                              \
   } while (0)
 
 
-#define CLAY_BETA_CHECK_DEPTH(beta, depth, statement)               \
+#define CLAY_BETA_CHECK_DEPTH(beta, depth, scattering)              \
   do {                                                              \
     /* check if it's a statement */                                 \
     /* the depth must be strictly less than the beta size */        \
-    if (beta->size*2-1 >= statement->scattering->nb_output_dims &&  \
+    if (beta->size*2-1 >= scattering->nb_output_dims &&             \
         depth >= beta->size)                                        \
       return CLAY_ERROR_DEPTH_OVERFLOW;                             \
     /* else it's a loop, and the depth must be less or equal */     \
@@ -84,12 +85,13 @@ extern "C"
 
 int              clay_statement_is_after(osl_statement_p, clay_array_p);
 int              clay_statement_is_before(osl_statement_p, clay_array_p);
+int              clay_statement_interleaves(osl_statement_p, clay_array_p);
+clay_list_p      clay_statement_betas(osl_statement_p);
 
-void             clay_beta_sort(osl_scop_p);
 void             clay_beta_normalize(osl_scop_p);
-clay_array_p     clay_beta_get(osl_statement_p);
 osl_statement_p  clay_beta_find(osl_statement_p, clay_array_p);
 int              clay_beta_check(osl_statement_p, clay_array_p);
+int              clay_beta_check_relation(osl_relation_p, clay_array_p);
 clay_array_p     clay_beta_min(osl_statement_p, clay_array_p);
 clay_array_p     clay_beta_max(osl_statement_p, clay_array_p);
 clay_array_p     clay_beta_next(osl_statement_p, clay_array_p beta,
@@ -98,8 +100,12 @@ clay_array_p     clay_beta_next_part(osl_statement_p, clay_array_p beta);
 int              clay_beta_nb_parts(osl_statement_p,clay_array_p);
 void             clay_beta_shift_after(osl_statement_p, clay_array_p, int);
 void             clay_beta_shift_before(osl_statement_p, clay_array_p, int);
+int              clay_beta_compare(clay_array_p, clay_array_p, int *);
+int              clay_beta_equals(clay_array_p, clay_array_p);
+clay_array_p     clay_beta_extract(osl_relation_p);
+int              clay_beta_sanity_check(osl_scop_p);
 
-int              clay_scattering_check_zeros(osl_statement_p, int, int);
+int              clay_scattering_check_zeros(osl_relation_p, int, int);
 
 
 # if defined(__cplusplus)

@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <clay/macros.h>
 #include <clay/list.h>
+#include <clay/beta.h>
 
 
 clay_list_p clay_list_malloc() {
@@ -112,3 +113,39 @@ clay_list_p clay_list_clone(clay_list_p l) {
   }
   return newl;
 }
+
+/**
+ * Check if the list contains the given array.  \c NULL list contains nothing.
+ * \c NULL array is not contained in any list.
+ * \param[in]   list    Container list
+ * \param[in]   array   Element array
+ * \returns     \c 1 if the list contains the given array,
+ *              \c 0 otherwise
+ */
+int clay_list_contains(clay_list_p list, clay_array_p array) {
+  int i;
+  if (list == NULL || array == NULL) {
+    return 0;
+  }
+  for (i = 0; i < list->size; i++) {
+    if (clay_beta_equals(list->data[i], array)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/**
+ * Append elements the one list at the end of another list (concatenate).
+ * \param[in,out]  list     List to which append elements
+ * \param[in]      appendix List to take elements from
+ */
+void clay_list_cat(clay_list_t *restrict list, clay_list_t *restrict appendix) {
+  if (list == NULL || appendix == NULL)
+    return;
+  int i;
+  for (i = 0; i < appendix->size; i++) {
+    clay_list_add(list, appendix->data[i]);
+  }
+}
+
