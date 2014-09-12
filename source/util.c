@@ -118,9 +118,98 @@ void clay_util_array_output_dims_pad_zero(clay_array_p a) {
   }
 }
 
+// update the provided part of the beta and leave everything else untouched
+void clay_util_scattering_update_beta(osl_relation_p scattering,
+                                      clay_array_p beta) {
+  int i, row;
+  if (!scattering || !beta || beta->size == 0) {
+    return;
+  }
+
+  for (i = 0; i < OSL_min(beta->size, scattering->nb_output_dims / 2 + 1); i++) {
+    row = clay_util_relation_get_line(scattering, i * 2);
+    osl_int_set_si(scattering->precision,
+                   &scattering->m[row][scattering->nb_columns - 1],
+                   beta->data[i]);
+  }
+}
+
+// update the provided part of the beta for every part of the scattering relation union
+// that matches the given old beta
+void clay_util_statement_replace_beta(osl_statement_p statement,
+                                      clay_array_p old_beta,
+                                      clay_array_p beta) {
+  osl_relation_p scattering = statement->scattering;
+  while (scattering != NULL) {
+    if (clay_beta_check_relation(scattering, old_beta)) {
+      clay_util_scattering_update_beta(scattering, beta);
+    }
+    scattering = scattering->next;
+  }
+}
+
+void clay_util_relation_insert_inequation(osl_relation_p relation,
+                                          clay_list_p inequ) {
+  clay_array_p dims = NULL,
+               params = NULL,
+               consts = NULL;
+  int row = relation->nb_rows;
+  int precision = relation->precision;
+  int i, j;
+
+  // Insert a blank row at the end and fill it in.
+  osl_relation_insert_blank_row(relation, row);
+  osl_int_set_si(precision, &relation->m[row][0], 1); // inequality
+
+  if (inequ->size > 3) {
+    CLAY_error("list with more than 3 arrays not supported");
+  } else if (inequ->size == 3) {
+    dims   = inequ->data[0];
+    params = inequ->data[1];
+    consts = inequ->data[2];
+  } else if (inequ->size == 2) {
+    params = inequ->data[0];
+    consts = inequ->data[1];
+  } else {
+    consts = inequ->data[0];
+  }
+
+  if (consts->size != 1) {
+    CLAY_error("constant must be a single value");
+  }
+
+  // Decomposition switch, fallthoroughs are _intentional_.
+  switch (inequ->size) {
+  case 3:
+    for (j = 0, i = 1; j < dims->size; j++, i++) {
+      osl_int_set_si(precision,
+                     &relation->m[row][i],
+                     dims->data[j]);
+    }
+    // intentional fall through
+  case 2:
+    for (j = 0, i = 1 + relation->nb_output_dims +
+                    relation->nb_input_dims + relation->nb_local_dims;
+        j < params->size; 
+        j++, i++) {
+      osl_int_set_si(precision,
+                     &relation->m[row][i],
+                     params->data[j]);
+    }
+    // intentional fall through
+  case 1:
+    osl_int_set_si(precision,
+                   &relation->m[row][relation->nb_columns-1],
+                   consts->data[0]);
+    break;
+  default:
+    CLAY_error("list with more than 3 arrays not supported");
+    break;
+  }
+}
 
 /** 
- * clay_util_statement_insert_inequation function:
+ * clay_util_statement_set_inequation function:
  * Insert a new inequation at the end of the scattering
  * The list must have less or equal than 3 arrays
  * Warning: here the output dims are complete
@@ -197,11 +286,10 @@ void clay_util_statement_set_inequation(
  * \param[in] vector           {(([output, ...],) [param, ..],) [const]}
  * \param[in] column           column on the output dim
  */
-void clay_util_statement_set_vector(
-                        osl_statement_p statement,
+void clay_util_relation_set_vector(
+                        osl_relation_p scattering,
                         clay_list_p vector, int column) {
-  
-  osl_relation_p scattering = statement->scattering;
+
   clay_array_p arr_dims = NULL, arr_params = NULL, arr_const = NULL;
   int i, j, k;
   int precision = scattering->precision;
