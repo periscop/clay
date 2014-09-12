@@ -108,11 +108,12 @@
 void clay_util_array_output_dims_pad_zero(clay_array_p a) {
   int i;
   int end = a->size*2+1;
+  int old_size = a->size;
 
-  for (i = a->size ; i < end ; i++)
+  for (i = old_size ; i < end ; i++)
     clay_array_add(a, 0);
 
-  for (i = end-1 ; i >= 0 ; i--) {
+  for (i = old_size - 1 ; i >= 0 ; i--) {
     a->data[i*2+1] = a->data[i];
     a->data[i] = 0;
   }
