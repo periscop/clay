@@ -501,8 +501,8 @@ int clay_iss(osl_scop_p scop,
     return CLAY_ERROR_INEQU;
 
   osl_statement_p statement;
-  osl_relation_p scattering;
-  clay_array_p beta_max;
+  osl_relation_p scattering, clone;
+  clay_array_p beta_max, source_beta;
   int nb_output_dims, nb_parameters;
   int order; // new loop order for the clones
   
@@ -550,33 +550,38 @@ int clay_iss(osl_scop_p scop,
     return CLAY_SUCCESS;
   }
 
-  // insert the inequation on each statements
-  while (statement != NULL) {
+  // For each statement that matches
+  for ( ; statement != NULL; statement = statement->next) {
     if (clay_beta_check(statement, beta_loop)) {
+    // Only for those scattering relations that match
+      for (scattering = statement->scattering; scattering != NULL;
+           scattering = scattering->next) {
+        if (clay_beta_check_relation(scattering, beta_loop)) {
+          CLAY_BETA_IS_LOOP(beta_loop, scattering);
+          // TODO extract variables to the beginning
+          // Clone the only the required relation part and insert inequation to
+          // both the cloned and the original relation wrt negation.
+          clone = osl_relation_nclone(scattering, 1);
+          clay_util_relation_insert_inequation(scattering, inequ);
+          clay_util_relation_insert_inequation(clone, inequ);
+          clay_util_relation_negate_row(clone, clone->nb_rows - 1);
 
-      osl_relation_p last = statement->scattering;
-      while (last->next != NULL) {
-        last = last->next;
-      }
-      last->next = osl_relation_clone(statement->scattering);
-      last = last->next;
-      scattering = statement->scattering;
-      while (last != NULL) {
-        CLAY_BETA_IS_LOOP(beta_loop, scattering);
-        clay_util_relation_insert_inequation(scattering, inequ);
-        clay_util_relation_insert_inequation(last, inequ);
-        clay_util_relation_negate_row(last, last->nb_rows - 1);
+          // Update the beta of the original relation (matching the given
+          // condition) so that it comes after any other beta that matches the
+          // given beta-prefix and the relative order of statements is
+          // preserved.
+          source_beta = clay_beta_extract(scattering);
+          source_beta->data[beta_loop->size] += order;
+          clay_util_scattering_update_beta(scattering, source_beta);
 
-        clay_array_p new_beta = clay_array_clone(beta_max);
-        new_beta->data[beta_loop->size]++; //# ?= order
-        clay_util_scattering_update_beta(scattering, new_beta);
-        clay_array_free(new_beta);
-
-        last = last->next;
-        scattering = scattering->next;
+          // Insert the cloned relation to the relation list, and skip it in
+          // the loop since it was not in the original scop.
+          clone->next = scattering->next;
+          scattering->next = clone;
+          scattering = clone;
+        }
       }
     }
-    statement = statement->next;
   }
 
   if (options && options->normalize)
@@ -640,8 +645,8 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
   while (statement != NULL) {
     scattering = statement->scattering;
     while (scattering != NULL) {
-      CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
       if (clay_beta_check_relation(scattering, beta)) {
+        CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
 
         // set the strip mine
         row = clay_util_relation_get_line(scattering, column);
@@ -755,7 +760,6 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
   free(names);
   scat->names = newnames;
   
-  osl_scop_print(stderr, scop);
   if (options && options->normalize)
     clay_beta_normalize(scop);
   
@@ -905,7 +909,6 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
         //to the unrolled iterator.  Other possible solution: take the lower
         //bound from unrolled statements, add +1 and transformed to the lower
         //bound for epilog.
-            osl_relation_print(stderr, ptr);
             for (i = 0; i < ptr->nb_rows; i++) {
               if (osl_int_pos(precision, ptr->m[i][(iterator_index+1)*2])) {
                 osl_int_set_si(precision, &ptr->m[i][(iterator_index+1)*2], 0);
