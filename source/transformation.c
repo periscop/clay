@@ -388,14 +388,19 @@ int clay_fuse(osl_scop_p scop, clay_array_p beta_loop,
 
 
 /**
- * clay_skew function:
- * Skew the loop (or statement) from the `depth'th loop
- * (i, j) -> (i, j+i*coeff) where `depth' is the loop of i
+ * Skew the loop, i.e. add an outer iterator of the loop nest multiplied by the
+ * coefficient to the current loop iterator.  Use the beta-prefix length to
+ * identify the "target" iteartor, use #depth to identify the outer loop
+ * ("source") iterator.
+ * (i, j) -> (i, j+i*coeff).
+ * Skew applies only to loops by definition.  To perform the skewing
+ * transformation for a statement, split it and then do the skewing, or call
+ * shift directly.
  * \param[in,out] scop
- * \param[in] beta          Beta vector
- * \param[in] depth         >= 1
- * \param[in] coeff         != 0
- * \param[in] options
+ * \param[in] beta          Beta-prefix that identifies the loop to skew
+ * \param[in] depth         Depth of the "source" loop iterator (between 1 and length of beta-prefix)
+ * \param[in] coeff         Coefficient for the "source" iterator.
+ * \param[in] options       Clay options
  * \return                  Status
  */
 int clay_skew(osl_scop_p scop, 
@@ -404,18 +409,43 @@ int clay_skew(osl_scop_p scop,
 
   /* Description:
    * This is a special case of shifting, where params and constant
-   * are equal to zero
+   * are equal to zero.
+   *
+   * Call clay_shift with the same beta, depth = beta_size and a vector set up
+   * so that it corresponds to 1*i + coeff*j shifting, i.e. it contains the
+   * value coeff at depth-s index and 1 at the end, all the other elements
+   * being zero.
+   *
+   * Individual statements cannot be skewed because we do not have information.
+   * The length of the beta-prefix is used to indentify the loop to skew, which
+   * would require an addiitonal parameter in case of beta-vector for
+   * statement.
    */
 
   if (beta->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
-  if (depth <= 0 || depth > beta->size)
+  if (depth <= 0 || depth >= beta->size)
     return CLAY_ERROR_DEPTH_OVERFLOW;
   if (coeff == 0)
     return CLAY_ERROR_WRONG_COEFF;
 
   clay_list_p vector;
   int i, ret;
+  osl_statement_p statement;
+  osl_relation_p scattering;
+
+  // Check if beta matches only loops.
+  statement = clay_beta_find(scop->statement, beta);
+  while (statement != NULL) {
+    for (scattering = statement->scattering;
+         scattering != NULL;
+         scattering = scattering->next) {
+      if (!clay_beta_check_relation(scattering, beta))
+        continue;
+      CLAY_BETA_IS_LOOP(beta, scattering);
+    }
+    statement = statement->next;
+  }
 
   // create the vector
   vector = clay_list_malloc();
@@ -429,8 +459,11 @@ int clay_skew(osl_scop_p scop,
   for (i = 0 ; i < depth-1 ; i++)
     clay_array_add(vector->data[0], 0);
   clay_array_add(vector->data[0], coeff);
+  for (i = depth + 1; i < beta->size; i++)
+    clay_array_add(vector->data[0], 0);
+  clay_array_add(vector->data[0], 1);
 
-  ret = clay_shift(scop, beta, depth, vector, options);
+  ret = clay_shift(scop, beta, beta->size, vector, options);
   clay_list_free(vector);
 
   return ret;

@@ -131,7 +131,7 @@ b0 i b1 j b2 k b3
 
 <coordinates>
 # File name
-./unitary/skew_loop2.c
+unitary/skew_loop2.c
 # Starting line and column
 2 0
 # Ending line and column

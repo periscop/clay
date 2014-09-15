@@ -90,8 +90,7 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/reverse_statement2.c \
 	$(top_srcdir)/tests/unitary/skew_loop1.c \
 	$(top_srcdir)/tests/unitary/skew_loop2.c \
-	$(top_srcdir)/tests/unitary/skew_statement1.c \
-	$(top_srcdir)/tests/unitary/skew_statement.c \
+	$(top_srcdir)/tests/unitary/skew_loop3.c \
 	$(top_srcdir)/tests/unitary/stripmine_loop1.c \
 	$(top_srcdir)/tests/unitary/stripmine_non_pretty.c \
 	$(top_srcdir)/tests/unitary/stripmine_pretty.c \
@@ -128,8 +127,10 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/reverse_overflow_loop.c \
 	$(top_srcdir)/tests/must_fail/reverse_overflow_statement.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_loop.c \
-	$(top_srcdir)/tests/must_fail/skew_overflow_statement2.c \
 	$(top_srcdir)/tests/must_fail/skew_overflow_statement.c \
+	$(top_srcdir)/tests/must_fail/skew_overflow_statement2.c \
+	$(top_srcdir)/tests/must_fail/skew_statement.c \
+	$(top_srcdir)/tests/must_fail/skew_statement1.c \
 	$(top_srcdir)/tests/must_fail/stripmine_not_in_a_loop.c \
 	$(top_srcdir)/tests/must_fail/context.c \
 	$(top_srcdir)/tests/must_fail/dimprivatize_cant_privatize.c
