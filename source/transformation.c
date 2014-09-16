@@ -1029,7 +1029,7 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
         scattering = newstatement->scattering;
         // reorder
         while (scattering != NULL) {
-          order = current_stmt + max + nb_stmts*i;
+          order = current_stmt + max + nb_stmts*(i + 1) + 1;
           osl_int_set_si(precision,
                          &scattering->m[row][scattering->nb_columns-1],
                          order);

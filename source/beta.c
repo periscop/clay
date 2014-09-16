@@ -345,7 +345,7 @@ int clay_beta_nb_parts(osl_statement_p statement, clay_array_p beta) {
         }
         scattering_beta->size = beta->size + 1;
         if (!clay_list_contains(part_betas, scattering_beta)) {
-          clay_list_add(part_betas, scattering_beta);
+          clay_list_add(part_betas, clay_array_clone(scattering_beta));
         }
         clay_array_free(scattering_beta);
       }
