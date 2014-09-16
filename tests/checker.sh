@@ -40,6 +40,7 @@ FILES=$2
 CHECK_ERROR=$3
 
 echo "$STRING"
+failed=0
 
 for name in $FILES; do
   echo -e "check $name \c"
@@ -56,6 +57,7 @@ for name in $FILES; do
     echo -e "\n\033[31m[ FAIL ] \c"
     cat /tmp/clay_scop_stderr
     echo -e "\033[0m"
+    failed=1
   else
     echo -e "\033[32m[ OK ]\033[0m"
   fi
@@ -63,3 +65,4 @@ for name in $FILES; do
   rm -f /tmp/clay_scop_stderr
   rm -f /tmp/clay_scop
 done
+exit $failed
