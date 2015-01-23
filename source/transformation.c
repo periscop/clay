@@ -693,8 +693,8 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
         osl_relation_insert_blank_column(scattering, column+1);
         osl_relation_insert_blank_column(scattering, column+1);
 
-        osl_relation_insert_blank_row(scattering, column);
-        osl_relation_insert_blank_row(scattering, column);
+        osl_relation_insert_blank_row(scattering, row);
+        osl_relation_insert_blank_row(scattering, row);
 
         // -Identity
         osl_int_set_si(precision, &scattering->m[row][column+1], -1);
