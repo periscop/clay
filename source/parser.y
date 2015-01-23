@@ -58,8 +58,10 @@
   // Yacc stuff.
   int          clay_yylex(void);
   int          clay_yyerror();
-  int          clay_yy_scan_string(char*);
+  struct yy_buffer_state *clay_yy_scan_string(char*);
+  void         clay_yy_delete_buffer(struct yy_buffer_state *);
   extern FILE* clay_yyin;
+  void         clay_yyrestart(FILE *);
   void         yy_scan_string(char*);
   extern int   clay_yylineno;
   
@@ -101,7 +103,7 @@
   extern const clay_prototype_t functions[];
 
   // parser functions
-  void clay_parser_exec_function(char *name);
+  int clay_parser_exec_function(char *name);
   void clay_parser_print_error(int);
 %}
 
@@ -133,8 +135,10 @@ line:
     {
       if (strlen($1) > 1 ||
           $1[0] < 'a' ||
-          $1[0] > 'z')
+          $1[0] > 'z') {
         clay_parser_print_error(CLAY_ERROR_UNK_VAR);
+        YYABORT;
+      }
 
       int id = (int)$1[0] - 'a';
       if (clay_parser_vars[id] != NULL)
@@ -148,8 +152,10 @@ line:
       // to not free the allocated data
 
       if (tmp->type == REF_T) {
-        if (tmp->data.obj == NULL)
+        if (tmp->data.obj == NULL) {
           clay_parser_print_error(CLAY_ERROR_VAR_NULL);
+          YYABORT;
+        }
 
         clay_parser_vars[id] = clay_data_clone(tmp->data.obj);
 
@@ -175,8 +181,10 @@ line:
 expr:
     IDENT_FUNCTION_NO_ARGS
     {
-      if (level >= 1)
+      if (level >= 1) {
         clay_parser_print_error(CLAY_ERROR_CANT_CALL_SUBFUNC);
+        YYABORT;
+      }
 
       nb_args = 0;
       level++;
@@ -186,21 +194,27 @@ expr:
         YYACCEPT;
       }
 
-      clay_parser_exec_function($1);
+      int result = clay_parser_exec_function($1);
+      if (result != 0)
+        YYABORT;
       free($1);
     }
   |
     IDENT_FUNCTION 
     {
-      if (level >= 1)
+      if (level >= 1) {
         clay_parser_print_error(CLAY_ERROR_CANT_CALL_SUBFUNC);
+        YYABORT;
+      }
 
       nb_args = 0;
       level++;
     }
     args ')'
     {
-      clay_parser_exec_function($1);
+      int result = clay_parser_exec_function($1);
+      if (result != 0)
+        YYABORT;
       free($1);
     }
 
@@ -209,12 +223,16 @@ expr:
     {
       if (strlen($1) > 1 ||
           $1[0] < 'a' ||
-          $1[0] > 'z')
+          $1[0] > 'z') {
         clay_parser_print_error(CLAY_ERROR_UNK_VAR);
+        YYABORT;
+      }
       
       int id = (int)$1[0] - 'a';
-      if (clay_parser_vars[id] == NULL)
+      if (clay_parser_vars[id] == NULL) {
         clay_parser_print_error(CLAY_ERROR_VAR_NULL);
+        YYABORT;
+      }
 
       clay_parser_current.type = REF_T;
       clay_parser_current.data.obj = clay_parser_vars[id];
@@ -320,7 +338,7 @@ list_of_integer:
 int clay_yyerror(void) {
   fprintf(stderr,"[Clay] Error: syntax on line %d, maybe you forgot a `;'\n",
           clay_yylineno);
-  exit(1);
+  return 1;
 }
 
 
@@ -342,21 +360,30 @@ void clay_parser_free_vars() {
  * \param[in] input    Input file of the script
  * \param[in] options
  */
-void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
+int clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
   clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
+  int ret = 0;
   
   clay_parser_unref = clay_array_malloc();
   clay_stack_init(&clay_parser_stack);
   is_in_a_list = 0;
+  level = 0;
+  nb_args = 0;
   clay_yyin = input;
+  clay_yyrestart(clay_yyin);
   clay_scanner_initialize();
-  clay_yyparse();
+  int result = clay_yyparse();
+  if (result != 0) {
+    scop = NULL;
+    ret = 1;
+  }
   
   // Quit
-  clay_scanner_free();
+  //clay_scanner_free();
   clay_parser_free_vars();
   clay_array_free(clay_parser_unref);
+  return ret;
 }
 
 
@@ -366,20 +393,30 @@ void clay_parser_file(osl_scop_p scop, FILE *input, clay_options_p options) {
  * \param[in] input    Input string 
  * \param[in] options
  */
-void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
+int clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
   clay_parser_scop = scop; // the scop is not NULL
   clay_parser_options = options;
-  
+  int ret = 0;
+
   clay_parser_unref = clay_array_malloc();
   clay_stack_init(&clay_parser_stack);
   is_in_a_list = 0;
-  clay_yy_scan_string(input);
-  clay_yyparse();
-  
+  level = 0;
+  nb_args = 0;
+  struct yy_buffer_state *yy_buffer = clay_yy_scan_string(input);
+
+  int result = clay_yyparse();
+  clay_yy_delete_buffer(yy_buffer);
+  if (result != 0) {
+    scop = NULL;
+    ret = 1;
+  }
+
   // Quit
-  clay_scanner_free();
+  //clay_scanner_free();
   clay_parser_free_vars();
   clay_array_free(clay_parser_unref);
+  return ret;
 }
 
 
@@ -387,7 +424,7 @@ void clay_parser_string(osl_scop_p scop, char *input, clay_options_p options) {
  * clay_parser_exec_function:
  * \param[in] name        function name
  */
-void clay_parser_exec_function(char *name) {
+int clay_parser_exec_function(char *name) {
   int i, j, k;
 
   int top = clay_parser_stack.sp;
@@ -415,7 +452,7 @@ void clay_parser_exec_function(char *name) {
     } else { // Undefined function
       fprintf(stderr, "[Clay] Error: line %d, unknown function `%s'\n", 
               clay_yylineno, name);
-      exit(CLAY_ERROR_UNKNOWN_FUNCTION);
+      return CLAY_ERROR_UNKNOWN_FUNCTION;
     }
   }
   
@@ -426,7 +463,7 @@ void clay_parser_exec_function(char *name) {
         "[Clay] Error: line %d, `%s' takes %d arguments\n"
         "[Clay] prototype is: %s\n", 
         clay_yylineno, name, functions[i].argc, functions[i].string);
-      exit(CLAY_ERROR_NB_ARGS);
+      return CLAY_ERROR_NB_ARGS;
   }
   
   // check types
@@ -450,7 +487,7 @@ void clay_parser_exec_function(char *name) {
           "[Clay] Error: line %d, in function `%s' invalid type on argument %d\n"
           "[Clay] prototype is: %s\n", 
           clay_yylineno, name, j+1, functions[i].string);
-        exit(CLAY_ERROR_INVALID_TYPE);
+        return CLAY_ERROR_INVALID_TYPE;
       }
     }
     k++;
@@ -630,8 +667,10 @@ void clay_parser_exec_function(char *name) {
       result.type = ARRAY_T;
       result.data.obj = clay_ident_find_loop(tree, integer);
 
-      if (!result.data.obj)
+      if (!result.data.obj) {
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+        return 1;
+      }
 
       clay_betatree_free(tree);
       break;
@@ -641,8 +680,10 @@ void clay_parser_exec_function(char *name) {
       result.type = ARRAY_T;
       result.data.obj = clay_ident_find_stmt(clay_parser_scop, integer);
 
-      if (!result.data.obj)
+      if (!result.data.obj) {
         clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+        return 1;
+      }
       break;
 
     case CLAY_FUNCTION_GETBETALOOPBYNAME:
@@ -650,8 +691,10 @@ void clay_parser_exec_function(char *name) {
       result.type = ARRAY_T;
       result.data.obj = clay_ident_find_iterator(clay_parser_scop,  
                                                  (char*) data);
-      if (!result.data.obj)
+      if (!result.data.obj) {
         clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+        return 1;
+      }
       break;
 
     case CLAY_FUNCTION_GETARRAYID:
@@ -698,7 +741,7 @@ void clay_parser_exec_function(char *name) {
     default:
       fprintf(stderr, "[Clay] Error: can't call the function %s (%s).\n", 
               functions[i].name, __func__);
-      exit(1);
+      return 1;
       break;
   }
 
@@ -717,8 +760,11 @@ void clay_parser_exec_function(char *name) {
     clay_stack_push(&clay_parser_stack, &result);
 
   // check errors
-  if (status_result != CLAY_SUCCESS)
+  if (status_result != CLAY_SUCCESS) {
     clay_parser_print_error(status_result);
+    return 1;
+  }
+  return 0;
 }
 
 
@@ -854,8 +900,6 @@ void clay_parser_print_error(int status_result) {
               status_result, __func__);
       break;
   }
-
-  exit(status_result);
 }
 
 

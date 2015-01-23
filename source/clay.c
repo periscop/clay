@@ -80,6 +80,7 @@ int main(int argc, char * argv[]) {
   osl_generic_p x, last;
   osl_clay_p clay_tag;
   clay_options_p options;
+  int parsing_result = 0;
 
   // Read command line parameters
   options = clay_options_read(argc, argv);
@@ -125,7 +126,7 @@ int main(int argc, char * argv[]) {
   if (scop != NULL) {
     // Read the script file
     if (!options->from_tag) {
-      clay_parser_file(scop, options->script, options);
+      parsing_result = clay_parser_file(scop, options->script, options);
       fclose(options->script);
     
     // Read the script from the extension clay
@@ -144,7 +145,7 @@ int main(int argc, char * argv[]) {
       if (x != NULL) {
         // parse the clay string
         clay_tag = x->data;
-        clay_parser_string(scop, clay_tag->script, options);
+        parsing_result = clay_parser_string(scop, clay_tag->script, options);
 
         // remove the extension clay
         last->next = x->next;
@@ -157,7 +158,7 @@ int main(int argc, char * argv[]) {
 	#ifdef CANDL_LINKED
 	int is_violated = 0;
 	// Check dependencies
-	if (!options->nocandl && scop != NULL) {
+	if (!options->nocandl && scop != NULL && parsing_result == 0) {
 		candl_options_p candl_opt = candl_options_malloc();
     if (options->candl_fullcheck)
       candl_opt->fullcheck = 1;
@@ -183,7 +184,7 @@ int main(int argc, char * argv[]) {
 	
 	{
     #ifdef CLOOG_LINKED
-		if (options->printc && scop != NULL) {
+		if (options->printc && scop != NULL && parsing_result == 0) {
       clay_util_scop_export_body(scop);
 
 			CloogState *state = cloog_state_malloc();
@@ -216,6 +217,6 @@ int main(int argc, char * argv[]) {
   osl_scop_free(scop);
   clay_options_free(options);
 
-  return 0;
+  return parsing_result;
 }
 
