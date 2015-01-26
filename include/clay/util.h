@@ -95,6 +95,7 @@ int   clay_util_arrays_search(osl_arrays_p, unsigned int);
 int clay_util_foreach_access(osl_scop_p, clay_array_p, unsigned int, 
                              int (*func)(osl_relation_list_p, void*), void*,
                              int);
+int clay_util_is_row_beta_definition(osl_relation_p relation, int row);
 
 # if defined(__cplusplus)
   }

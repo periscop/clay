@@ -878,3 +878,42 @@ int clay_util_relation_get_line(osl_relation_p relation, int column) {
   }
   return (i == relation->nb_rows ? -1 : i );
 }
+
+int clay_util_is_row_beta_definition(osl_relation_p relation, int row) {
+  int precision = relation->precision;
+  if (relation->nb_columns < 1)
+    return 0;
+  if (row >= relation->nb_rows || row < 0)
+    return 0;
+  // Lines that define beta dimensions have a form of -1*beta_i + constant = 0.
+  // 1. Is an equality
+  if (!osl_int_zero(precision, relation->m[row][0]))
+    return 0;
+  // 2. Has only one non-zero coefficient for beta dims, equal to -1.
+  int idx = -1;
+  for (int i = 0; i < relation->nb_output_dims; i += 2) {
+    if (idx == -1) {
+      if (osl_int_mone(precision, relation->m[row][1 + i])) {
+        idx = i;
+      } else if (!osl_int_zero(precision, relation->m[row][1 + i])) {
+        return 0;
+      }
+    } else {
+      if (!osl_int_zero(precision, relation->m[row][1 + i])) {
+        return 0;
+      }
+    }
+  }
+  // 3. Has all 0 coefficients for alpha dims.
+  for (int i = 2; i < relation->nb_output_dims; i += 2) {
+    if (!osl_int_zero(precision, relation->m[row][i]))
+      return 0;
+  }
+  // 4. Input dims and parameters are 0, constant may be anything.
+  for (int i = 1 + relation->nb_output_dims; i < relation->nb_columns - 1; i++) {
+    if (!osl_int_zero(precision, relation->m[row][i]))
+      return 0;
+  }
+  return 1;
+}
+

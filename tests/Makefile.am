@@ -112,7 +112,9 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/dimcontract.c \
 	$(top_srcdir)/tests/unitary/datacopy.c \
 	$(top_srcdir)/tests/unitary/block.c \
-	$(top_srcdir)/tests/unitary/block_inside.c
+	$(top_srcdir)/tests/unitary/block_inside.c \
+	$(top_srcdir)/tests/unitary/grain_stmt.c \
+	$(top_srcdir)/tests/unitary/grain_loop.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \
@@ -133,7 +135,9 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/skew_statement1.c \
 	$(top_srcdir)/tests/must_fail/stripmine_not_in_a_loop.c \
 	$(top_srcdir)/tests/must_fail/context.c \
-	$(top_srcdir)/tests/must_fail/dimprivatize_cant_privatize.c
+	$(top_srcdir)/tests/must_fail/dimprivatize_cant_privatize.c \
+	$(top_srcdir)/tests/must_fail/grain_overflow.c \
+	$(top_srcdir)/tests/must_fail/grain_negative.c
 
 TEST_FILES_REF = $(TEST_FILES:.c=.c.scop)
 UNITARY_TEST_FILES_REF = $(UNITARY_TEST_FILES:.c=.c.scop)
