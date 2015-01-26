@@ -207,10 +207,12 @@ int main(int argc, char * argv[]) {
 		else
 		#endif
 		{
+                  if (parsing_result == 0) {
       if (!options->keep_extbody)
         clay_util_scop_export_body(scop);
 
 			osl_scop_print(stdout, scop);
+                  }
 		}
 	}
 
