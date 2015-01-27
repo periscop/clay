@@ -63,6 +63,53 @@
  *                     Loop transformations                                   *
  `****************************************************************************/
 
+int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain, clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering;
+  int precision;
+
+  if (grain <= 0) {
+    return CLAY_ERROR_WRONG_FACTOR;
+  }
+
+  if (depth <= 0) {
+    return CLAY_ERROR_DEPTH_OVERFLOW;
+  }
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  precision = statement->scattering->precision;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
+      // Multiply all lines by the factor except for those defining beta dimensions.
+      // Beta-extract from statements expects the coefficient before beta to be -1.
+      for (int i = 0; i < scattering->nb_rows; i++) {
+        if (clay_util_is_row_beta_definition(scattering, i))
+          continue;
+        for (int j = 0; j < scattering->nb_columns; j++) {
+          // Columns for the given depth should not be changed.
+          if (j == 2 * depth)
+            continue;
+          osl_int_mul_si(precision, &scattering->m[i][j], scattering->m[i][j], grain);
+        }
+      }
+
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+  return CLAY_SUCCESS;
+}
+
 /**
  * clay_reorder function:
  * Reorders the statements in the loop
