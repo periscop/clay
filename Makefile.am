@@ -56,9 +56,10 @@ if BUNDLED_CANDL
     CANDL_LA = $(top_builddir)/candl/libcandl.la
 endif
 
-SUBDIRS         = $(MAYBE_OSL) $(MAYBE_CLAN) $(MAYBE_CLOOG) $(MAYBE_CANDL) doc tests
-DIST_SUBDIRS    = $(MAYBE_OSL) $(MAYBE_CLAN) $(MAYBE_CLOOG) $(MAYBE_CANDL) doc tests
-ACLOCAL_AMFLAGS = -I m4
+AUTOMAKE_OPTIONS = subdir-objects
+SUBDIRS          = $(MAYBE_OSL) $(MAYBE_CLAN) $(MAYBE_CLOOG) $(MAYBE_CANDL) doc . tests
+DIST_SUBDIRS     = $(MAYBE_OSL) $(MAYBE_CLAN) $(MAYBE_CLOOG) $(MAYBE_CANDL) doc . tests
+ACLOCAL_AMFLAGS  = -I m4
 
 #############################################################################
 
@@ -79,12 +80,12 @@ pkginclude_HEADERS = \
 	include/clay/util.h \
 	include/clay/errors.h \
 	include/clay/functions.h \
-  include/clay/data.h \
-  include/clay/stack.h \
+	include/clay/data.h \
+	include/clay/stack.h \
 	include/clay/transformation.h
 
-DEFAULT_INCLUDES = -I.
-INCLUDES = -I$(top_builddir)/include -I$(top_srcdir)/include
+DEFAULT_CPPFLAGS = -I.
+AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = $(CFLAGS_WARN)
 YFLAGS = -y -d
 LEX_OUTPUT_ROOT = lex.clay_yy
@@ -126,6 +127,15 @@ MAINTAINERCLEANFILES = \
 	$(AUX_DIST)
 
 #############################################################################
+
+EXTRA_DIST = clay-config.cmake
+
+install-data-local:
+	@test -z "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)" || $(mkdir_p) "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)"
+	$(INSTALL_DATA) "$(top_srcdir)/clay-config.cmake" "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)/"
+
+uninstall-local:
+	rm -f "$(DESTDIR)$(libdir)/$(PACKAGE_NAME)/clay-config.cmake"
 
 dist-hook:
 	(cd $(distdir) && mkdir -p $(ac_aux_dir))
