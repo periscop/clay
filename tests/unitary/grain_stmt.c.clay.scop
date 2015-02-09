@@ -46,11 +46,7 @@ READ
 
 # ----------------------------------------------  1.4 Statement Extensions
 # Number of Statement Extensions
-2
-<identifier>
 1
-</identifier>
-
 <body>
 # Number of original iterators
 1
@@ -88,11 +84,7 @@ READ
 
 # ----------------------------------------------  2.4 Statement Extensions
 # Number of Statement Extensions
-2
-<identifier>
-2
-</identifier>
-
+1
 <body>
 # Number of original iterators
 1
