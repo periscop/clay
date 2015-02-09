@@ -41,11 +41,12 @@ CHECK_ERROR=$3
 
 echo "$STRING"
 failed=0
+clay=$top_builddir/clay$EXEEXT
 
 for name in $FILES; do
   echo -e "check $name \c"
-  clay "$name.orig.scop" 2>/tmp/clay_scop_stderr | grep -v "enerated by" >/tmp/clay_scop
-  
+  $clay "$name.orig.scop" 2>/tmp/clay_scop_stderr | grep -v "enerated by" >/tmp/clay_scop
+
   n=0
   if [ "$CHECK_ERROR" = "0" ]; then
     n=`diff "$name.clay.scop" /tmp/clay_scop | wc -l`
