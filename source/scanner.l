@@ -36,7 +36,7 @@
 
 %{
   #include <ctype.h>
-  #include <parser.h>
+  #include "parser.h"
   #include <clay/array.h>
   #include <clay/list.h>
   #include <clay/macros.h>

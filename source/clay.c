@@ -51,7 +51,7 @@
 #include <clay/array.h>
 #include <clay/ident.h>
 #include <clay/util.h>
-#include <parser.h>
+#include "parser.h"
 
 #ifdef CLAN_LINKED
 #include <clan/macros.h>
