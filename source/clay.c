@@ -113,13 +113,12 @@ int main(int argc, char * argv[]) {
     clay_beta_normalize(scop);
   }
 
-	#if defined(CANDL_LINKED)
-	osl_scop_p orig_scop = NULL;
-	if (!options->nocandl && scop != NULL) {
-		orig_scop = osl_scop_clone(scop);
-		candl_scop_usr_init(orig_scop);
-	}
-	#endif
+#if defined(CANDL_LINKED)
+  osl_scop_p orig_scop = NULL;
+  if (!options->nocandl && scop != NULL) {
+          orig_scop = osl_scop_clone(scop);
+  }
+#endif
   
   // Execute the script ...
   // do nothing if the scop is NULL
@@ -155,32 +154,30 @@ int main(int argc, char * argv[]) {
     }
   }
 
-	#ifdef CANDL_LINKED
-	int is_violated = 0;
-	// Check dependencies
-	if (!options->nocandl && scop != NULL && parsing_result == 0) {
-		candl_options_p candl_opt = candl_options_malloc();
+#ifdef CANDL_LINKED
+  int is_violated = 0;
+  // Check dependencies
+  if (!options->nocandl && scop != NULL && parsing_result == 0) {
+    candl_options_p candl_opt = candl_options_malloc();
     if (options->candl_fullcheck)
       candl_opt->fullcheck = 1;
-		osl_dependence_p dep = candl_dependence(orig_scop, candl_opt);
-		candl_violation_p violation = candl_violation(orig_scop, dep, scop, candl_opt);
+    candl_violation_p violation = 
+        candl_violation(orig_scop, scop, 0, candl_opt);
 
-		is_violated = (violation != NULL);
-		if (is_violated) {
+    is_violated = (violation != NULL);
+    if (is_violated) {
       candl_violation_pprint(stdout, violation);
       if (options->candl_structure)
-			  candl_violation_dump(stdout, violation);
+        candl_violation_dump(stdout, violation);
     }
 
-		candl_options_free(candl_opt);
-		candl_violation_free(violation);
- 		osl_dependence_free(dep);
-		candl_scop_usr_cleanup(orig_scop);
-		osl_scop_free(orig_scop);
-	}
+    candl_options_free(candl_opt);
+    candl_violation_free(violation);
+    osl_scop_free(orig_scop);
+  }
 
-	if (!is_violated) // print the scop or the .c file by cloog
-	#endif
+  if (!is_violated) // print the scop or the .c file by cloog
+#endif
 	
 	{
     #ifdef CLOOG_LINKED
