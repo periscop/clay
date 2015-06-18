@@ -1161,11 +1161,21 @@ int clay_tile(osl_scop_p scop,
   if (depth_outer > depth)
     return CLAY_ERROR_DEPTH_OUTER;
   
-  int ret;
+  int ret, i;
   ret = clay_stripmine(scop, beta, depth, size, pretty, options);
   
+  // Update beta to reflect the stripmine.
+  clay_array_p new_beta = clay_array_malloc();
+  for (i = 0; i < depth; i++) {
+    clay_array_add(new_beta, beta->data[i]);
+  }
+  clay_array_add(new_beta, 0);
+  for (i = depth; i < beta->size; i++) {
+    clay_array_add(new_beta, beta->data[i]);
+  }
+
   if (ret == CLAY_SUCCESS) {
-    ret = clay_interchange(scop, beta, depth, depth_outer, pretty, options);
+    ret = clay_interchange(scop, new_beta, depth, depth_outer, pretty, options);
   }
 
   return ret;
