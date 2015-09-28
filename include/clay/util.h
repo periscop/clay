@@ -97,6 +97,9 @@ int clay_util_foreach_access(osl_scop_p, clay_array_p, unsigned int,
                              int);
 int clay_util_is_row_beta_definition(osl_relation_p relation, int row);
 
+osl_int_t clay_relation_line_gcd(osl_relation_p, int, int, int);
+osl_int_t clay_relation_gcd(osl_relation_p, int);
+
 # if defined(__cplusplus)
   }
 # endif

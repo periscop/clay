@@ -79,6 +79,7 @@ int clay_datacopy(osl_scop_p, unsigned int, unsigned int, clay_array_p, int,
                   clay_array_p, clay_options_p);
 int clay_block(osl_scop_p, clay_array_p, clay_array_p, clay_options_p);
 int clay_grain(osl_scop_p, clay_array_p, int, int, clay_options_p);
+int clay_densify(osl_scop_p, clay_array_p, int, clay_options_p);
 
 # if defined(__cplusplus)
   }

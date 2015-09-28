@@ -114,7 +114,9 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/block.c \
 	$(top_srcdir)/tests/unitary/block_inside.c \
 	$(top_srcdir)/tests/unitary/grain_stmt.c \
-	$(top_srcdir)/tests/unitary/grain_loop.c
+	$(top_srcdir)/tests/unitary/grain_loop.c \
+	$(top_srcdir)/tests/unitary/densify_stmt.c \
+	$(top_srcdir)/tests/unitary/densify_loop.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \

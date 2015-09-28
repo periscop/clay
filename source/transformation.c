@@ -63,6 +63,60 @@
  *                     Loop transformations                                   *
  `****************************************************************************/
 
+// depth 1-based
+int clay_densify(osl_scop_p scop, clay_array_p beta, int depth, clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering;
+  int precision;
+  osl_int_t factor;
+  int row, col;
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+    return CLAY_SUCCESS;
+
+  osl_int_init(scop->statement->scattering->precision, &factor);
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  precision = statement->scattering->precision;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
+
+      factor = clay_relation_gcd(scattering, depth);
+      if (osl_int_zero(precision, factor))
+        continue;
+
+      for (row = 0; row < scattering->nb_rows; row++) {
+        if (osl_int_zero(precision, scattering->m[row][depth * 2])) {
+          continue;
+        }
+        for (col = 2; col < scattering->nb_columns; col++) {
+          // if beta, ignore
+          if (col >= 1 && col < scattering->nb_output_dims + 1 && (col % 2) == 1) {
+            continue;
+          }
+          // if target dimension, ignore
+          if (col == depth * 2) {
+            continue;
+          }
+          osl_int_div_exact(precision, &scattering->m[row][col],
+                            scattering->m[row][col], factor);
+        }
+      }
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+}
+
 int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain, clay_options_p options) {
   osl_statement_p statement;
   osl_relation_p scattering;
