@@ -82,7 +82,8 @@ pkginclude_HEADERS = \
 	include/clay/functions.h \
 	include/clay/data.h \
 	include/clay/stack.h \
-	include/clay/transformation.h
+	include/clay/transformation.h \
+	include/clay/relation.h
 
 DEFAULT_CPPFLAGS = -I.
 AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
@@ -108,7 +109,8 @@ libclay_la_SOURCES  = \
   source/functions.c \
   source/data.c \
   source/stack.c \
-  source/transformation.c
+  source/transformation.c \
+  source/relation.c
 
 #############################################################################
 

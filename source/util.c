@@ -917,70 +917,23 @@ int clay_util_is_row_beta_definition(osl_relation_p relation, int row) {
   return 1;
 }
 
-// aware of beta structure
-osl_int_t clay_relation_line_gcd(osl_relation_p relation, int line, int column_start, int column_end) {
-  osl_int_t gcd;
-  int i;
+void clay_alpha_normalize(osl_scop_p scop) {
+  osl_statement_p statement;
+  osl_relation_p scattering;
 
-  osl_int_init(relation->precision, &gcd);
-  if (column_end - column_start < 1 ||
-      column_start >= relation->nb_columns ||
-      column_end > relation->nb_columns) {
-    osl_int_set_si(relation->precision, &gcd, 0);
-    return gcd;
-  } else if (column_end - column_start == 1) {
-    osl_int_assign(relation->precision, &gcd, relation->m[line][column_start]);
-    return gcd;
-  }
+  if (!scop || !scop->statement)
+    return;
 
-  osl_int_gcd(relation->precision, &gcd, relation->m[line][column_start], relation->m[line][column_start + 1]);
-  for (i = column_start + 2; i < column_end; i++) {
-    // if beta, ignore
-    if (i >= 1 && i < relation->nb_output_dims + 1 && (i % 2) == 1) {
-      continue;
+  for (statement = scop->statement; statement != NULL;
+       statement = statement->next) {
+    for (scattering = statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      clay_relation_normalize_alpha(scattering);
     }
-    osl_int_gcd(relation->precision, &gcd, gcd, relation->m[line][i]);
   }
-  return gcd;
 }
 
-// assumes beta-structure; depth 1-based
-osl_int_t clay_relation_gcd(osl_relation_p relation, int depth) {
-  osl_int_t gcd;
-  int row, col;
-  int gcd_assigned = 0;
-  int column = 2*depth;
-
-  osl_int_init(relation->precision, &gcd);
-  if (depth < -1 || depth == 0 || depth > relation->nb_output_dims / 2) {
-  CLAY_debug("Called clay_relation_gcd with column outside bounds");
-    osl_int_set_si(relation->precision, &gcd, 0);
-    return gcd;
-  }
-
-  for (row = 0; row < relation->nb_rows; row++) {
-    if (depth != -1 && osl_int_zero(relation->precision, relation->m[row][column])) {
-      continue;
-    }
-
-    for (col = 2; col < relation->nb_columns; col++) {
-      // if beta, ignore
-      if (col >= 1 && col < relation->nb_output_dims + 1 && (col % 2) == 1) {
-        continue;
-      }
-      if (col == column) {
-        continue;
-      }
-      if (gcd_assigned) {
-        osl_int_gcd(relation->precision, &gcd, gcd, relation->m[row][col]);
-      } else {
-        if (!osl_int_zero(relation->precision, relation->m[row][col])) {
-          osl_int_assign(relation->precision, &gcd, relation->m[row][col]);
-          gcd_assigned = 1;
-        }
-      }
-    }
-  }
-  return gcd;
+void clay_scop_normalize(osl_scop_p scop) {
+  clay_alpha_normalize(scop);
+  clay_beta_normalize(scop);
 }
-

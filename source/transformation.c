@@ -57,6 +57,7 @@
 #include <clay/errors.h>
 #include <clay/beta.h>
 #include <clay/util.h>
+#include <clay/relation.h>
 
 
 /*****************************************************************************\
@@ -115,6 +116,8 @@ int clay_densify(osl_scop_p scop, clay_array_p beta, int depth, clay_options_p o
     }
     statement = statement->next;
   }
+
+  osl_int_clear(precision, &factor);
 }
 
 int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain, clay_options_p options) {
