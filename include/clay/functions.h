@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL           29
+  #define CLAY_FUNCTIONS_TOTAL           30
   
   #define CLAY_FUNCTION_SPLIT             0
   #define CLAY_FUNCTION_REORDER           1
@@ -67,6 +67,7 @@
   #define CLAY_FUNCTION_BLOCK            26
   #define CLAY_FUNCTION_GRAIN            27
   #define CLAY_FUNCTION_DENSIFY          28
+  #define CLAY_FUNCTION_RESHAPE          29
 
 # if defined(__cplusplus)
 extern "C"

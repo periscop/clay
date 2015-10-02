@@ -64,6 +64,105 @@
  *                     Loop transformations                                   *
  `****************************************************************************/
 
+/*
+   Many functions here have the common structure that may be extracted into
+   a separate higher-order function.
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+     return CLAY_SUCCESS;
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  precision = statement->scattering->precision;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
+      // Do staff.
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+ */
+
+// depth, iterator -- 1-based
+int clay_reshape(osl_scop_p scop, clay_array_p beta, int depth, int iterator, int amount, clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering, copy;
+  int row, precision, output, input;
+  osl_int_t summand;
+  int nb_explicit_before, nb_explicit_after;
+
+  output = 2*depth;
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  if (amount == 0)
+    return CLAY_ERROR_WRONG_FACTOR;
+
+  precision = statement->scattering->precision;
+  osl_int_init(precision, &summand);
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      // CLAY_BETA_CHECK_DEPTH(beta, depth, scattering); copied as it does not
+      // allow to free resources
+      if (beta->size*2-1 >= scattering->nb_output_dims && depth >= beta->size) {
+        osl_int_clear(precision, &summand);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+      if (depth > beta->size) {
+        osl_int_clear(precision, &summand);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+      if (iterator <= 0 || iterator > scattering->nb_input_dims) {
+        osl_int_clear(precision, &summand);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+
+      copy = osl_relation_clone(scattering);
+      nb_explicit_before = clay_relation_nb_explicit_dim_intrusive(copy);
+
+      input = 1 + scattering->nb_output_dims + (iterator - 1);
+
+      for (row = 0; row < copy->nb_rows; row++) {
+        osl_int_mul_si(precision, &summand, copy->m[row][output], amount);
+        osl_int_add(precision, &copy->m[row][input], copy->m[row][input], summand);
+      }
+
+      nb_explicit_after = clay_relation_nb_explicit_dim_intrusive(copy);
+      if (nb_explicit_before != nb_explicit_after) {
+        osl_int_clear(precision, &summand);
+        osl_relation_free(copy);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+
+      for (row = 0; row < scattering->nb_rows; row++) {
+        osl_int_mul_si(precision, &summand, scattering->m[row][output], amount);
+        osl_int_add(precision, &scattering->m[row][input], scattering->m[row][input], summand);
+      }
+
+      osl_relation_free(copy);
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+  osl_int_clear(precision, &summand);
+  return CLAY_SUCCESS;
+}
+
 // depth 1-based
 int clay_densify(osl_scop_p scop, clay_array_p beta, int depth, clay_options_p options) {
   osl_statement_p statement;
@@ -118,6 +217,7 @@ int clay_densify(osl_scop_p scop, clay_array_p beta, int depth, clay_options_p o
   }
 
   osl_int_clear(precision, &factor);
+  return CLAY_SUCCESS;
 }
 
 int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain, clay_options_p options) {
