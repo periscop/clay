@@ -58,6 +58,7 @@ int       clay_relation_rank_intrusive(osl_relation_p);
 void      clay_relation_alpha_equation_rows(clay_array_p, osl_relation_p);
 int       clay_relation_nb_explicit_dim(osl_relation_p);
 int       clay_relation_nb_explicit_dim_intrusive(osl_relation_p);
+void      clay_relation_sort_rows(osl_relation_p);
 
 #if defined(__cplusplus)
   }

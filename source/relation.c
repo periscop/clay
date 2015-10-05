@@ -169,6 +169,8 @@ void clay_relation_normalize_alpha(osl_relation_p relation) {
     }
   }
 
+  clay_relation_sort_rows(relation);
+
   osl_int_clear(relation->precision, &gcd);
 }
 
@@ -401,3 +403,36 @@ int clay_relation_nb_explicit_dim_intrusive(osl_relation_p relation) {
   clay_array_free(equation_rows);
   return rank;
 }
+
+static int row_preceeds(osl_relation_p relation, int row_i, int row_j) {
+  int k;
+
+  for (k = 0; k < relation->nb_columns; k++) {
+    if (osl_int_gt(relation->precision,
+                   relation->m[row_i][k], relation->m[row_j][k])) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+void clay_relation_sort_rows(osl_relation_p relation) {
+  // we do not need to sort equalities and inequalities separately since the e/i
+  // flag already groups them; we assume it is in output form.
+  int i, j, k;
+
+  // XXX: Bubble sort is inefficient in time, but has tiny code, works in-place
+  // and avoids creating sub-relations with dynamic memory allocation.
+  for (i = 0; i < relation->nb_rows; i++) {
+    for (j = i + 1; j < relation->nb_rows; j++) {
+      if (row_preceeds(relation, j, i)) {
+        // swap raws
+        for (k = 0; k < relation->nb_columns; k++) {
+          osl_int_swap(relation->precision,
+                       &relation->m[i][k], &relation->m[j][k]);
+        }
+      }
+    }
+  }
+}
+
