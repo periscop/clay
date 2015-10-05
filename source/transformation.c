@@ -92,6 +92,195 @@
 
  */
 
+// asssumes betas are normalized
+int clay_collapse(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
+  int i, row, col, row_1, row_2;
+  int candidate_row_1, candidate_row_2;
+  int nb_pairs;
+  clay_array_p first_beta, second_beta, max_beta;
+  clay_array_p matched_rows_2;
+  clay_list_p matching_betas = clay_list_malloc();
+  osl_statement_p statement, first_statement, second_statement;
+  osl_relation_p scattering, s1, s2;
+
+  (void) options; // prevent `unused' warning
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+     return CLAY_SUCCESS;
+
+  clay_scop_normalize(scop);
+
+  // Find all betas-vectors matching the given prefix.
+  statement = scop->statement;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      clay_list_add(matching_betas, clay_beta_extract(scattering));
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+  // Every relation should have a pair to collapse it with.
+  if ((matching_betas->size % 2) != 0 || matching_betas->size == 0) {
+    clay_list_free(matching_betas);
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  }
+
+
+  clay_beta_list_sort(matching_betas);
+  max_beta = clay_beta_max(scop->statement, beta);
+  if (max_beta->size <= beta->size) {
+    clay_array_free(max_beta);
+    clay_list_free(matching_betas);
+    return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+  }
+  nb_pairs = (max_beta->data[beta->size] + 1) / 2;// assume betas are normalized
+  clay_array_free(max_beta);
+
+  // For each matching beta, find its counterpart by going through half of the
+  // sorted beta list (counterpats are also matching) and check if both parts
+  // can collapse to one.
+  for (i = 0; i < matching_betas->size / 2; i++) {
+    first_beta = matching_betas->data[i];
+    if (first_beta->size == beta->size) { // Collpase works on loop level.
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+    }
+    second_beta = clay_array_clone(first_beta);
+    second_beta->data[beta->size] += nb_pairs;
+
+
+    // Both betas should belong to the same statement.
+    first_statement = clay_beta_find(scop->statement, first_beta);
+    second_statement = clay_beta_find(scop->statement, second_beta);
+    if (!first_statement || !second_statement ||
+        first_statement != second_statement) {
+      clay_array_free(second_beta);
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_BETA_NOT_FOUND;
+    }
+
+
+    s1 = NULL;
+    s2 = NULL;
+    for (scattering = first_statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      if (clay_beta_check_relation(scattering, first_beta)) {
+        s1 = scattering;
+      }
+      if (clay_beta_check_relation(scattering, second_beta)) {
+        s2 = scattering;
+      }
+    }
+    clay_array_free(second_beta);
+
+    // Check scattering parameters are compatible.
+    if (!s1 || !s2 ||
+        s1->nb_rows != s2->nb_rows ||
+        s1->nb_input_dims != s2->nb_input_dims ||
+        s1->nb_output_dims != s2->nb_output_dims ||
+        s1->nb_local_dims != s2->nb_local_dims ||
+        s1->nb_parameters != s2->nb_parameters) {
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_WRONG_COEFF; // FIXME: local dimensions can be merged
+    }
+
+    // Check all equalities are the same (in normalized form, equations come
+    // before inequalities, sorted lexicographically so that line by line
+    // comparison is possible.
+    for (row = 0; row < s1->nb_rows; row++) {
+      if (clay_util_is_row_beta_definition(s1, row)) {
+        continue; // ignore beta rows that are already compare by beta-matching
+      }
+      if (osl_int_one(s1->precision, s1->m[row][0])) {
+        break; // inequality part started
+      }
+      for (col = 0; col < s1->nb_columns; col++) {
+        if (osl_int_ne(s1->precision, s1->m[row][col], s2->m[row][col])) {
+          clay_list_free(matching_betas);
+          return CLAY_ERROR_WRONG_COEFF;
+        }
+      }
+    }
+
+    matched_rows_2 = clay_array_malloc();
+    candidate_row_1 = -1;
+    for (row_1 = row; row_1 < s1->nb_rows; row_1++) {
+      int matched_row = -1;
+      for (row_2 = row; row_2 < s2->nb_rows; row_2++) {
+        int mismatch = 0;
+
+        // Skip if row is already matched.
+        if (clay_array_contains(matched_rows_2, row_2)) {
+          continue;
+        }
+
+        for (col = 0; col < s1->nb_columns; col++) {
+          if (osl_int_ne(s1->precision,
+                         s1->m[row_1][col], s2->m[row_2][col])) {
+            mismatch = 1;
+            break;
+          }
+        }
+        if (!mismatch) {
+          matched_row = row_2;
+          clay_array_add(matched_rows_2, row_2);
+          break;
+        }
+      }
+
+      // If no row matched,
+      if (matched_row == -1) {
+        if (candidate_row_1 != -1) { // Cannot have two unmatching rows.
+          clay_array_free(matched_rows_2);
+          clay_list_free(matching_betas);
+          return CLAY_ERROR_WRONG_COEFF;
+        }
+        candidate_row_1 = row_1;
+      }
+    }
+
+    // Find the single unmatched row in s2.
+    candidate_row_2 = -1;
+    for (row_2 = row; row_2 < s2->nb_rows; row_2++) {
+      if (!clay_array_contains(matched_rows_2, row_2)) {
+        candidate_row_2 = row_2;
+        break;
+      }
+    }
+    clay_array_free(matched_rows_2);
+    if (candidate_row_2 == -1) {
+      // XXX: Something went wrong...
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_WRONG_COEFF;
+    }
+
+    // Check if unmatched rows differ up to negation.
+    clay_util_relation_negate_row(s2, candidate_row_2);
+    for (col = 0; col < s1->nb_columns; col++) {
+      if (osl_int_ne(s1->precision, s1->m[candidate_row_1][col],
+                                    s2->m[candidate_row_2][col])) {
+        clay_list_free(matching_betas);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+    }
+    clay_util_relation_negate_row(s2, candidate_row_2);
+
+    // All preconditions are met, now we may remove the inequality and the
+    // second relation.
+    osl_relation_remove_row(s1, candidate_row_1);
+    osl_relation_remove_part(&second_statement->scattering, s2);
+  }
+
+  clay_list_free(matching_betas);
+  return CLAY_SUCCESS;
+}
+
 // depth, iterator -- 1-based
 int clay_reshape(osl_scop_p scop, clay_array_p beta, int depth, int iterator, int amount, clay_options_p options) {
   osl_statement_p statement;

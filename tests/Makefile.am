@@ -56,7 +56,8 @@ TESTS			= $(check_SCRIPTS)
 TEST_FILES = \
 	$(top_srcdir)/tests/tests/ax-do1.c \
 	$(top_srcdir)/tests/tests/ax-do_double_tile.c \
-	$(top_srcdir)/tests/tests/ax-do3.c
+	$(top_srcdir)/tests/tests/ax-do3.c \
+	$(top_srcdir)/tests/tests/iss_collapse_invariant.c
 	
 UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/empty_code.c \
@@ -116,7 +117,10 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/grain_stmt.c \
 	$(top_srcdir)/tests/unitary/grain_loop.c \
 	$(top_srcdir)/tests/unitary/densify_stmt.c \
-	$(top_srcdir)/tests/unitary/densify_loop.c
+	$(top_srcdir)/tests/unitary/densify_loop.c \
+	$(top_srcdir)/tests/unitary/collapse_loop.c \
+	$(top_srcdir)/tests/unitary/collapse_multi.c \
+	$(top_srcdir)/tests/unitary/collapse_nested.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \
@@ -139,7 +143,8 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/context.c \
 	$(top_srcdir)/tests/must_fail/dimprivatize_cant_privatize.c \
 	$(top_srcdir)/tests/must_fail/grain_overflow.c \
-	$(top_srcdir)/tests/must_fail/grain_negative.c
+	$(top_srcdir)/tests/must_fail/grain_negative.c \
+	$(top_srcdir)/tests/must_fail/collapse_multi.c
 
 TEST_FILES_REF = $(TEST_FILES:.c=.c.scop)
 UNITARY_TEST_FILES_REF = $(UNITARY_TEST_FILES:.c=.c.scop)

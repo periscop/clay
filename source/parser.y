@@ -589,6 +589,13 @@ int clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
+    case CLAY_FUNCTION_COLLAPSE:
+      status_result = clay_collapse(
+          clay_parser_scop,
+          clay_parser_stack.stack[top].data.obj,
+          clay_parser_options);
+      break;
+
     case CLAY_FUNCTION_STRIPMINE:
       status_result = clay_stripmine(
           clay_parser_scop,

@@ -70,6 +70,7 @@ int clay_function_block_type[]        = {ARRAY_T, ARRAY_T};
 int clay_function_grain_type[]        = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_densify_type[]      = {ARRAY_T, INTEGER_T};
 int clay_function_reshape_type[]      = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_collapse_type[]     = {ARRAY_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -225,5 +226,10 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     "reshape",
     "void reshape(array beta, int depth, int iterator, int amount)",
     VOID_T, clay_function_reshape_type, 4
+  },
+  {
+    "collapse",
+    "void collapse(array beta_loop)",
+    VOID_T, clay_function_collapse_type, 1
   }
 };
