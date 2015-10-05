@@ -168,3 +168,19 @@ int clay_array_equal(clay_array_p a1, clay_array_p a2) {
   return 1;
 }
 
+/**
+ * Checks if an array contains the given value.
+ * \param [in] a1     the array.
+ * \parma [in] value  the value to look for.
+ * \returns     1 if a1 contains value, 0 otherwise.
+ */
+int clay_array_contains(clay_array_p array, int value) {
+  int i;
+  for (i = 0; i < array->size; i++) {
+    if (array->data[i] == value) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
