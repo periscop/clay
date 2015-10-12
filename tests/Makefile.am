@@ -59,7 +59,8 @@ TEST_FILES = \
 	$(top_srcdir)/tests/tests/ax-do3.c \
 	$(top_srcdir)/tests/tests/iss_collapse_invariant.c \
 	$(top_srcdir)/tests/tests/double_stripmine.c \
-	$(top_srcdir)/tests/tests/double_tile.c
+	$(top_srcdir)/tests/tests/double_tile.c \
+	$(top_srcdir)/tests/tests/stripmine_linearize_invariant.c
 
 UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/empty_code.c \
@@ -122,7 +123,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/densify_loop.c \
 	$(top_srcdir)/tests/unitary/collapse_loop.c \
 	$(top_srcdir)/tests/unitary/collapse_multi.c \
-	$(top_srcdir)/tests/unitary/collapse_nested.c
+	$(top_srcdir)/tests/unitary/collapse_nested.c \
+	$(top_srcdir)/tests/unitary/linearize.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \

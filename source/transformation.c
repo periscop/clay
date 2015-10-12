@@ -92,6 +92,185 @@
 
  */
 
+// assumes stripmine with no 'pretty'?
+int clay_linearize(osl_scop_p scop, clay_array_p beta, int depth,
+                   clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering;
+  int precision;
+  int row, col, i, j;
+  clay_array_p candidate_rows_lower, candidate_rows_upper;
+  int row_lower = -1;
+  int row_upper = -1;
+  int row_beta;
+  osl_scatnames_p scat;
+  osl_strings_p names, newnames;
+  int nb_strings = 0;
+  int nb_output_dims = 0;
+
+  (void) options;
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+    return CLAY_SUCCESS;
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  candidate_rows_lower = clay_array_malloc();
+  candidate_rows_upper = clay_array_malloc();
+  precision = statement->scattering->precision;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      // Get the maximum number of output dimensions in all matching scatterings
+      if (scattering->nb_output_dims > nb_output_dims) {
+        nb_output_dims = scattering->nb_output_dims;
+      }
+      if ((scattering->nb_output_dims - 1) / 2 < depth + 1) { // Check depth.
+        clay_array_free(candidate_rows_lower);
+        clay_array_free(candidate_rows_upper);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+      clay_array_clear(candidate_rows_lower);
+      clay_array_clear(candidate_rows_upper);
+
+      // Go through all inequalities and find a pair with specific form
+      for (row = 0; row < scattering->nb_rows; row++) {
+        int all_zero = 1;
+        int constant_zero = 0;
+        int positive_at_depth = 0;
+        int one_at_next = 0;
+        int mone_at_next = 0;
+        if (osl_int_zero(precision, scattering->m[row][0])) {
+          continue;
+        }
+
+        for (col = 1; col < scattering->nb_columns - 1; col++) {
+          if (col == 2*depth || col == 2*depth + 2) {
+            continue;
+          } else {
+            if (!osl_int_zero(precision, scattering->m[row][col])) {
+              all_zero = 0;
+              break;
+            }
+          }
+        }
+        if (!all_zero) {
+          continue;
+        }
+
+        if (osl_int_zero(precision, scattering->m[row][2*depth]) ||
+            osl_int_zero(precision, scattering->m[row][2*depth + 2])) {
+          continue;
+        }
+
+        constant_zero     = osl_int_zero(precision,
+                                scattering->m[row][scattering->nb_columns - 1]);
+        positive_at_depth = osl_int_pos(precision,
+                                scattering->m[row][2*depth]);
+        one_at_next       = osl_int_one(precision,
+                                scattering->m[row][2*depth + 2]);
+        mone_at_next      = osl_int_mone(precision,
+                                scattering->m[row][2*depth + 2]);
+
+        if (!positive_at_depth && one_at_next && constant_zero) {
+          clay_array_add(candidate_rows_lower, row);
+        } else if (positive_at_depth && mone_at_next && !constant_zero) {
+          clay_array_add(candidate_rows_upper, row);
+        }
+      }
+
+      if (candidate_rows_lower->size == 0 || candidate_rows_upper->size == 0) {
+        clay_array_free(candidate_rows_lower);
+        clay_array_free(candidate_rows_upper);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+
+      // Check if coefficients in the specific form match stripmining
+      for (i = 0; i < candidate_rows_lower->size; i++) {
+        for (j = 0; j < candidate_rows_upper->size; j++) {
+          int row_i = candidate_rows_lower->data[i];
+          int row_j = candidate_rows_upper->data[j];
+          int same_factor = 0;
+          int correct_constant = 0;
+          osl_int_t tmp;
+
+          osl_int_init(precision, &tmp);
+          osl_int_add(precision, &tmp, scattering->m[row_i][depth * 2],
+                                       scattering->m[row_j][depth * 2]);
+          same_factor = osl_int_zero(precision, tmp);
+          osl_int_add_si(precision, &tmp, scattering->m[row_j][depth * 2], -1);
+          correct_constant = osl_int_eq(precision, tmp,
+                              scattering->m[row_j][scattering->nb_columns - 1]);
+          if (same_factor && correct_constant) {
+            // found a pair
+            row_lower = row_i;
+            row_upper = row_j;
+            osl_int_clear(precision, &tmp);
+            break;
+          }
+          osl_int_clear(precision, &tmp);
+        }
+      }
+
+      if (row_lower == -1 || row_upper == -1) {
+        clay_array_free(candidate_rows_lower);
+        clay_array_free(candidate_rows_upper);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+
+      // Remove these inequalities and the supplementary dimension.
+      // Avoid row reindexing.
+      osl_relation_remove_row(scattering, OSL_max(row_lower, row_upper));
+      osl_relation_remove_row(scattering, OSL_min(row_lower, row_upper));
+      row_beta = clay_util_relation_get_line(scattering, 2*depth - 2);
+      osl_relation_remove_row(scattering, row_beta);
+      osl_relation_remove_column(scattering, 2*depth);
+      osl_relation_remove_column(scattering, 2*depth -1);
+
+      scattering->nb_output_dims -= 2;
+
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+  // Update the iterator name list
+  scat = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
+  names = scat->names;
+
+  // Only remove scatnames if there is enough names for the remaining dims.
+  nb_strings = osl_strings_size(names);
+  if (nb_strings >= nb_output_dims) {
+    newnames = osl_strings_malloc();
+    CLAY_malloc(newnames->string, char **, sizeof(char **) * (nb_strings - 1));
+
+    for (i = 0; i < 2 * depth - 2; i++) {
+      newnames->string[i] = names->string[i];
+    }
+    for (i = 2 * depth; i < nb_strings; i++) {
+      newnames->string[i - 2] = names->string[i];
+    }
+    free(names->string[2*depth - 2]);
+    free(names->string[2*depth - 1]);
+    newnames->string[nb_strings - 2] = NULL;
+    free(names->string);
+    free(names);
+    scat->names = newnames;
+  }
+
+  clay_beta_normalize(scop);
+
+  clay_array_free(candidate_rows_lower);
+  clay_array_free(candidate_rows_upper);
+  return CLAY_SUCCESS;
+}
+
 // asssumes betas are normalized
 int clay_collapse(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
   int i, row, col, row_1, row_2;

@@ -606,6 +606,14 @@ int clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
+    case CLAY_FUNCTION_LINEARIZE:
+      status_result = clay_linearize(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj,
+          clay_parser_stack.stack[top].data.integer,
+          clay_parser_options);
+      break;
+
     case CLAY_FUNCTION_UNROLL:
       status_result = clay_unroll(
           clay_parser_scop,
