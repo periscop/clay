@@ -79,6 +79,17 @@ void clay_array_remove_last(clay_array_p array) {
   if (array != NULL && array->size > 0) { --(array->size); }
 }
 
+/**
+ * Remove all the elements from the array without deallocating the space.
+ * \param[in,out] array   A Clay array
+ */
+void clay_array_clear(clay_array_p array) {
+  if (array == NULL)
+    return;
+
+  array->size = 0;
+}
+
 
 /**
  * clay_array_free function: 
