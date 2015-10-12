@@ -92,7 +92,23 @@
 
  */
 
-// assumes stripmine with no 'pretty'?
+/**
+ * Transform two nested loop into a single loop itearting over the same space.
+ * Undoes \ref clay_stripmine, the nested loop must be created by this
+ * transformation or have a similar structure (defined by a pair of inequalities
+ * rather than by an equation in the scattering relation).
+ * Only applicable to \e loops.
+ * If multiple stripmine operations were applied, this transformation undoes the
+ * \e first of them.
+ * This transformation infers the stripmine size.
+ * Assumes stripmine was done without the problematic \c pretty flag.
+ * \param[in,out] scop    osl scop describing the program
+ * \param[in]     beta    beta-prefix of the outer loop
+ * \param[in]     depth   1-based depth of the outer loop (depth+1)-th loop will
+ *                        be removed
+ * \param[in]     options clay options
+ * \returns               error code, see errors.h
+ */
 int clay_linearize(osl_scop_p scop, clay_array_p beta, int depth,
                    clay_options_p options) {
   osl_statement_p statement;
@@ -271,7 +287,15 @@ int clay_linearize(osl_scop_p scop, clay_array_p beta, int depth,
   return CLAY_SUCCESS;
 }
 
-// asssumes betas are normalized
+/**
+ * Removes complementary branch conditions around identical statements.
+ * Undoes index-set splitting transformation.
+ * This transformation infers the splitting condition and removes it.
+ * \param[in,out] scop    osl scop describing the program
+ * \param[in]     beta    beta-vector of the target statement or loop
+ * \param[in]     options clay options
+ * \returns               error code, see errors.h
+ */
 int clay_collapse(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
   int i, row, col, row_1, row_2;
   int candidate_row_1, candidate_row_2;
@@ -460,8 +484,26 @@ int clay_collapse(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
   return CLAY_SUCCESS;
 }
 
-// depth, iterator -- 1-based
-int clay_reshape(osl_scop_p scop, clay_array_p beta, int depth, int iterator, int amount, clay_options_p options) {
+/**
+ * Change the loop so that its iteration depends on an original iterator of
+ * another loop.
+ * In the code, introduce iterator into the boundaries of the specific loop in
+ * the nest identified by its depth and beta-prefix.  In the relational
+ * structure, substitute all occurrences of the depth-th output dimension for
+ * any relation that matches the beta vector with
+ * (dimension - amount*input dimension), where input dimension is defined by
+ * the iterator parameter.  This operation makes depth-th output dimension
+ * depend on iterator-th input dimenion.
+ * \param[in,out] scop     osl scop describing the program
+ * \param[in]     beta     beta-vector of the target statement or loop
+ * \param[in]     depth    1-based depth of the target loop in the nest
+ * \param[in]     iterator 1-based original iterator index
+ * \param[in]     amount   multipler of the iterator
+ * \param[in]     options  clay options
+ * \returns                error code, see errors.h
+ */
+int clay_reshape(osl_scop_p scop, clay_array_p beta, int depth, int iterator,
+                 int amount, clay_options_p options) {
   osl_statement_p statement;
   osl_relation_p scattering, copy;
   int row, precision, output, input;
@@ -531,8 +573,19 @@ int clay_reshape(osl_scop_p scop, clay_array_p beta, int depth, int iterator, in
   return CLAY_SUCCESS;
 }
 
-// depth 1-based
-int clay_densify(osl_scop_p scop, clay_array_p beta, int depth, clay_options_p options) {
+/**
+ * Make statement(s) execute at every iteration of the loop.
+ * Undoes \ref clay_grain transformation.
+ * This transformation infers the gap between two subsequent executions of the
+ * target statement(s) and removes it.
+ * \param[in,out] scop     osl scop describing the program
+ * \param[in]     beta     beta-vector of the target statement or loop
+ * \param[in]     depth    1-based depth of the target loop in the nest
+ * \param[in]     options  clay options
+ * \returns                error code, see errors.h
+ */
+int clay_densify(osl_scop_p scop, clay_array_p beta, int depth,
+                 clay_options_p options) {
   osl_statement_p statement;
   osl_relation_p scattering;
   int precision;
@@ -588,7 +641,20 @@ int clay_densify(osl_scop_p scop, clay_array_p beta, int depth, clay_options_p o
   return CLAY_SUCCESS;
 }
 
-int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain, clay_options_p options) {
+/**
+ * Make statement(s) execute at each grain-th iteration of the loop.
+ * Introduces a gap of (grain-1) iterations between two subsequent iterations
+ * of the statement in the loop at depth.
+ * \param[in,out] scop     osl scop describing the program
+ * \param[in]     beta     beta-vector of the target statement or loop
+ * \param[in]     depth    1-based depth of the target loop in the nest
+ * \param[in]     options  clay options
+ * \param[in]     grain    the multiplier of iterator for which the target
+ *                         should be executed (>1)
+ * \returns                error code, see errors.h
+ */
+int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain,
+               clay_options_p options) {
   osl_statement_p statement;
   osl_relation_p scattering;
   int precision;
