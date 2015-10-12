@@ -1,0 +1,91 @@
+
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 3 0 0 0 1
+
+# Parameters are provided
+1
+<strings>
+N
+</strings>
+
+# Number of statements
+1
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+3 4 1 0 0 1
+# e/i|  i |  N |  1  
+   1    1    0    0    ## i >= 0
+   1   -1    1   -1    ## -i+N-1 >= 0
+   1    0    1   -1    ## N-1 >= 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+9 11 7 1 0 1
+# e/i| c1   c2   c3   c4   c5   c6   c7 |  i |  N |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    ## c1 == 0
+   1    0   -4    0    0    0    1    0    0    0    0    ## -4*c2+c6 >= 0
+   1    0    4    0    0    0   -1    0    0    0    3    ## 4*c2-c6+3 >= 0
+   0    0    0   -1    0    0    0    0    0    0    0    ## c3 == 0
+   1    0    0    0   -3    0    1    0    0    0    0    ## -3*c4+c6 >= 0
+   1    0    0    0    3    0   -1    0    0    0    2    ## 3*c4-c6+2 >= 0
+   0    0    0    0    0   -1    0    0    0    0    0    ## c5 == 0
+   0    0    0    0    0    0   -1    0    1    0    0    ## c6 == i
+   0    0    0    0    0    0    0   -1    0    0    0    ## c7 == 0
+
+# ----------------------------------------------  1.3 Access
+READ
+1 5 1 1 0 1
+# e/i| Arr|  i |  N |  1  
+   0   -1    0    0    1    ## Arr == i
+
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+i
+# Statement body expression
+S(i);
+</body>
+
+# =============================================== Extensions
+<scatnames>
+__b0 __ii0 __b1 __ii1 b0 i b1
+</scatnames>
+
+<arrays>
+# Number of arrays
+3
+# Mapping array-identifiers/array-names
+1 i
+2 N
+3 S
+</arrays>
+
+<coordinates>
+# File name
+tests/double_stripmine.c
+# Starting line and column
+2 0
+# Ending line and column
+11 0
+# Indentation
+0
+</coordinates>
+
+</OpenScop>
+
