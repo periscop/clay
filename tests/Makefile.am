@@ -56,8 +56,10 @@ TESTS			= $(check_SCRIPTS)
 TEST_FILES = \
 	$(top_srcdir)/tests/tests/ax-do1.c \
 	$(top_srcdir)/tests/tests/ax-do_double_tile.c \
-	$(top_srcdir)/tests/tests/ax-do3.c
-	
+	$(top_srcdir)/tests/tests/ax-do3.c \
+	$(top_srcdir)/tests/tests/double_stripmine.c \
+	$(top_srcdir)/tests/tests/double_tile.c
+
 UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/empty_code.c \
 	$(top_srcdir)/tests/unitary/empty_script.c \
