@@ -121,7 +121,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/shift_statement.c
+unitary/shift_statement.c
 # Starting line and column
 2 0
 # Ending line and column

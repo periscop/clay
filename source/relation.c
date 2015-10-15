@@ -436,3 +436,30 @@ void clay_relation_sort_rows(osl_relation_p relation) {
   }
 }
 
+void clay_relation_substitute(osl_relation_p relation,
+                              int original_col,
+                              int target_col,
+                              int factor) {
+  int row;
+  osl_int_t tmp;
+
+  // Do not allow substituting e/i flag or the constant and
+  // do not allow substituting by e/i flag (but allow by constant).
+  if (original_col <= 0 || original_col > relation->nb_columns - 1 ||
+      target_col <= 0 || target_col > relation->nb_columns)
+    return;
+
+  osl_int_init(relation->precision, &tmp);
+  for (row = 0; row < relation->nb_rows; row++) {
+    if (osl_int_zero(relation->precision, relation->m[row][original_col])) {
+      continue;
+    }
+    osl_int_mul_si(relation->precision, &tmp, relation->m[row][original_col],
+                   factor);
+    osl_int_add(relation->precision, &relation->m[row][target_col],
+                relation->m[row][target_col], tmp);
+  }
+
+  osl_int_clear(relation->precision, &tmp);
+}
+

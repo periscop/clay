@@ -47,12 +47,12 @@ int clay_function_reorder_type[]      = {ARRAY_T, ARRAY_T};
 int clay_function_interchange_type[]  = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_reverse_type[]      = {ARRAY_T, INTEGER_T};
 int clay_function_fuse_type[]         = {ARRAY_T};
-int clay_function_skew_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T};
+int clay_function_skew_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_iss_type[]          = {ARRAY_T, LIST_T};
 int clay_function_stripmine_type[]    = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_unroll_type[]       = {ARRAY_T, INTEGER_T};
 int clay_function_tile_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T, INTEGER_T};
-int clay_function_shift_type[]        = {ARRAY_T, INTEGER_T, LIST_T};
+int clay_function_shift_type[]        = {ARRAY_T, INTEGER_T, ARRAY_T, INTEGER_T};
 int clay_function_peel_type[]         = {ARRAY_T, LIST_T};
 int clay_function_context_type[]      = {ARRAY_T};
 int clay_function_dimreorder_type[]   = {ARRAY_T, INTEGER_T, ARRAY_T};
@@ -103,9 +103,9 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     VOID_T, clay_function_fuse_type, 1
   },
   {
-    "skew",      
-    "void skew(array beta, uint depth, int coeff)",
-    VOID_T, clay_function_skew_type, 3
+    "skew",
+    "void skew(array beta, uint depth, uint depth_other, int coeff)",
+    VOID_T, clay_function_skew_type, 4
   },
   {
     "iss",    
@@ -133,9 +133,9 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     VOID_T, clay_function_tile_type, 5
   },
   {
-    "shift",   
-    "void shift(array beta, uint depth, list vector { ((output,) (params,)) const })",
-    VOID_T, clay_function_shift_type, 3
+    "shift",
+    "void shift(array beta, uint depth, array params, int constant)",
+    VOID_T, clay_function_shift_type, 4
   },
   {
     "peel",   

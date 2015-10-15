@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (must_fail/skew_overflow_statement2.c)
+[Clan] Info: parsing file #1 (must_fail/skew_itself.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -49,18 +49,18 @@ N M
 
 # =============================================== Statement 1
 # Number of relations describing the statement:
-3
+4
 
 # ----------------------------------------------  1.1 Domain
 DOMAIN
 6 6 2 0 0 2
 # e/i|  i    j |  N    M |  1  
    1    1    0    0    0    0    ## i >= 0
-   1   -1    0    1    0    0    ## -i+N >= 0
-   1    0    0    1    0    0    ## N >= 0
+   1   -1    0    1    0   -1    ## -i+N-1 >= 0
+   1    0    0    1    0   -1    ## N-1 >= 0
    1    0    1    0    0    0    ## j >= 0
-   1    0   -1    0    1    0    ## -j+M >= 0
-   1    0    0    0    1    0    ## M >= 0
+   1    0   -1    0    1   -1    ## -j+M-1 >= 0
+   1    0    0    0    1   -1    ## M-1 >= 0
 
 # ----------------------------------------------  1.2 Scattering
 SCATTERING
@@ -73,12 +73,15 @@ SCATTERING
    0    0    0    0    0   -1    0    0    0    0    0    ## c5 == 0
 
 # ----------------------------------------------  1.3 Access
-WRITE
-3 9 3 2 0 2
-# e/i| Arr  [1]  [2]|  i    j |  N    M |  1  
-   0   -1    0    0    0    0    0    0    5    ## Arr == a
-   0    0   -1    0    1    0    0    0    0    ## [1] == i
-   0    0    0   -1    0    1    0    0    0    ## [2] == j
+READ
+1 7 1 2 0 2
+# e/i| Arr|  i    j |  N    M |  1  
+   0   -1    0    0    0    0    1    ## Arr == i
+
+READ
+1 7 1 2 0 2
+# e/i| Arr|  i    j |  N    M |  1  
+   0   -1    0    0    0    0    3    ## Arr == j
 
 # ----------------------------------------------  1.4 Statement Extensions
 # Number of Statement Extensions
@@ -89,20 +92,21 @@ WRITE
 # List of original iterators
 i j
 # Statement body expression
-a[i][j] = 0;
+S(i, j);
 </body>
 
 <extbody>
 # Number of accesses
-1
+2
 # Access coordinates (start/length)
-0 7
+2 1
+5 1
 # Number of original iterators
 2
 # List of original iterators
 i j
 # Statement body expression
-a[i][j] = 0;
+S(i, j);
 </extbody>
 
 # =============================================== Extensions
@@ -118,12 +122,12 @@ b0 i b1 j b2
 2 N
 3 j
 4 M
-5 a
+5 S
 </arrays>
 
 <coordinates>
 # File name
-must_fail/skew_overflow_statement2.c
+must_fail/skew_itself.c
 # Starting line and column
 2 0
 # Ending line and column
@@ -133,7 +137,7 @@ must_fail/skew_overflow_statement2.c
 </coordinates>
 
 <clay>
-   skew([0,0,0], 3, 3, 1);
+   skew([0,0],1,1,1);
 </clay>
 
 </OpenScop>

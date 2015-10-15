@@ -574,9 +574,10 @@ int clay_parser_exec_function(char *name) {
     case CLAY_FUNCTION_SKEW:
       status_result = clay_skew(
         clay_parser_scop,
-        clay_parser_stack.stack[top-2].data.obj, 
-        clay_parser_stack.stack[top-1].data.integer, 
-        clay_parser_stack.stack[top].data.integer, 
+        clay_parser_stack.stack[top-3].data.obj,
+        clay_parser_stack.stack[top-2].data.integer,
+        clay_parser_stack.stack[top-1].data.integer,
+        clay_parser_stack.stack[top].data.integer,
         clay_parser_options);
       break;
 
@@ -646,9 +647,10 @@ int clay_parser_exec_function(char *name) {
     case CLAY_FUNCTION_SHIFT:
       status_result = clay_shift(
           clay_parser_scop,
-          clay_parser_stack.stack[top-2].data.obj, 
-          clay_parser_stack.stack[top-1].data.integer, 
-          clay_parser_stack.stack[top].data.obj, 
+          clay_parser_stack.stack[top-3].data.obj,
+          clay_parser_stack.stack[top-2].data.integer,
+          clay_parser_stack.stack[top-1].data.obj,
+          clay_parser_stack.stack[top].data.integer,
           clay_parser_options);
       break;
 
