@@ -49,9 +49,9 @@ int clay_function_reverse_type[]      = {ARRAY_T, INTEGER_T};
 int clay_function_fuse_type[]         = {ARRAY_T};
 int clay_function_skew_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_iss_type[]          = {ARRAY_T, LIST_T};
-int clay_function_stripmine_type[]    = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_stripmine_type[]    = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_unroll_type[]       = {ARRAY_T, INTEGER_T};
-int clay_function_tile_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_tile_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_shift_type[]        = {ARRAY_T, INTEGER_T, ARRAY_T, INTEGER_T};
 int clay_function_peel_type[]         = {ARRAY_T, LIST_T};
 int clay_function_context_type[]      = {ARRAY_T};
@@ -114,8 +114,8 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "stripmine",
-    "void stripmine(array beta, uint depth, uint size, bool pretty)",
-    VOID_T, clay_function_stripmine_type, 4
+    "void stripmine(array beta, uint depth, uint size)",
+    VOID_T, clay_function_stripmine_type, 3
   },
   {
     "unroll",  
@@ -129,8 +129,8 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "tile",    
-    "void tile(array beta, uint depth, uint depth_outer, uint size, bool pretty)",
-    VOID_T, clay_function_tile_type, 5
+    "void tile(array beta, uint depth, uint depth_outer, uint size)",
+    VOID_T, clay_function_tile_type, 4
   },
   {
     "shift",

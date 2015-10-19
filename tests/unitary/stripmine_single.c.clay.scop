@@ -116,7 +116,7 @@ __b0 __ii0 b0 i b1
 
 <coordinates>
 # File name
-./unitary/stripmine_non_pretty.c
+unitary/stripmine_single.c
 # Starting line and column
 2 0
 # Ending line and column

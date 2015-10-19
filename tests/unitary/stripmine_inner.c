@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   stripmine([0,0,1], 2, 32, 0);
+   stripmine([0,0], 2, 32);
 */
 for(i = 0 ; i <= N ; i++) {
   for(j = 0 ; j <= M ; j++) {

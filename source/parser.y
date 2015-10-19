@@ -600,8 +600,7 @@ int clay_parser_exec_function(char *name) {
     case CLAY_FUNCTION_STRIPMINE:
       status_result = clay_stripmine(
           clay_parser_scop,
-          clay_parser_stack.stack[top-3].data.obj, 
-          clay_parser_stack.stack[top-2].data.integer, 
+          clay_parser_stack.stack[top-2].data.obj, 
           clay_parser_stack.stack[top-1].data.integer, 
           clay_parser_stack.stack[top].data.integer, 
           clay_parser_options);
@@ -636,8 +635,7 @@ int clay_parser_exec_function(char *name) {
     case CLAY_FUNCTION_TILE:
       status_result = clay_tile(
           clay_parser_scop,
-          clay_parser_stack.stack[top-4].data.obj, 
-          clay_parser_stack.stack[top-3].data.integer, 
+          clay_parser_stack.stack[top-3].data.obj, 
           clay_parser_stack.stack[top-2].data.integer, 
           clay_parser_stack.stack[top-1].data.integer, 
           clay_parser_stack.stack[top].data.integer, 

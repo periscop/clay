@@ -74,7 +74,7 @@ a[i][j][k] = 0;
 
 # =============================================== Extensions
 <scatnames>
-b0 i b1 j __b0 __kk0 b2 k b3
+b0 i b1 __kk0 __b0 j b2 k b3
 </scatnames>
 
 <arrays>
@@ -92,7 +92,7 @@ b0 i b1 j __b0 __kk0 b2 k b3
 
 <coordinates>
 # File name
-./unitary/tile_loop1.c
+unitary/tile_loop1.c
 # Starting line and column
 2 0
 # Ending line and column

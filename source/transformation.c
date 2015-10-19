@@ -1215,19 +1215,16 @@ int clay_iss(osl_scop_p scop,
  * \param[in,out] scop
  * \param[in] beta          Beta vector (loop or statement)
  * \param[in] size          Block size of the inner loop
- * \param[in] pretty        If true, clay will keep the variables name
  * \param[in] options
  * \return                  Status
  */
-int clay_stripmine(osl_scop_p scop, clay_array_p beta, 
-                   unsigned int depth, unsigned int size, 
-                   int pretty, clay_options_p options) {
-  
+int clay_stripmine(osl_scop_p scop, clay_array_p beta,
+                   unsigned int depth, unsigned int size,
+                   clay_options_p options) {
+
   /* Description:
    * Add two inequality for the stripmining.
    * The new dependance with the loop is done on an output_dim.
-   * If pretty is true, we add for each statements (not only the beta) two
-   * output_dims (one for the iterator and one for the 2*n+1).
    */
 
   if (beta->size == 0)
@@ -1236,7 +1233,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
     return CLAY_ERROR_WRONG_BLOCK_SIZE;
   if (depth <= 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
-  
+
   osl_relation_p scattering;
   osl_statement_p statement = scop->statement;
   osl_scatnames_p scat;
@@ -1249,22 +1246,20 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
   char buffer[OSL_MAX_STRING];
   char *new_var_iter;
   char *new_var_beta;
-  
+
   statement = clay_beta_find(statement, beta);
   if (!statement)
     return CLAY_ERROR_BETA_NOT_FOUND;
   if (statement->scattering->nb_output_dims < 3)
     return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
-  
+
   precision = statement->scattering->precision;
-  if (pretty)
-    statement = scop->statement; // TODO optimization...
-        
+
   while (statement != NULL) {
     scattering = statement->scattering;
     while (scattering != NULL) {
       if (clay_beta_check_relation(scattering, beta)) {
-        CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
+        CLAY_BETA_IS_LOOP(beta, scattering);
 
         // set the strip mine
         row = clay_util_relation_get_line(scattering, column);
@@ -1304,42 +1299,16 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
                        &scattering->m[row_next][scattering->nb_columns-1],
                        0);
 
-      } else if (pretty && column < scattering->nb_output_dims) {
-        // add 2 empty dimensions
-        row = clay_util_relation_get_line(scattering, column);
-
-        osl_relation_insert_blank_column(scattering, column+1);
-        osl_relation_insert_blank_column(scattering, column+1);
-
-        osl_relation_insert_blank_row(scattering, row);
-        osl_relation_insert_blank_row(scattering, row);
-
-        // -Identity
-        osl_int_set_si(precision, &scattering->m[row][column+1], -1);
-        osl_int_set_si(precision, &scattering->m[row+1][column+2], -1);
-
-        scattering->nb_output_dims += 2;
-
-        // reorder
-        row_next = clay_util_relation_get_line(scattering, column+2);
-        osl_int_assign(precision,
-                       &scattering->m[row][scattering->nb_columns-1],
-                       scattering->m[row_next][scattering->nb_columns-1]);
-
-        osl_int_set_si(precision,
-                       &scattering->m[row_next][scattering->nb_columns-1],
-                       0);
       }
-
       scattering = scattering->next;
     }
     statement = statement->next;
   }
-  
+
   // get the list of scatnames
   scat = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
   names = scat->names;
-  
+
   // generate iterator variable name
   i = 0;
   do {
@@ -1348,7 +1317,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
     i++;
   } while (clay_util_scatnames_exists(scat, buffer));
   new_var_iter = strdup(buffer);
-  
+
   // generate beta variable name
   i = 0;
   do {
@@ -1356,31 +1325,31 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
     i++;
   } while (clay_util_scatnames_exists(scat, buffer));
   new_var_beta = strdup(buffer);
-  
+
   // insert the two variables
   nb_strings = osl_strings_size(names) + 2;
   osl_strings_p newnames = osl_strings_malloc();
   CLAY_malloc(newnames->string, char**, sizeof(char**) * (nb_strings + 1));
-  
+
   for (i = 0 ; i < column ; i++)
     newnames->string[i] = names->string[i];
-  
+
   newnames->string[i] = new_var_beta;
   newnames->string[i+1] = new_var_iter;
-  
+
   for (i = i+2 ; i < nb_strings ; i++)
     newnames->string[i] = names->string[i-2];
-  
+
   newnames->string[i] = NULL; // end of the list
-  
+
   // replace the scatnames
   free(names->string);
   free(names);
   scat->names = newnames;
-  
+
   if (options && options->normalize)
     clay_beta_normalize(scop);
-  
+
   return CLAY_SUCCESS;
 }
 
@@ -1715,9 +1684,9 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
  * \param[in] options
  * \return                  Status
  */
-int clay_tile(osl_scop_p scop, 
+int clay_tile(osl_scop_p scop,
               clay_array_p beta, unsigned int depth, unsigned int depth_outer,
-              unsigned int size, int pretty, clay_options_p options) {
+              unsigned int size, clay_options_p options) {
 
   /* Description:
    * stripmine + interchange
@@ -1731,10 +1700,10 @@ int clay_tile(osl_scop_p scop,
     return CLAY_ERROR_DEPTH_OVERFLOW;
   if (depth_outer > depth)
     return CLAY_ERROR_DEPTH_OUTER;
-  
+
   int ret, i;
-  ret = clay_stripmine(scop, beta, depth, size, pretty, options);
-  
+  ret = clay_stripmine(scop, beta, depth, size, options);
+
   // Update beta to reflect the stripmine.
   clay_array_p new_beta = clay_array_malloc();
   for (i = 0; i < depth; i++) {
@@ -1746,7 +1715,7 @@ int clay_tile(osl_scop_p scop,
   }
 
   if (ret == CLAY_SUCCESS) {
-    ret = clay_interchange(scop, new_beta, depth, depth_outer, pretty, options);
+    ret = clay_interchange(scop, new_beta, depth, depth_outer, 1, options);
   }
 
   return ret;

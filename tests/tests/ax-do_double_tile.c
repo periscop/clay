@@ -9,8 +9,8 @@ int main()
 #pragma scop
 /* Clay
 fission([0,0], 1);
-tile([1,0], 2, 1, 32, 0);
-tile([1,0], 2, 1, 32, 0);
+tile([1,0], 2, 1, 32);
+tile([1,0], 2, 1, 32);
 */
   for (i1=1;i1<=n;i1++) {                 
     c[i1] = 0 ;                       
