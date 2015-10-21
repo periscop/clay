@@ -37,10 +37,6 @@
 #ifndef CLAY_UTIL_H
 #define CLAY_UTIL_H
 
-#ifndef bool
-#define bool short
-#endif
-
 #include <clay/array.h>
 #include <clay/list.h>
 #include <osl/scop.h>
@@ -80,7 +76,7 @@ void  clay_util_statement_replace_beta(osl_statement_p,
                                        clay_array_p);
 
 void  clay_util_array_output_dims_pad_zero(clay_array_p);
-bool  clay_util_scatnames_exists(osl_scatnames_p, char*);
+int   clay_util_scatnames_exists(osl_scatnames_p, char*);
 char* clay_util_string_replace(char*, char*, char*);
 
 void  clay_util_body_regenerate_access(osl_extbody_p, 
@@ -95,7 +91,7 @@ int   clay_util_arrays_search(osl_arrays_p, unsigned int);
 int clay_util_foreach_access(osl_scop_p, clay_array_p, unsigned int, 
                              int (*func)(osl_relation_list_p, void*), void*,
                              int);
-int clay_util_is_row_beta_definition(osl_relation_p relation, int row);
+int clay_util_is_row_beta_definition(osl_relation_p, int);
 
 void clay_alpha_normalize(osl_scop_p);
 void clay_scop_normalize(osl_scop_p);
