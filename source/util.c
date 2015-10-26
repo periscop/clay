@@ -40,6 +40,7 @@
 #include <clay/macros.h>
 #include <clay/util.h>
 #include <clay/errors.h>
+#include <clay/relation.h>
 
 #include <osl/statement.h>
 #include <osl/body.h>
@@ -384,7 +385,7 @@ char* clay_util_string_replace(char *search, char *replace, char *string) {
  * \param[in] scattering
  * \return
  */
-bool clay_util_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
+int clay_util_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
   osl_strings_p names = scatnames->names;
   if (names == NULL || names->string[0] == NULL)
     return 0;

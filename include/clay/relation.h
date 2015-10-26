@@ -38,7 +38,6 @@
 #define CLAY_RELATION_H
 
 #include <clay/array.h>
-#include <clay/util.h>
 
 #include <osl/osl.h>
 

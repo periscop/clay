@@ -411,6 +411,9 @@ static int row_preceeds(osl_relation_p relation, int row_i, int row_j) {
     if (osl_int_gt(relation->precision,
                    relation->m[row_i][k], relation->m[row_j][k])) {
       return 0;
+    } else if (!osl_int_eq(relation->precision,
+                           relation->m[row_i][k], relation->m[row_j][k])) {
+      return 1;
     }
   }
   return 1;
