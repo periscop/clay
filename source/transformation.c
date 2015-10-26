@@ -1103,7 +1103,7 @@ int clay_skew(osl_scop_p scop,
  * \param[in]  options
  * \return                       Status
  */
-int clay_iss(osl_scop_p scop, 
+int clay_iss(osl_scop_p scop,
              clay_array_p beta_loop, clay_list_p inequ,
              clay_array_p *ret_beta_max,
              clay_options_p options) {
@@ -1115,15 +1115,15 @@ int clay_iss(osl_scop_p scop,
 
   if (beta_loop->size == 0)
     return CLAY_ERROR_BETA_EMPTY;
-  if (inequ->size > 3)
+  if (inequ->size > 4)
     return CLAY_ERROR_INEQU;
 
   osl_statement_p statement;
   osl_relation_p scattering, clone;
   clay_array_p beta_max, source_beta;
-  int nb_output_dims, nb_parameters;
+  int nb_output_dims, nb_parameters, nb_input_dims;
   int order; // new loop order for the clones
-  
+
   // search a statement
   statement = clay_beta_find(scop->statement, beta_loop);
   if (!statement)
@@ -1132,18 +1132,24 @@ int clay_iss(osl_scop_p scop,
     return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
 
   // decompose the inequation
-  nb_parameters = scop->context->nb_parameters;
+  nb_parameters  = scop->context->nb_parameters;
   nb_output_dims = statement->scattering->nb_output_dims;
+  nb_input_dims  = statement->scattering->nb_input_dims;
 
-  if (inequ->size == 3) {
-    // pad zeros
+  if (inequ->size == 4) {
+    // add zeros for beta dimensions
     clay_util_array_output_dims_pad_zero(inequ->data[0]);
 
     if (inequ->data[0]->size > nb_output_dims ||
+        inequ->data[1]->size > nb_input_dims ||
+        inequ->data[2]->size > nb_parameters ||
+        inequ->data[3]->size > 1)
+      return CLAY_ERROR_INEQU;
+  } else if (inequ->size == 3) {
+    if (inequ->data[0]->size > nb_input_dims ||
         inequ->data[1]->size > nb_parameters ||
         inequ->data[2]->size > 1)
       return CLAY_ERROR_INEQU;
-
   } else if (inequ->size == 2) {
     if (inequ->data[0]->size > nb_parameters ||
         inequ->data[1]->size > 1)
@@ -1160,11 +1166,11 @@ int clay_iss(osl_scop_p scop,
                                                // since loop contains statements
   if (ret_beta_max != NULL) {
     *ret_beta_max = beta_max;
+  } else {
+    clay_array_free(beta_max);
   }
 
-  // ensure ret_beta_max is set up before returning success
   if (inequ->size == 0) {
-    clay_array_free(beta_max);
     return CLAY_SUCCESS;
   }
 
@@ -1176,7 +1182,6 @@ int clay_iss(osl_scop_p scop,
            scattering = scattering->next) {
         if (clay_beta_check_relation(scattering, beta_loop)) {
           CLAY_BETA_IS_LOOP(beta_loop, scattering);
-          // TODO extract variables to the beginning
           // Clone the only the required relation part and insert inequation to
           // both the cloned and the original relation wrt negation.
           clone = osl_relation_nclone(scattering, 1);
@@ -1805,7 +1810,7 @@ int clay_shift(osl_scop_p scop, clay_array_p beta, unsigned int depth,
  * \param[in] options
  * \return                      Status
  */
-int clay_peel(osl_scop_p scop, 
+int clay_peel(osl_scop_p scop,
               clay_array_p beta_loop, clay_list_p peeling,
               clay_options_p options) {
 
@@ -1815,11 +1820,11 @@ int clay_peel(osl_scop_p scop,
     return CLAY_ERROR_INEQU;
   if (peeling->size == 0)
     return CLAY_SUCCESS;
-  
-  clay_array_p arr_dims, beta_max;
+
+  clay_array_p arr_dims, beta_max = NULL;
   clay_list_p new_peeling;
   int i, ret;
-  
+
   // create output dims
   arr_dims = clay_array_malloc();
   for (i = 0 ; i < beta_loop->size-1 ; i++)
@@ -1829,6 +1834,7 @@ int clay_peel(osl_scop_p scop,
   // create new peeling list
   new_peeling = clay_list_malloc();
   clay_list_add(new_peeling, arr_dims);
+  clay_list_add(new_peeling, clay_array_malloc());
   if (peeling->size == 2) {
     clay_list_add(new_peeling, peeling->data[0]);
     clay_list_add(new_peeling, peeling->data[1]);
@@ -1836,28 +1842,29 @@ int clay_peel(osl_scop_p scop,
     clay_list_add(new_peeling, clay_array_malloc()); // empty params
     clay_list_add(new_peeling, peeling->data[0]);
   }
-  
+
   // index-set spliting
   ret = clay_iss(scop, beta_loop, new_peeling, &beta_max, options);
 
   // we don't free ALL with clay_list_free, because there are arrays in
   // common with `peeling'
   clay_array_free(arr_dims);
+  clay_array_free(new_peeling->data[1]);
   if (peeling->size == 1)
-    clay_array_free(new_peeling->data[1]);
+    clay_array_free(new_peeling->data[2]);
   free(new_peeling->data);
   free(new_peeling);
 
   if (ret == CLAY_SUCCESS) {
     // see clay_split
-    clay_beta_shift_after(scop->statement, beta_max, 
+    clay_beta_shift_after(scop->statement, beta_max,
                           beta_loop->size);
-    clay_array_free(beta_max);
   }
+  clay_array_free(beta_max);
 
   if (options && options->normalize)
     clay_beta_normalize(scop);
-  
+
   return ret;
 }
 

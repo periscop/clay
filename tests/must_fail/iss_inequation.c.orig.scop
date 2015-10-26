@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (./must_fail/iss_inequation.c)
+[Clan] Info: parsing file #1 (must_fail/iss_inequation.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -115,7 +115,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./must_fail/iss_inequation.c
+must_fail/iss_inequation.c
 # Starting line and column
 2 0
 # Ending line and column
@@ -125,7 +125,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   iss([0], {0 | 1 | 0 | 0});
+   iss([0], {5 | 0 | 1 | 0 | 0});
 </clay>
 
 </OpenScop>

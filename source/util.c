@@ -150,9 +150,22 @@ void clay_util_statement_replace_beta(osl_statement_p statement,
   }
 }
 
+/**
+ * Appends an inequality row to the relation with values coming from the list
+ * grouped by their type (output dimensions, input dimensions, parameters,
+ * constant; in this order).  If first elements in the list are missing, they
+ * are assumed to be zero, for example a list with one array should contains
+ * only a constant.  If any of the arrays in the list is shorter than the
+ * corresponding dimensionality, missing last values are assumed to be zero,
+ * for example an array [1,2,3] will be interpreted as [1,2,3,0,0] if five
+ * dimensions are required.
+ * \param[in,out] relation pointer to the relation that will include the row
+ * \param[in]     inequ    coefficients in the row
+ */
 void clay_util_relation_insert_inequation(osl_relation_p relation,
                                           clay_list_p inequ) {
   clay_array_p dims = NULL,
+               input_dims = NULL,
                params = NULL,
                consts = NULL;
   int row = relation->nb_rows;
@@ -163,30 +176,46 @@ void clay_util_relation_insert_inequation(osl_relation_p relation,
   osl_relation_insert_blank_row(relation, row);
   osl_int_set_si(precision, &relation->m[row][0], 1); // inequality
 
-  if (inequ->size > 3) {
-    CLAY_error("list with more than 3 arrays not supported");
+  if (inequ->size > 4) {
+    CLAY_error("wrong coefficient list inserted (size > 4)");
+  } else if (inequ->size == 0) {
+    CLAY_error("empty coefficient list inserted");
+  } else if (inequ->size == 4) {
+    dims       = inequ->data[0];
+    input_dims = inequ->data[1];
+    params     = inequ->data[2];
+    consts     = inequ->data[3];
   } else if (inequ->size == 3) {
-    dims   = inequ->data[0];
-    params = inequ->data[1];
-    consts = inequ->data[2];
+    input_dims = inequ->data[0];
+    params     = inequ->data[1];
+    consts     = inequ->data[2];
   } else if (inequ->size == 2) {
-    params = inequ->data[0];
-    consts = inequ->data[1];
+    params     = inequ->data[0];
+    consts     = inequ->data[1];
   } else {
-    consts = inequ->data[0];
+    consts     = inequ->data[0];
   }
 
   if (consts->size != 1) {
-    CLAY_error("constant must be a single value");
+    CLAY_error("row insertion: constant must be a single value");
   }
 
   // Decomposition switch, fallthoroughs are _intentional_.
   switch (inequ->size) {
-  case 3:
+  case 4:
     for (j = 0, i = 1; j < dims->size; j++, i++) {
       osl_int_set_si(precision,
                      &relation->m[row][i],
                      dims->data[j]);
+    }
+    // intentional fall through
+  case 3:
+    for (j = 0, i = 1 + relation->nb_output_dims;
+         j < input_dims->size;
+         j++, i++) {
+      osl_int_set_si(precision,
+                     &relation->m[row][i],
+                     input_dims->data[j]);
     }
     // intentional fall through
   case 2:

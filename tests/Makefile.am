@@ -84,6 +84,7 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/iss_loop2.c \
 	$(top_srcdir)/tests/unitary/iss_loop3.c \
 	$(top_srcdir)/tests/unitary/iss_loop4.c \
+	$(top_srcdir)/tests/unitary/iss_loop5.c \
 	$(top_srcdir)/tests/unitary/reorder_all.c \
 	$(top_srcdir)/tests/unitary/reorder_nochanges.c \
 	$(top_srcdir)/tests/unitary/reorder_simple.c \
