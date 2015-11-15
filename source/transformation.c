@@ -162,6 +162,7 @@ int clay_linearize(osl_scop_p scop, clay_array_p beta, int depth,
         int positive_at_depth = 0;
         int one_at_next = 0;
         int mone_at_next = 0;
+        int one_at_current = 0;
         if (osl_int_zero(precision, scattering->m[row][0])) {
           continue;
         }
@@ -193,10 +194,13 @@ int clay_linearize(osl_scop_p scop, clay_array_p beta, int depth,
                                 scattering->m[row][2*depth + 2]);
         mone_at_next      = osl_int_mone(precision,
                                 scattering->m[row][2*depth + 2]);
+        one_at_current    = osl_int_one(precision,
+                                scattering->m[row][2*depth]);
 
         if (!positive_at_depth && one_at_next && constant_zero) {
           clay_array_add(candidate_rows_lower, row);
-        } else if (positive_at_depth && mone_at_next && !constant_zero) {
+        } else if (positive_at_depth && mone_at_next &&
+                   (!constant_zero ^ one_at_current)) {
           clay_array_add(candidate_rows_upper, row);
         }
       }
