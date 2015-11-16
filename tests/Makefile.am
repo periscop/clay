@@ -61,6 +61,7 @@ TEST_FILES = \
 	$(top_srcdir)/tests/tests/double_stripmine.c \
 	$(top_srcdir)/tests/tests/double_tile.c \
 	$(top_srcdir)/tests/tests/stripmine_linearize_invariant.c \
+	$(top_srcdir)/tests/tests/stripmine_linearize_invariant2.c \
 	$(top_srcdir)/tests/tests/stripmine_linearize_one_invariant.c
 
 UNITARY_TEST_FILES = \

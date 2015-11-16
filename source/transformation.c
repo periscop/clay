@@ -248,10 +248,10 @@ int clay_linearize(osl_scop_p scop, clay_array_p beta, int depth,
       // Avoid row reindexing.
       osl_relation_remove_row(scattering, OSL_max(row_lower, row_upper));
       osl_relation_remove_row(scattering, OSL_min(row_lower, row_upper));
-      row_beta = clay_util_relation_get_line(scattering, 2*depth - 2);
+      row_beta = clay_util_relation_get_line(scattering, 2*depth);
       osl_relation_remove_row(scattering, row_beta);
+      osl_relation_remove_column(scattering, 2*depth + 1);
       osl_relation_remove_column(scattering, 2*depth);
-      osl_relation_remove_column(scattering, 2*depth -1);
 
       scattering->nb_output_dims -= 2;
 
