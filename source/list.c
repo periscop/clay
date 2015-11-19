@@ -95,6 +95,7 @@ void clay_list_clear(clay_list_p l) {
   for (i = 0 ; i < l->size ; i++) {
     l->data[i]->size = 0;
   }
+  l->size = 0;
 }
 
 
