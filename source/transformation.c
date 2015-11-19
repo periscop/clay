@@ -93,6 +93,85 @@
  */
 
 /**
+ * Put a statement, possibly enclosed by nested loops, into the loop directly
+ * following it.  This transformation adds two extra output dimensions in order
+ * to make a statement fusable with a loop.
+ * \param[in,out] scop    osl scop describing the program
+ * \param[in]     beta    beta-vector of the statement
+ * \param[in]     options clay options
+ * \returns               error code, see errors.h
+ */
+int clay_meld(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering, target_scattering;
+  clay_array_p next_beta;
+  int depth = beta->size - 1;
+
+  if (!scop || !beta)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  if (beta->size == 0)
+    return CLAY_ERROR_DEPTH_OVERFLOW;
+
+  next_beta = clay_array_clone(beta);
+  next_beta->data[next_beta->size - 1] += 1;
+
+  // Find target relation.  Beta should identify a particular statement, thus
+  // this relation is unique.
+  statement = clay_beta_find(scop->statement, beta);
+  for ( ; statement != NULL; statement = statement->next) {
+    for (scattering = statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      if (clay_beta_check_relation(scattering, beta)) {
+        CLAY_BETA_IS_STMT(beta, scattering);
+        target_scattering = scattering;
+        break;
+      }
+    }
+  }
+
+  // Check that betas matching the beta-prefix immediately following given beta
+  // are loops.
+  statement = clay_beta_find(scop->statement, next_beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  for ( ; statement != NULL; statement = statement->next) {
+    for (scattering = statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      if (!clay_beta_check_relation(scattering, next_beta)) {
+        continue;
+      }
+      CLAY_BETA_IS_LOOP(next_beta, scattering);
+    }
+  }
+
+  osl_relation_insert_blank_column(target_scattering,
+                                   1 + target_scattering->nb_output_dims);
+  osl_relation_insert_blank_column(target_scattering,
+                                   1 + target_scattering->nb_output_dims);
+  target_scattering->nb_output_dims += 2;
+  osl_relation_insert_blank_row(target_scattering, -1);
+  osl_relation_insert_blank_row(target_scattering, -1);
+  osl_relation_insert_blank_row(target_scattering, -1);
+  osl_int_set_si(target_scattering->precision,
+            &target_scattering->m[target_scattering->nb_rows - 3][3 + 2*depth],
+            -1);
+  osl_int_set_si(target_scattering->precision,
+            &target_scattering->m[target_scattering->nb_rows - 2][2 + 2*depth],
+            1);
+  osl_int_set_si(target_scattering->precision,
+            &target_scattering->m[target_scattering->nb_rows - 1][2 + 2*depth],
+            -1);
+  osl_int_set_si(target_scattering->precision,
+            &target_scattering->m[target_scattering->nb_rows - 2][0],
+            1);
+  osl_int_set_si(target_scattering->precision,
+            &target_scattering->m[target_scattering->nb_rows - 1][0],
+            1);
+  return clay_fuse(scop, beta, options);
+}
+
+/**
  * Transform two nested loop into a single loop itearting over the same space.
  * Undoes \ref clay_stripmine, the nested loop must be created by this
  * transformation or have a similar structure (defined by a pair of inequalities

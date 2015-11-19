@@ -83,6 +83,7 @@ int clay_densify(osl_scop_p, clay_array_p, int, clay_options_p);
 int clay_collapse(osl_scop_p, clay_array_p, clay_options_p);
 int clay_linearize(osl_scop_p, clay_array_p, int depth, clay_options_p);
 int clay_reshape(osl_scop_p, clay_array_p, int, int, int, clay_options_p);
+int clay_meld(osl_scop_p, clay_array_p, clay_options_p);
 
 # if defined(__cplusplus)
   }

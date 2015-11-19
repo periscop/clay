@@ -127,7 +127,9 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/collapse_loop.c \
 	$(top_srcdir)/tests/unitary/collapse_multi.c \
 	$(top_srcdir)/tests/unitary/collapse_nested.c \
-	$(top_srcdir)/tests/unitary/linearize.c
+	$(top_srcdir)/tests/unitary/linearize.c \
+	$(top_srcdir)/tests/unitary/meld_stmt.c \
+	$(top_srcdir)/tests/unitary/meld_loop.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \
@@ -153,7 +155,9 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/dimprivatize_cant_privatize.c \
 	$(top_srcdir)/tests/must_fail/grain_overflow.c \
 	$(top_srcdir)/tests/must_fail/grain_negative.c \
-	$(top_srcdir)/tests/must_fail/collapse_multi.c
+	$(top_srcdir)/tests/must_fail/collapse_multi.c \
+	$(top_srcdir)/tests/must_fail/meld_not_found.c \
+	$(top_srcdir)/tests/must_fail/meld_not_stmt.c
 
 TEST_FILES_REF = $(TEST_FILES:.c=.c.scop)
 UNITARY_TEST_FILES_REF = $(UNITARY_TEST_FILES:.c=.c.scop)
