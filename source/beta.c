@@ -305,6 +305,43 @@ osl_statement_p clay_beta_find(osl_statement_p statement,
   return statement;
 }
 
+/**
+ * Find the first scattering in the list that matches the given beta-prefix.
+ * Returns pointers to the scattering relation and the statement that contains
+ * it through parameters.  If #stmt or #scattering are \c NULL, returns
+ * immediately.
+ * \param[in] start       Head of the statement list.
+ * \param[in] beta        A beta-prefix or a beta-vector
+ * \param[out] stmt       A pointer to the statement containg the matching
+ *                        scattering relation.
+ * \param[out] scattering A pointer to the mathing scattering relation.
+ */
+void clay_beta_find_relation(osl_statement_p start, clay_array_p beta,
+                             osl_statement_p *stmt, osl_relation_p *scattering) {
+  if (!stmt || !scattering)
+    return;
+
+  *stmt = NULL;
+  *scattering = NULL;
+
+  if (!start) {
+    return;
+  }
+
+  osl_relation_p scat;
+  *stmt = clay_beta_find(start, beta);
+  if (!stmt)
+    return;
+
+  for (scat = (*stmt)->scattering; scat != NULL; scat = scat->next) {
+    if (clay_beta_check_relation(scat, beta)) {
+      *scattering = scat;
+      return;
+    }
+  }
+}
+
+
 
 /**
  * Get the number of parts (either statement or loops) matching the

@@ -65,6 +65,7 @@ clay_array_p      clay_array_clone(clay_array_p);
 void              clay_array_concat(clay_array_p, clay_array_p);
 int               clay_array_equal(clay_array_p, clay_array_p);
 int               clay_array_contains(clay_array_p, int);
+char *            clay_array_string(clay_array_p);
 
 # if defined(__cplusplus)
   }

@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <clay/macros.h>
 #include <clay/list.h>
 #include <clay/beta.h>
@@ -148,5 +149,71 @@ void clay_list_cat(clay_list_t *restrict list, clay_list_t *restrict appendix) {
   for (i = 0; i < appendix->size; i++) {
     clay_list_add(list, appendix->data[i]);
   }
+}
+
+/**
+ * Compare two lists for equality.  Lists are equal if they have identical
+ * arrays in the same order.
+ * \param[in]   l1  First list
+ * \param[in]   l2  Second list
+ * \returns         \c 1 if lists are equal, \c 0 otherwise
+ */
+int clay_list_equal(clay_list_p l1, clay_list_p l2) {
+  int i;
+
+  if (l1->size != l2->size)
+    return 0;
+
+  for (i = 0; i < l1->size; i++) {
+    if (!clay_array_equal(l1->data[i], l2->data[i]))
+      return 0;
+  }
+
+  return 1;
+}
+
+/**
+ * Get textual representaiton of a list.
+ * \param[in]  list  The list
+ * \returns          Textual representation {array1|array2|array3}.  Allocates
+ *                   memory for the string and transfers ownership to the caller
+ */
+char *clay_list_string(clay_list_p list) {
+  char **array_strings = (char **) malloc(list->size * sizeof(char *));
+  int i;
+  int length = 0;
+  int watermark;
+  char *string;
+  char *start;
+
+  for (i = 0; i < list->size; i++) {
+    array_strings[i] = clay_array_string(list->data[i]);
+    length += strlen(array_strings[i]);
+  }
+
+  length += 2 + list->size;
+  string = (char *) malloc(length);
+  start = string;
+  watermark = length;
+
+  snprintf(string, watermark, "{");
+  string += 1;
+  watermark -= 1;
+  for (i = 0; i < list->size - 1; i++) {
+    int current_length = strlen(array_strings[i]);
+    snprintf(string, watermark, "%s,", array_strings[i]);
+    watermark -= current_length;
+    string += current_length;
+    free(array_strings[i]);
+  }
+  if (list->size != 0) {
+    int current_length = strlen(array_strings[list->size - 1]);
+    snprintf(string, watermark, "%s}", array_strings[list->size - 1]);
+    watermark -= current_length;
+    string += current_length;
+    free(array_strings[list->size - 1]);
+  }
+
+  return start;
 }
 

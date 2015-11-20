@@ -90,6 +90,8 @@ clay_list_p      clay_statement_betas(osl_statement_p);
 
 void             clay_beta_normalize(osl_scop_p);
 osl_statement_p  clay_beta_find(osl_statement_p, clay_array_p);
+void             clay_beta_find_relation(osl_statement_p, clay_array_p,
+                                         osl_statement_p *, osl_relation_p *);
 int              clay_beta_check(osl_statement_p, clay_array_p);
 int              clay_beta_check_relation(osl_relation_p, clay_array_p);
 clay_array_p     clay_beta_min(osl_statement_p, clay_array_p);

@@ -195,3 +195,42 @@ int clay_array_contains(clay_array_p array, int value) {
   return 0;
 }
 
+/**
+ * Get textual representaiton of the array.
+ * \param [in] array  The array.
+ * \returns           Textual representation [1,2,3,4].  Allocates memory for
+ *                    the string and transfers ownership to the caller.
+ */
+char *clay_array_string(clay_array_p array) {
+  size_t length = 3 + array->size * sizeof(int) * 4;
+  char *string = (char *) malloc(length);
+  char *start = string;
+  int i;
+  char buffer[sizeof(int) * 3 + 1];
+  int watermark = length;
+
+  snprintf(string, watermark, "[");
+  string += 1;
+  watermark -= 1;
+
+  for (i = 0; i < array->size - 1; i++) {
+    int current_length;
+    snprintf(buffer, sizeof(int) * 3 + 1, "%d", array->data[i]);
+    snprintf(string, watermark, "%s,", buffer);
+    current_length = strlen(buffer);
+    string += current_length + 1;
+    watermark -= current_length + 1;
+  }
+  if (array->size != 0) {
+    int current_length;
+    snprintf(buffer, sizeof(int) * 3 + 1, "%d", array->data[array->size - 1]);
+    snprintf(string, watermark, "%s", buffer);
+    current_length = strlen(buffer);
+    string += current_length;
+    watermark -= current_length;
+  }
+  snprintf(string, watermark, "]");
+
+  return start;
+}
+
