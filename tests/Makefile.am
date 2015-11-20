@@ -62,7 +62,8 @@ TEST_FILES = \
 	$(top_srcdir)/tests/tests/double_tile.c \
 	$(top_srcdir)/tests/tests/stripmine_linearize_invariant.c \
 	$(top_srcdir)/tests/tests/stripmine_linearize_invariant2.c \
-	$(top_srcdir)/tests/tests/stripmine_linearize_one_invariant.c
+	$(top_srcdir)/tests/tests/stripmine_linearize_one_invariant.c \
+	$(top_srcdir)/tests/tests/embed_unembed_invariant.c
 
 UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/empty_code.c \
@@ -128,8 +129,8 @@ UNITARY_TEST_FILES = \
 	$(top_srcdir)/tests/unitary/collapse_multi.c \
 	$(top_srcdir)/tests/unitary/collapse_nested.c \
 	$(top_srcdir)/tests/unitary/linearize.c \
-	$(top_srcdir)/tests/unitary/meld_stmt.c \
-	$(top_srcdir)/tests/unitary/meld_loop.c
+	$(top_srcdir)/tests/unitary/embed_stmt.c \
+	$(top_srcdir)/tests/unitary/embed_loop.c
 
 FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/beta_not_found.c \
@@ -156,8 +157,9 @@ FAIL_TEST_FILES = \
 	$(top_srcdir)/tests/must_fail/grain_overflow.c \
 	$(top_srcdir)/tests/must_fail/grain_negative.c \
 	$(top_srcdir)/tests/must_fail/collapse_multi.c \
-	$(top_srcdir)/tests/must_fail/meld_not_found.c \
-	$(top_srcdir)/tests/must_fail/meld_not_stmt.c
+	$(top_srcdir)/tests/must_fail/embed_wrong_beta.c \
+	$(top_srcdir)/tests/must_fail/unembed_wrong_coeff.c \
+	$(top_srcdir)/tests/must_fail/embed_not_stmt.c
 
 TEST_FILES_REF = $(TEST_FILES:.c=.c.scop)
 UNITARY_TEST_FILES_REF = $(UNITARY_TEST_FILES:.c=.c.scop)

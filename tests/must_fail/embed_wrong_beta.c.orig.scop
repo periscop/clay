@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (unitary/meld_stmt.c)
+[Clan] Info: parsing file #1 (must_fail/embed_wrong_beta.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -156,17 +156,19 @@ b0 i b1
 
 <coordinates>
 # File name
-unitary/meld_stmt.c
+must_fail/embed_wrong_beta.c
 # Starting line and column
 2 0
 # Ending line and column
-8 0
+10 0
 # Indentation
 0
 </coordinates>
 
 <clay>
-   meld([0]);
+   embed([0]);
+   fuse([0]);
+   unembed([0,0]);
  </clay>
 
 </OpenScop>

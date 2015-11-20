@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (unitary/meld_loop.c)
+[Clan] Info: parsing file #1 (must_fail/embed_not_stmt.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -45,7 +45,7 @@ T N
 </strings>
 
 # Number of statements
-4
+5
 
 # =============================================== Statement 1
 # Number of relations describing the statement:
@@ -273,6 +273,57 @@ t
 S4(t);
 </extbody>
 
+# =============================================== Statement 5
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  5.1 Domain
+DOMAIN
+3 5 1 0 0 2
+# e/i|  t |  T    N |  1  
+   1    1    0    0    0    ## t >= 0
+   1   -1    1    0   -1    ## -t+T-1 >= 0
+   1    0    1    0   -1    ## T-1 >= 0
+
+# ----------------------------------------------  5.2 Scattering
+SCATTERING
+3 8 3 1 0 2
+# e/i| c1   c2   c3 |  t |  T    N |  1  
+   0   -1    0    0    0    0    0    1    ## c1 == 1
+   0    0   -1    0    1    0    0    0    ## c2 == t
+   0    0    0   -1    0    0    0    0    ## c3 == 0
+
+# ----------------------------------------------  5.3 Access
+READ
+1 6 1 1 0 2
+# e/i| Arr|  t |  T    N |  1  
+   0   -1    0    0    0    1    ## Arr == t
+
+# ----------------------------------------------  5.4 Statement Extensions
+# Number of Statement Extensions
+2
+<body>
+# Number of original iterators
+1
+# List of original iterators
+t
+# Statement body expression
+S5(t);
+</body>
+
+<extbody>
+# Number of accesses
+1
+# Access coordinates (start/length)
+3 1
+# Number of original iterators
+1
+# List of original iterators
+t
+# Statement body expression
+S5(t);
+</extbody>
+
 # =============================================== Extensions
 <scatnames>
 b0 t b1 i b2
@@ -280,7 +331,7 @@ b0 t b1 i b2
 
 <arrays>
 # Number of arrays
-8
+9
 # Mapping array-identifiers/array-names
 1 t
 2 T
@@ -290,21 +341,22 @@ b0 t b1 i b2
 6 S2
 7 S3
 8 S4
+9 S5
 </arrays>
 
 <coordinates>
 # File name
-unitary/meld_loop.c
+must_fail/embed_not_stmt.c
 # Starting line and column
 2 0
 # Ending line and column
-13 0
+16 0
 # Indentation
 0
 </coordinates>
 
 <clay>
-   meld([0,0]);
+   embed([0]);
  </clay>
 
 </OpenScop>

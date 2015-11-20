@@ -92,29 +92,122 @@
 
  */
 
+
 /**
- * Put a statement, possibly enclosed by nested loops, into the loop directly
- * following it.  This transformation adds two extra output dimensions in order
- * to make a statement fusable with a loop.
+ * Remove the single-iteration loop immediately surrounding the statement.
+ * This loop should be defined exclusively in the scattering as if it was
+ * created by \ref clay_embed function, i.e. a pair of alpha and beta
+ * dimensions, the former defined as a >= 0 && a <= 0 by two inequalities, the
+ * latter defined as b = 0.
  * \param[in,out] scop    osl scop describing the program
  * \param[in]     beta    beta-vector of the statement
  * \param[in]     options clay options
  * \returns               error code, see errors.h
  */
-int clay_meld(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
+int clay_unembed(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
+  osl_statement_p statement = NULL, stmt;
+  osl_relation_p scattering = NULL, scat;
+  int depth;
+  int i;
+  int row_1, row_2, row_3;
+  clay_array_p beta_prefix;
+
+  (void) options;
+
+  if (!scop || !beta)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  if (beta->size <= 1)
+    return CLAY_ERROR_DEPTH_OVERFLOW;
+
+  depth = beta->size - 2;
+  beta_prefix = clay_array_clone(beta);
+  beta_prefix->size -= 1;
+
+  for (stmt = scop->statement; stmt != NULL;
+       stmt = stmt->next) {
+    for (scat = stmt->scattering; scat != NULL;
+         scat = scat->next) {
+      clay_array_p scattering_beta = clay_beta_extract(scat);
+      if (clay_beta_equals(scattering_beta, beta)) {
+        statement = stmt;
+        scattering = scat;
+      } else if (clay_beta_check_relation(scat, beta_prefix)) {
+        clay_array_free(scattering_beta);
+        return CLAY_ERROR_WRONG_BETA;
+      }
+      clay_array_free(scattering_beta);
+    }
+  }
+  if (statement == NULL || scattering == NULL)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  CLAY_BETA_IS_STMT(beta, scattering);
+
+  row_1 = -1;
+  row_2 = -1;
+  for (i = 0; i < scattering->nb_rows; i++) {
+    if (!osl_int_zero(scattering->precision, scattering->m[i][2 * depth + 2])) {
+      if (row_1 == -1) {
+        row_1 = i;
+        continue;
+      } else if (row_2 == -1) {
+        row_2 = i;
+        continue;
+      } else {
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+    }
+  }
+  if (row_1 == -1 || row_2 == -1)
+    return CLAY_ERROR_WRONG_COEFF;
+
+  for (i = 1; i < scattering->nb_columns; i++) {
+    if (i == 2 * depth + 2)
+      continue;
+    if (!osl_int_zero(scattering->precision, scattering->m[row_1][i]))
+      return CLAY_ERROR_WRONG_COEFF;
+    if (!osl_int_zero(scattering->precision, scattering->m[row_2][i]))
+      return CLAY_ERROR_WRONG_COEFF;
+  }
+  if (!osl_int_one(scattering->precision, scattering->m[row_1][0]))
+    return CLAY_ERROR_WRONG_COEFF;
+  if (!osl_int_one(scattering->precision, scattering->m[row_2][0]))
+    return CLAY_ERROR_WRONG_COEFF;
+
+  osl_relation_remove_row(scattering, CLAY_max(row_1, row_2));
+  osl_relation_remove_row(scattering, CLAY_min(row_1, row_2));
+
+  row_3 = clay_util_relation_get_line(scattering, 2 * depth + 2); // beta-dim
+  osl_relation_remove_row(scattering, row_3);
+  osl_relation_remove_column(scattering, 2 * depth + 3);
+  osl_relation_remove_column(scattering, 2 * depth + 2);
+  scattering->nb_output_dims -= 2;
+
+  return CLAY_SUCCESS;
+}
+
+
+/**
+ * Put a statement, possibly enclosed by nested loops, into a loop with single
+ * iteration.  This loop is created as the innermost of the nest.
+ * \param[in,out] scop    osl scop describing the program
+ * \param[in]     beta    beta-vector of the statement
+ * \param[in]     options clay options
+ * \returns               error code, see errors.h
+ */
+int clay_embed(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
   osl_statement_p statement;
   osl_relation_p scattering, target_scattering;
-  clay_array_p next_beta;
   int depth = beta->size - 1;
+
+  (void) options;
 
   if (!scop || !beta)
     return CLAY_ERROR_BETA_NOT_FOUND;
 
   if (beta->size == 0)
     return CLAY_ERROR_DEPTH_OVERFLOW;
-
-  next_beta = clay_array_clone(beta);
-  next_beta->data[next_beta->size - 1] += 1;
 
   // Find target relation.  Beta should identify a particular statement, thus
   // this relation is unique.
@@ -128,22 +221,11 @@ int clay_meld(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
         break;
       }
     }
+    if (scattering != NULL)
+      break;
   }
-
-  // Check that betas matching the beta-prefix immediately following given beta
-  // are loops.
-  statement = clay_beta_find(scop->statement, next_beta);
-  if (!statement)
+  if (!statement || !scattering)
     return CLAY_ERROR_BETA_NOT_FOUND;
-  for ( ; statement != NULL; statement = statement->next) {
-    for (scattering = statement->scattering; scattering != NULL;
-         scattering = scattering->next) {
-      if (!clay_beta_check_relation(scattering, next_beta)) {
-        continue;
-      }
-      CLAY_BETA_IS_LOOP(next_beta, scattering);
-    }
-  }
 
   osl_relation_insert_blank_column(target_scattering,
                                    1 + target_scattering->nb_output_dims);
@@ -168,7 +250,7 @@ int clay_meld(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
   osl_int_set_si(target_scattering->precision,
             &target_scattering->m[target_scattering->nb_rows - 1][0],
             1);
-  return clay_fuse(scop, beta, options);
+  return CLAY_SUCCESS;
 }
 
 /**

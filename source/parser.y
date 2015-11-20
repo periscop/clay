@@ -571,8 +571,15 @@ int clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
-    case CLAY_FUNCTION_MELD:
-      status_result = clay_meld(
+    case CLAY_FUNCTION_EMBED:
+      status_result = clay_embed(
+          clay_parser_scop,
+          clay_parser_stack.stack[top].data.obj,
+          clay_parser_options);
+      break;
+
+    case CLAY_FUNCTION_UNEMBED:
+      status_result = clay_unembed(
           clay_parser_scop,
           clay_parser_stack.stack[top].data.obj,
           clay_parser_options);
@@ -942,6 +949,11 @@ void clay_parser_print_error(int status_result) {
     case CLAY_ERROR_ONE_HAS_EXTBODY:
       fprintf(stderr,"[Clay] Error: line %d, one of the statement has an extbody\n"
                      "       but the other one\n",
+              clay_yylineno);
+      break;
+    case CLAY_ERROR_WRONG_BETA:
+      fprintf(stderr,"[Clay] Error: line %d, transformation is not applicable to the\n"
+                    "        given beta\n",
               clay_yylineno);
       break;
     default:

@@ -1,6 +1,6 @@
 #pragma scop
 /* Clay
-   meld([0,0]);
+   embed([0]);
  */
 for (int t = 0; t < T; t++) {
   S1(t);
@@ -9,5 +9,8 @@ for (int t = 0; t < T; t++) {
     S3(t,i);
   }
   S4(t);
+}
+for (int t = 0; t < T; t++) {
+  S5(t);
 }
 #pragma endscop

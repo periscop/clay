@@ -67,9 +67,9 @@ DOMAIN
 SCATTERING
 3 7 3 1 0 1
 # e/i| c1   c2   c3 |  i |  N |  1  
-   0   -1    0    0    0    0    0    ## c1 == 0
+   0   -1    0    0    0    0    1    ## c1 == 1
    0    0   -1    0    1    0    0    ## c2 == i
-   0    0    0   -1    0    0    1    ## c3 == 1
+   0    0    0   -1    0    0    0    ## c3 == 0
 
 # ----------------------------------------------  2.3 Access
 READ
@@ -106,7 +106,7 @@ b0 i b1
 
 <coordinates>
 # File name
-unitary/meld_stmt.c
+unitary/embed_stmt.c
 # Starting line and column
 2 0
 # Ending line and column
