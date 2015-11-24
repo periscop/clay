@@ -76,6 +76,9 @@ extern "C"
   {
 # endif
 
+char *clay_get_error_message();
+char *clay_error_message_text(int);
+
 # if defined(__cplusplus)
   }
 # endif

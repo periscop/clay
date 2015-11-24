@@ -102,9 +102,12 @@
   // Authorized functions in Clay (defined in functions.c)
   extern const clay_prototype_t functions[];
 
+  // Error message.
+  char *clay_error_message = NULL;
+
   // parser functions
+  void clay_set_error_message(int);
   int clay_parser_exec_function(char *name);
-  void clay_parser_print_error(int);
 %}
 
 %name-prefix "clay_yy"
@@ -136,7 +139,7 @@ line:
       if (strlen($1) > 1 ||
           $1[0] < 'a' ||
           $1[0] > 'z') {
-        clay_parser_print_error(CLAY_ERROR_UNK_VAR);
+        clay_set_error_message(CLAY_ERROR_UNK_VAR);
         YYABORT;
       }
 
@@ -153,7 +156,7 @@ line:
 
       if (tmp->type == REF_T) {
         if (tmp->data.obj == NULL) {
-          clay_parser_print_error(CLAY_ERROR_VAR_NULL);
+          clay_set_error_message(CLAY_ERROR_VAR_NULL);
           YYABORT;
         }
 
@@ -182,7 +185,7 @@ expr:
     IDENT_FUNCTION_NO_ARGS
     {
       if (level >= 1) {
-        clay_parser_print_error(CLAY_ERROR_CANT_CALL_SUBFUNC);
+        clay_set_error_message(CLAY_ERROR_CANT_CALL_SUBFUNC);
         YYABORT;
       }
 
@@ -203,7 +206,7 @@ expr:
     IDENT_FUNCTION 
     {
       if (level >= 1) {
-        clay_parser_print_error(CLAY_ERROR_CANT_CALL_SUBFUNC);
+        clay_set_error_message(CLAY_ERROR_CANT_CALL_SUBFUNC);
         YYABORT;
       }
 
@@ -224,13 +227,13 @@ expr:
       if (strlen($1) > 1 ||
           $1[0] < 'a' ||
           $1[0] > 'z') {
-        clay_parser_print_error(CLAY_ERROR_UNK_VAR);
+        clay_set_error_message(CLAY_ERROR_UNK_VAR);
         YYABORT;
       }
       
       int id = (int)$1[0] - 'a';
       if (clay_parser_vars[id] == NULL) {
-        clay_parser_print_error(CLAY_ERROR_VAR_NULL);
+        clay_set_error_message(CLAY_ERROR_VAR_NULL);
         YYABORT;
       }
 
@@ -724,7 +727,7 @@ int clay_parser_exec_function(char *name) {
       result.data.obj = clay_ident_find_loop(tree, integer);
 
       if (!result.data.obj) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+        clay_set_error_message(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
         return 1;
       }
 
@@ -737,7 +740,7 @@ int clay_parser_exec_function(char *name) {
       result.data.obj = clay_ident_find_stmt(clay_parser_scop, integer);
 
       if (!result.data.obj) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
+        clay_set_error_message(CLAY_ERROR_IDENT_STMT_NOT_FOUND);
         return 1;
       }
       break;
@@ -748,7 +751,7 @@ int clay_parser_exec_function(char *name) {
       result.data.obj = clay_ident_find_iterator(clay_parser_scop,  
                                                  (char*) data);
       if (!result.data.obj) {
-        clay_parser_print_error(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
+        clay_set_error_message(CLAY_ERROR_IDENT_NAME_NOT_FOUND);
         return 1;
       }
       break;
@@ -817,150 +820,31 @@ int clay_parser_exec_function(char *name) {
 
   // check errors
   if (status_result != CLAY_SUCCESS) {
-    clay_parser_print_error(status_result);
+    clay_set_error_message(status_result);
     return 1;
   }
   return 0;
 }
 
-
-/**
- * clay_parser_print_error function:
- * \param[in] status
- */
-void clay_parser_print_error(int status_result) {
-  switch (status_result) {
-    case CLAY_ERROR_BETA_NOT_FOUND:
-      fprintf(stderr,"[Clay] Error: line %d: the beta vector was not found\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_NOT_BETA_LOOP:
-      fprintf(stderr,"[Clay] Error: line %d: the beta is not a loop\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_NOT_BETA_STMT:
-      fprintf(stderr,"[Clay] Error: line %d: the beta is not a statement\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_REORDER_ARRAY_TOO_SMALL:
-      fprintf(stderr,"[Clay] Error: line %d, the order array is too small\n", 
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_REORDER_ARRAY_SIZE:
-      fprintf(stderr,"[Clay] Error: line %d, the order array is too small or too big\n", 
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_DEPTH_OVERFLOW:
-      fprintf(stderr,"[Clay] Error: line %d, depth overflow\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_WRONG_COEFF:
-      fprintf(stderr,"[Clay] Error: line %d, wrong coefficient\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_BETA_EMPTY:
-      fprintf(stderr,"[Clay] Error: line %d, the beta vector is empty\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_BETA_NOT_IN_A_LOOP:
-      fprintf(stderr,"[Clay] Error: line %d, the beta need to be in a loop\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_WRONG_BLOCK_SIZE:
-      fprintf(stderr,"[Clay] Error: line %d, block value is incorrect\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_WRONG_FACTOR:
-      fprintf(stderr,"[Clay] Error: line %d, wrong factor\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_DEPTH_OUTER:
-      fprintf(stderr,"[Clay] Error: line %d, the depth is not 'outer'\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_VECTOR_EMPTY:
-      fprintf(stderr,"[Clay] Error: line %d, the vector is empty\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_IDENT_NAME_NOT_FOUND:
-      fprintf(stderr,"[Clay] Error: line %d, the iterator name was not found\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_IDENT_STMT_NOT_FOUND:
-      fprintf(stderr,"[Clay] Error: line %d, the statement was not found\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_INEQU:
-      fprintf(stderr,"[Clay] Error: line %d, the inequality seems "
-                     "to be wrong\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_VECTOR:
-      fprintf(stderr,"[Clay] Error: line %d, the vector seems to be wrong\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_REORDER_OVERFLOW_VALUE:
-      fprintf(stderr,"[Clay] Error: line %d, there is an overflow value on the reorder array\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_CANT_PRIVATIZE:
-      fprintf(stderr,"[Clay] Error: line %d, privatization failed\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_ARRAYS_EXT_EMPTY:
-      fprintf(stderr,"[Clay] Error: arrays extensions is empty\n");
-      break;
-    case CLAY_ERROR_ID_EXISTS:
-      fprintf(stderr,"[Clay] Error: line %d, the id already exists\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_UNK_VAR:
-      fprintf(stderr,"[Clay] Error: line %d, error on the variable\n"
-                     "       (for now only a-z variables are accepted)\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_VAR_NULL:
-      fprintf(stderr,"[Clay] Error: line %d, the variable was not defined\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_CANT_CALL_SUBFUNC:
-      fprintf(stderr,"[Clay] Error: line %d, sorry you can't at the moment call\n"
-                     "       a function in an other function. Please use a temp\n"
-                     "       variable.\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_ARRAY_NOT_FOUND:
-      fprintf(stderr,"[Clay] Error: line %d, the array was not found\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_ARRAY_NOT_FOUND_IN_THE_BETA:
-      fprintf(stderr,
-              "[Clay] Error: line %d, the array was not found in the given beta\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_BETAS_NOT_SAME_DIMS:
-      fprintf(stderr,"[Clay] Error: line %d, the betas don't have the same dimensions\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_BETAS_NOT_SAME_DOMAIN:
-      fprintf(stderr,"[Clay] Error: line %d, the betas don't have the same domain\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_ONE_HAS_EXTBODY:
-      fprintf(stderr,"[Clay] Error: line %d, one of the statement has an extbody\n"
-                     "       but the other one\n",
-              clay_yylineno);
-      break;
-    case CLAY_ERROR_WRONG_BETA:
-      fprintf(stderr,"[Clay] Error: line %d, transformation is not applicable to the\n"
-                    "        given beta\n",
-              clay_yylineno);
-      break;
-    default:
-      fprintf(stderr,"[Clay] Error: unknown error %d (%s)\n", 
-              status_result, __func__);
-      break;
+void clay_set_error_message(int status_result) {
+  char *str = clay_error_message_text(status_result);
+  unsigned long size = strlen(str) + strlen("Error: line :") + 32;
+  char *message;
+  if (status_result != CLAY_SUCCESS) {
+    message = (char *) malloc(size);
+    snprintf(message, size, "Error: line %d: %s", clay_yylineno, str);
+  } else {
+    message = NULL;
   }
+  if (clay_error_message != NULL)
+    free(clay_error_message);
+  clay_error_message = message;
+
+  free(str);
+}
+
+char *clay_get_error_message() {
+  return clay_error_message;
 }
 
 

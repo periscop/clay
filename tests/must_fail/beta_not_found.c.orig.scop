@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (./must_fail/beta_not_found.c)
+[Clan] Info: parsing file #1 (must_fail/beta_not_found.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -168,7 +168,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./must_fail/beta_not_found.c
+must_fail/beta_not_found.c
 # Starting line and column
 2 0
 # Ending line and column

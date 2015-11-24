@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (./must_fail/dimprivatize_cant_privatize.c)
+[Clan] Info: parsing file #1 (must_fail/dimprivatize_cant_privatize.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -123,7 +123,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./must_fail/dimprivatize_cant_privatize.c
+must_fail/dimprivatize_cant_privatize.c
 # Starting line and column
 2 0
 # Ending line and column

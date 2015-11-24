@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (./must_fail/reorder_array_too_small.c)
+[Clan] Info: parsing file #1 (must_fail/reorder_array_too_small.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -274,7 +274,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./must_fail/reorder_array_too_small.c
+must_fail/reorder_array_too_small.c
 # Starting line and column
 2 0
 # Ending line and column
