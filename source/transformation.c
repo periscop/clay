@@ -1937,9 +1937,6 @@ int clay_shift(osl_scop_p scop, clay_array_p beta, unsigned int depth,
         if ((scattering->nb_output_dims - 1) / 2 < depth){
           return CLAY_ERROR_DEPTH_OVERFLOW;
         }
-        if (scattering->nb_input_dims == 0) {
-          return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
-        }
 
         // substitute any non-zero value in column, by itself - params - amount
         for (i = 0; i < parameters->size; i++) {
