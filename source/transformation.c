@@ -57,13 +57,604 @@
 #include <clay/errors.h>
 #include <clay/beta.h>
 #include <clay/util.h>
+#include <clay/relation.h>
 
 
 /*****************************************************************************\
  *                     Loop transformations                                   *
  `****************************************************************************/
 
-int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain, clay_options_p options) {
+/*
+   Many functions here have the common structure that may be extracted into
+   a separate higher-order function.
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+     return CLAY_SUCCESS;
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  precision = statement->scattering->precision;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
+      // Do staff.
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+ */
+
+/**
+ * Transform two nested loop into a single loop itearting over the same space.
+ * Undoes \ref clay_stripmine, the nested loop must be created by this
+ * transformation or have a similar structure (defined by a pair of inequalities
+ * rather than by an equation in the scattering relation).
+ * Only applicable to \e loops.
+ * If multiple stripmine operations were applied, this transformation undoes the
+ * \e first of them.
+ * This transformation infers the stripmine size.
+ * Assumes stripmine was done without the problematic \c pretty flag.
+ * \param[in,out] scop    osl scop describing the program
+ * \param[in]     beta    beta-prefix of the outer loop
+ * \param[in]     depth   1-based depth of the outer loop (depth+1)-th loop will
+ *                        be removed
+ * \param[in]     options clay options
+ * \returns               error code, see errors.h
+ */
+int clay_linearize(osl_scop_p scop, clay_array_p beta, int depth,
+                   clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering;
+  int precision;
+  int row, col, i, j;
+  clay_array_p candidate_rows_lower, candidate_rows_upper;
+  int row_lower = -1;
+  int row_upper = -1;
+  int row_beta;
+  osl_scatnames_p scat;
+  osl_strings_p names, newnames;
+  int nb_strings = 0;
+  int nb_output_dims = 0;
+
+  (void) options;
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+    return CLAY_SUCCESS;
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  candidate_rows_lower = clay_array_malloc();
+  candidate_rows_upper = clay_array_malloc();
+  precision = statement->scattering->precision;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      // Get the maximum number of output dimensions in all matching scatterings
+      if (scattering->nb_output_dims > nb_output_dims) {
+        nb_output_dims = scattering->nb_output_dims;
+      }
+      if ((scattering->nb_output_dims - 1) / 2 < depth + 1) { // Check depth.
+        clay_array_free(candidate_rows_lower);
+        clay_array_free(candidate_rows_upper);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+      clay_array_clear(candidate_rows_lower);
+      clay_array_clear(candidate_rows_upper);
+
+      // Go through all inequalities and find a pair with specific form
+      for (row = 0; row < scattering->nb_rows; row++) {
+        int all_zero = 1;
+        int constant_zero = 0;
+        int positive_at_depth = 0;
+        int one_at_next = 0;
+        int mone_at_next = 0;
+        if (osl_int_zero(precision, scattering->m[row][0])) {
+          continue;
+        }
+
+        for (col = 1; col < scattering->nb_columns - 1; col++) {
+          if (col == 2*depth || col == 2*depth + 2) {
+            continue;
+          } else {
+            if (!osl_int_zero(precision, scattering->m[row][col])) {
+              all_zero = 0;
+              break;
+            }
+          }
+        }
+        if (!all_zero) {
+          continue;
+        }
+
+        if (osl_int_zero(precision, scattering->m[row][2*depth]) ||
+            osl_int_zero(precision, scattering->m[row][2*depth + 2])) {
+          continue;
+        }
+
+        constant_zero     = osl_int_zero(precision,
+                                scattering->m[row][scattering->nb_columns - 1]);
+        positive_at_depth = osl_int_pos(precision,
+                                scattering->m[row][2*depth]);
+        one_at_next       = osl_int_one(precision,
+                                scattering->m[row][2*depth + 2]);
+        mone_at_next      = osl_int_mone(precision,
+                                scattering->m[row][2*depth + 2]);
+
+        if (!positive_at_depth && one_at_next && constant_zero) {
+          clay_array_add(candidate_rows_lower, row);
+        } else if (positive_at_depth && mone_at_next && !constant_zero) {
+          clay_array_add(candidate_rows_upper, row);
+        }
+      }
+
+      if (candidate_rows_lower->size == 0 || candidate_rows_upper->size == 0) {
+        clay_array_free(candidate_rows_lower);
+        clay_array_free(candidate_rows_upper);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+
+      // Check if coefficients in the specific form match stripmining
+      for (i = 0; i < candidate_rows_lower->size; i++) {
+        for (j = 0; j < candidate_rows_upper->size; j++) {
+          int row_i = candidate_rows_lower->data[i];
+          int row_j = candidate_rows_upper->data[j];
+          int same_factor = 0;
+          int correct_constant = 0;
+          osl_int_t tmp;
+
+          osl_int_init(precision, &tmp);
+          osl_int_add(precision, &tmp, scattering->m[row_i][depth * 2],
+                                       scattering->m[row_j][depth * 2]);
+          same_factor = osl_int_zero(precision, tmp);
+          osl_int_add_si(precision, &tmp, scattering->m[row_j][depth * 2], -1);
+          correct_constant = osl_int_eq(precision, tmp,
+                              scattering->m[row_j][scattering->nb_columns - 1]);
+          if (same_factor && correct_constant) {
+            // found a pair
+            row_lower = row_i;
+            row_upper = row_j;
+            osl_int_clear(precision, &tmp);
+            break;
+          }
+          osl_int_clear(precision, &tmp);
+        }
+      }
+
+      if (row_lower == -1 || row_upper == -1) {
+        clay_array_free(candidate_rows_lower);
+        clay_array_free(candidate_rows_upper);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+
+      // Remove these inequalities and the supplementary dimension.
+      // Avoid row reindexing.
+      osl_relation_remove_row(scattering, OSL_max(row_lower, row_upper));
+      osl_relation_remove_row(scattering, OSL_min(row_lower, row_upper));
+      row_beta = clay_util_relation_get_line(scattering, 2*depth - 2);
+      osl_relation_remove_row(scattering, row_beta);
+      osl_relation_remove_column(scattering, 2*depth);
+      osl_relation_remove_column(scattering, 2*depth -1);
+
+      scattering->nb_output_dims -= 2;
+
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+  // Update the iterator name list
+  scat = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
+  names = scat->names;
+
+  // Only remove scatnames if there is enough names for the remaining dims.
+  nb_strings = osl_strings_size(names);
+  if (nb_strings >= nb_output_dims) {
+    newnames = osl_strings_malloc();
+    CLAY_malloc(newnames->string, char **, sizeof(char **) * (nb_strings - 1));
+
+    for (i = 0; i < 2 * depth - 2; i++) {
+      newnames->string[i] = names->string[i];
+    }
+    for (i = 2 * depth; i < nb_strings; i++) {
+      newnames->string[i - 2] = names->string[i];
+    }
+    free(names->string[2*depth - 2]);
+    free(names->string[2*depth - 1]);
+    newnames->string[nb_strings - 2] = NULL;
+    free(names->string);
+    free(names);
+    scat->names = newnames;
+  }
+
+  clay_beta_normalize(scop);
+
+  clay_array_free(candidate_rows_lower);
+  clay_array_free(candidate_rows_upper);
+  return CLAY_SUCCESS;
+}
+
+/**
+ * Removes complementary branch conditions around identical statements.
+ * Undoes index-set splitting transformation.
+ * This transformation infers the splitting condition and removes it.
+ * \param[in,out] scop    osl scop describing the program
+ * \param[in]     beta    beta-vector of the target statement or loop
+ * \param[in]     options clay options
+ * \returns               error code, see errors.h
+ */
+int clay_collapse(osl_scop_p scop, clay_array_p beta, clay_options_p options) {
+  int i, row, col, row_1, row_2;
+  int candidate_row_1, candidate_row_2;
+  int nb_pairs;
+  clay_array_p first_beta, second_beta, max_beta;
+  clay_array_p matched_rows_2;
+  clay_list_p matching_betas = clay_list_malloc();
+  osl_statement_p statement, first_statement, second_statement;
+  osl_relation_p scattering, s1, s2;
+
+  (void) options; // prevent `unused' warning
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+     return CLAY_SUCCESS;
+
+  clay_scop_normalize(scop);
+
+  // Find all betas-vectors matching the given prefix.
+  statement = scop->statement;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      clay_list_add(matching_betas, clay_beta_extract(scattering));
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+  // Every relation should have a pair to collapse it with.
+  if ((matching_betas->size % 2) != 0 || matching_betas->size == 0) {
+    clay_list_free(matching_betas);
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  }
+
+
+  clay_beta_list_sort(matching_betas);
+  max_beta = clay_beta_max(scop->statement, beta);
+  if (max_beta->size <= beta->size) {
+    clay_array_free(max_beta);
+    clay_list_free(matching_betas);
+    return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+  }
+  nb_pairs = (max_beta->data[beta->size] + 1) / 2;// assume betas are normalized
+  clay_array_free(max_beta);
+
+  // For each matching beta, find its counterpart by going through half of the
+  // sorted beta list (counterpats are also matching) and check if both parts
+  // can collapse to one.
+  for (i = 0; i < matching_betas->size / 2; i++) {
+    first_beta = matching_betas->data[i];
+    if (first_beta->size == beta->size) { // Collpase works on loop level.
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+    }
+    second_beta = clay_array_clone(first_beta);
+    second_beta->data[beta->size] += nb_pairs;
+
+
+    // Both betas should belong to the same statement.
+    first_statement = clay_beta_find(scop->statement, first_beta);
+    second_statement = clay_beta_find(scop->statement, second_beta);
+    if (!first_statement || !second_statement ||
+        first_statement != second_statement) {
+      clay_array_free(second_beta);
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_BETA_NOT_FOUND;
+    }
+
+
+    s1 = NULL;
+    s2 = NULL;
+    for (scattering = first_statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      if (clay_beta_check_relation(scattering, first_beta)) {
+        s1 = scattering;
+      }
+      if (clay_beta_check_relation(scattering, second_beta)) {
+        s2 = scattering;
+      }
+    }
+    clay_array_free(second_beta);
+
+    // Check scattering parameters are compatible.
+    if (!s1 || !s2 ||
+        s1->nb_rows != s2->nb_rows ||
+        s1->nb_input_dims != s2->nb_input_dims ||
+        s1->nb_output_dims != s2->nb_output_dims ||
+        s1->nb_local_dims != s2->nb_local_dims ||
+        s1->nb_parameters != s2->nb_parameters) {
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_WRONG_COEFF; // FIXME: local dimensions can be merged
+    }
+
+    // Check all equalities are the same (in normalized form, equations come
+    // before inequalities, sorted lexicographically so that line by line
+    // comparison is possible.
+    for (row = 0; row < s1->nb_rows; row++) {
+      if (clay_util_is_row_beta_definition(s1, row)) {
+        continue; // ignore beta rows that are already compare by beta-matching
+      }
+      if (osl_int_one(s1->precision, s1->m[row][0])) {
+        break; // inequality part started
+      }
+      for (col = 0; col < s1->nb_columns; col++) {
+        if (osl_int_ne(s1->precision, s1->m[row][col], s2->m[row][col])) {
+          clay_list_free(matching_betas);
+          return CLAY_ERROR_WRONG_COEFF;
+        }
+      }
+    }
+
+    matched_rows_2 = clay_array_malloc();
+    candidate_row_1 = -1;
+    for (row_1 = row; row_1 < s1->nb_rows; row_1++) {
+      int matched_row = -1;
+      for (row_2 = row; row_2 < s2->nb_rows; row_2++) {
+        int mismatch = 0;
+
+        // Skip if row is already matched.
+        if (clay_array_contains(matched_rows_2, row_2)) {
+          continue;
+        }
+
+        for (col = 0; col < s1->nb_columns; col++) {
+          if (osl_int_ne(s1->precision,
+                         s1->m[row_1][col], s2->m[row_2][col])) {
+            mismatch = 1;
+            break;
+          }
+        }
+        if (!mismatch) {
+          matched_row = row_2;
+          clay_array_add(matched_rows_2, row_2);
+          break;
+        }
+      }
+
+      // If no row matched,
+      if (matched_row == -1) {
+        if (candidate_row_1 != -1) { // Cannot have two unmatching rows.
+          clay_array_free(matched_rows_2);
+          clay_list_free(matching_betas);
+          return CLAY_ERROR_WRONG_COEFF;
+        }
+        candidate_row_1 = row_1;
+      }
+    }
+
+    // Find the single unmatched row in s2.
+    candidate_row_2 = -1;
+    for (row_2 = row; row_2 < s2->nb_rows; row_2++) {
+      if (!clay_array_contains(matched_rows_2, row_2)) {
+        candidate_row_2 = row_2;
+        break;
+      }
+    }
+    clay_array_free(matched_rows_2);
+    if (candidate_row_2 == -1) {
+      // XXX: Something went wrong...
+      clay_list_free(matching_betas);
+      return CLAY_ERROR_WRONG_COEFF;
+    }
+
+    // Check if unmatched rows differ up to negation.
+    clay_util_relation_negate_row(s2, candidate_row_2);
+    for (col = 0; col < s1->nb_columns; col++) {
+      if (osl_int_ne(s1->precision, s1->m[candidate_row_1][col],
+                                    s2->m[candidate_row_2][col])) {
+        clay_list_free(matching_betas);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+    }
+    clay_util_relation_negate_row(s2, candidate_row_2);
+
+    // All preconditions are met, now we may remove the inequality and the
+    // second relation.
+    osl_relation_remove_row(s1, candidate_row_1);
+    osl_relation_remove_part(&second_statement->scattering, s2);
+  }
+
+  clay_list_free(matching_betas);
+  return CLAY_SUCCESS;
+}
+
+/**
+ * Change the loop so that its iteration depends on an original iterator of
+ * another loop.
+ * In the code, introduce iterator into the boundaries of the specific loop in
+ * the nest identified by its depth and beta-prefix.  In the relational
+ * structure, substitute all occurrences of the depth-th output dimension for
+ * any relation that matches the beta vector with
+ * (dimension - amount*input dimension), where input dimension is defined by
+ * the iterator parameter.  This operation makes depth-th output dimension
+ * depend on iterator-th input dimenion.
+ * \param[in,out] scop     osl scop describing the program
+ * \param[in]     beta     beta-vector of the target statement or loop
+ * \param[in]     depth    1-based depth of the target loop in the nest
+ * \param[in]     iterator 1-based original iterator index
+ * \param[in]     amount   multipler of the iterator
+ * \param[in]     options  clay options
+ * \returns                error code, see errors.h
+ */
+int clay_reshape(osl_scop_p scop, clay_array_p beta, int depth, int iterator,
+                 int amount, clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering, copy;
+  int row, precision, output, input;
+  osl_int_t summand;
+  int nb_explicit_before, nb_explicit_after;
+
+  output = 2*depth;
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  if (amount == 0)
+    return CLAY_ERROR_WRONG_FACTOR;
+
+  precision = statement->scattering->precision;
+  osl_int_init(precision, &summand);
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      // CLAY_BETA_CHECK_DEPTH(beta, depth, scattering); copied as it does not
+      // allow to free resources
+      if (beta->size*2-1 >= scattering->nb_output_dims && depth >= beta->size) {
+        osl_int_clear(precision, &summand);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+      if (depth > beta->size) {
+        osl_int_clear(precision, &summand);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+      if (iterator <= 0 || iterator > scattering->nb_input_dims) {
+        osl_int_clear(precision, &summand);
+        return CLAY_ERROR_DEPTH_OVERFLOW;
+      }
+
+      copy = osl_relation_clone(scattering);
+      nb_explicit_before = clay_relation_nb_explicit_dim_intrusive(copy);
+
+      input = 1 + scattering->nb_output_dims + (iterator - 1);
+
+      for (row = 0; row < copy->nb_rows; row++) {
+        osl_int_mul_si(precision, &summand, copy->m[row][output], amount);
+        osl_int_add(precision, &copy->m[row][input], copy->m[row][input], summand);
+      }
+
+      nb_explicit_after = clay_relation_nb_explicit_dim_intrusive(copy);
+      if (nb_explicit_before != nb_explicit_after) {
+        osl_int_clear(precision, &summand);
+        osl_relation_free(copy);
+        return CLAY_ERROR_WRONG_COEFF;
+      }
+
+      for (row = 0; row < scattering->nb_rows; row++) {
+        osl_int_mul_si(precision, &summand, scattering->m[row][output], amount);
+        osl_int_add(precision, &scattering->m[row][input], scattering->m[row][input], summand);
+      }
+
+      osl_relation_free(copy);
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+  osl_int_clear(precision, &summand);
+  return CLAY_SUCCESS;
+}
+
+/**
+ * Make statement(s) execute at every iteration of the loop.
+ * Undoes \ref clay_grain transformation.
+ * This transformation infers the gap between two subsequent executions of the
+ * target statement(s) and removes it.
+ * \param[in,out] scop     osl scop describing the program
+ * \param[in]     beta     beta-vector of the target statement or loop
+ * \param[in]     depth    1-based depth of the target loop in the nest
+ * \param[in]     options  clay options
+ * \returns                error code, see errors.h
+ */
+int clay_densify(osl_scop_p scop, clay_array_p beta, int depth,
+                 clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering;
+  int precision;
+  osl_int_t factor;
+  int row, col;
+
+  if (!scop || !scop->statement || !scop->statement->scattering)
+    return CLAY_SUCCESS;
+
+  osl_int_init(scop->statement->scattering->precision, &factor);
+
+  statement = clay_beta_find(scop->statement, beta);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+
+  precision = statement->scattering->precision;
+  while (statement != NULL) {
+    scattering = statement->scattering;
+    while (scattering != NULL) {
+      if (!clay_beta_check_relation(scattering, beta)) {
+        scattering = scattering->next;
+        continue;
+      }
+      CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
+
+      factor = clay_relation_gcd(scattering, depth);
+      if (osl_int_zero(precision, factor))
+        continue;
+
+      for (row = 0; row < scattering->nb_rows; row++) {
+        if (osl_int_zero(precision, scattering->m[row][depth * 2])) {
+          continue;
+        }
+        for (col = 2; col < scattering->nb_columns; col++) {
+          // if beta, ignore
+          if (col >= 1 && col < scattering->nb_output_dims + 1 && (col % 2) == 1) {
+            continue;
+          }
+          // if target dimension, ignore
+          if (col == depth * 2) {
+            continue;
+          }
+          osl_int_div_exact(precision, &scattering->m[row][col],
+                            scattering->m[row][col], factor);
+        }
+      }
+      scattering = scattering->next;
+    }
+    statement = statement->next;
+  }
+
+  osl_int_clear(precision, &factor);
+  return CLAY_SUCCESS;
+}
+
+/**
+ * Make statement(s) execute at each grain-th iteration of the loop.
+ * Introduces a gap of (grain-1) iterations between two subsequent iterations
+ * of the statement in the loop at depth.
+ * \param[in,out] scop     osl scop describing the program
+ * \param[in]     beta     beta-vector of the target statement or loop
+ * \param[in]     depth    1-based depth of the target loop in the nest
+ * \param[in]     options  clay options
+ * \param[in]     grain    the multiplier of iterator for which the target
+ *                         should be executed (>1)
+ * \returns                error code, see errors.h
+ */
+int clay_grain(osl_scop_p scop, clay_array_p beta, int depth, int grain,
+               clay_options_p options) {
   osl_statement_p statement;
   osl_relation_p scattering;
   int precision;

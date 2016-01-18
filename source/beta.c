@@ -42,6 +42,7 @@
 #include <osl/relation.h>
 
 #include <clay/array.h>
+#include <clay/list.h>
 #include <clay/beta.h>
 #include <clay/macros.h>
 #include <clay/util.h>
@@ -757,5 +758,19 @@ int clay_beta_sanity_check(osl_scop_p scop) {
   }
   clay_list_free(used_betas);
   return 1;
+}
+
+void clay_beta_list_sort(clay_list_p list) {
+  int i, j, unused;
+  clay_array_p tmp;
+  for (i = 0; i < list->size; i++) {
+    for (j = i + 1; j < list->size; j++) {
+      if (clay_beta_compare(list->data[i], list->data[j], &unused) < 0) {
+        tmp = list->data[i];
+        list->data[i] = list->data[j];
+        list->data[j] = tmp;
+      }
+    }
+  }
 }
 

@@ -79,6 +79,17 @@ void clay_array_remove_last(clay_array_p array) {
   if (array != NULL && array->size > 0) { --(array->size); }
 }
 
+/**
+ * Remove all the elements from the array without deallocating the space.
+ * \param[in,out] array   A Clay array
+ */
+void clay_array_clear(clay_array_p array) {
+  if (array == NULL)
+    return;
+
+  array->size = 0;
+}
+
 
 /**
  * clay_array_free function: 
@@ -166,5 +177,21 @@ int clay_array_equal(clay_array_p a1, clay_array_p a2) {
       return 0;
 
   return 1;
+}
+
+/**
+ * Checks if an array contains the given value.
+ * \param [in] a1     the array.
+ * \parma [in] value  the value to look for.
+ * \returns     1 if a1 contains value, 0 otherwise.
+ */
+int clay_array_contains(clay_array_p array, int value) {
+  int i;
+  for (i = 0; i < array->size; i++) {
+    if (array->data[i] == value) {
+      return 1;
+    }
+  }
+  return 0;
 }
 

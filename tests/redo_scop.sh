@@ -38,7 +38,7 @@
 # Will regenerate all the .scop in must_fail and unitary
 # -a to force
 
-find -name *.c | while read name
+find unitary must_fail tests -name *.c | while read name
 do
   if [ ! -f "$name.orig.scop" ] || [ "$1" = "-a" ]
   then

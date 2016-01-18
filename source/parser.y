@@ -520,6 +520,24 @@ int clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
+    case CLAY_FUNCTION_DENSIFY:
+      status_result = clay_densify(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj,
+          clay_parser_stack.stack[top].data.integer,
+          clay_parser_options);
+      break;
+
+    case CLAY_FUNCTION_RESHAPE:
+      status_result = clay_reshape(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-3].data.obj,
+          clay_parser_stack.stack[top-2].data.integer, 
+          clay_parser_stack.stack[top-1].data.integer, 
+          clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
+      break;
+
     case CLAY_FUNCTION_REORDER:
       status_result = clay_reorder(
           clay_parser_scop, 
@@ -571,6 +589,13 @@ int clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
+    case CLAY_FUNCTION_COLLAPSE:
+      status_result = clay_collapse(
+          clay_parser_scop,
+          clay_parser_stack.stack[top].data.obj,
+          clay_parser_options);
+      break;
+
     case CLAY_FUNCTION_STRIPMINE:
       status_result = clay_stripmine(
           clay_parser_scop,
@@ -578,6 +603,14 @@ int clay_parser_exec_function(char *name) {
           clay_parser_stack.stack[top-2].data.integer, 
           clay_parser_stack.stack[top-1].data.integer, 
           clay_parser_stack.stack[top].data.integer, 
+          clay_parser_options);
+      break;
+
+    case CLAY_FUNCTION_LINEARIZE:
+      status_result = clay_linearize(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj,
+          clay_parser_stack.stack[top].data.integer,
           clay_parser_options);
       break;
 

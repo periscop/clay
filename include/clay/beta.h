@@ -104,6 +104,7 @@ int              clay_beta_compare(clay_array_p, clay_array_p, int *);
 int              clay_beta_equals(clay_array_p, clay_array_p);
 clay_array_p     clay_beta_extract(osl_relation_p);
 int              clay_beta_sanity_check(osl_scop_p);
+void             clay_beta_list_sort(clay_list_p);
 
 int              clay_scattering_check_zeros(osl_relation_p, int, int);
 

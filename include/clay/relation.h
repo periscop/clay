@@ -2,9 +2,9 @@
    /*--------------------------------------------------------------------+
     |                              Clay                                  |
     |--------------------------------------------------------------------|
-    |                             array.h                                |
+    |                           relation.h                               |
     |--------------------------------------------------------------------|
-    |                    First version: 03/04/2012                       |
+    |                    First version: 01/10/2015                       |
     +--------------------------------------------------------------------+
 
  +--------------------------------------------------------------------------+
@@ -13,6 +13,7 @@
  |  \___)(____)(__)(__)(__)                                                 |
  +--------------------------------------------------------------------------+
  | Copyright (C) 2012 University of Paris-Sud                               |
+ | Copyright (c) 2015 Inria                                                 |
  |                                                                          |
  | This library is free software; you can redistribute it and/or modify it  |
  | under the terms of the GNU Lesser General Public License as published by |
@@ -30,44 +31,36 @@
  | Boston, MA  02110-1301  USA                                              |
  |                                                                          |
  | Clay, the Chunky Loop Alteration wizardrY                                |
- | Written by Joel Poudroux, joel.poudroux@u-psud.fr                        |
+ | Written by Oleksandr Zinenko, oleksandr.zinenko@inria.fr                 |
  +--------------------------------------------------------------------------*/
- 
 
-#ifndef CLAY_ARRAY_H
-#define CLAY_ARRAY_H
+#ifndef CLAY_RELATION_H
+#define CLAY_RELATION_H
 
-#define CLAY_ARRAY_INIT_SIZE 10
+#include <clay/array.h>
 
-#include <stdio.h>
+#include <osl/osl.h>
 
-# if defined(__cplusplus)
+#if defined(__cplusplus)
 extern "C"
   {
-# endif
-
-struct clay_array {
-  int *data;
-  int size; // memory used
-  int available;  // total allocated memory
-};
-
-typedef struct clay_array clay_array_t;
-typedef struct clay_array* clay_array_p;
-
-clay_array_p      clay_array_malloc();
-void              clay_array_add(clay_array_p, int);
-void              clay_array_remove_last(clay_array_p);
-void              clay_array_free(clay_array_p);
-void              clay_array_clear(clay_array_p);
-void              clay_array_print(FILE*, clay_array_p, int);
-clay_array_p      clay_array_clone(clay_array_p);
-void              clay_array_concat(clay_array_p, clay_array_p);
-int               clay_array_equal(clay_array_p, clay_array_p);
-int               clay_array_contains(clay_array_p, int);
-
-# if defined(__cplusplus)
-  }
-# endif
-
 #endif
+
+osl_int_t clay_relation_line_gcd(osl_relation_p, int, int, int);
+osl_int_t clay_relation_gcd(osl_relation_p, int);
+void      clay_relation_normalize_alpha(osl_relation_p);
+int       clay_relation_output_form(osl_relation_p);
+void      clay_relation_zero_coefficient(osl_relation_p, int, int, int);
+int       clay_relation_output_form(osl_relation_p);
+int       clay_relation_rank(osl_relation_p);
+int       clay_relation_rank_intrusive(osl_relation_p);
+void      clay_relation_alpha_equation_rows(clay_array_p, osl_relation_p);
+int       clay_relation_nb_explicit_dim(osl_relation_p);
+int       clay_relation_nb_explicit_dim_intrusive(osl_relation_p);
+void      clay_relation_sort_rows(osl_relation_p);
+
+#if defined(__cplusplus)
+  }
+#endif
+
+#endif //CLAY_RELATION_H

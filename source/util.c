@@ -40,6 +40,7 @@
 #include <clay/macros.h>
 #include <clay/util.h>
 #include <clay/errors.h>
+#include <clay/relation.h>
 
 #include <osl/statement.h>
 #include <osl/body.h>
@@ -473,7 +474,7 @@ char* clay_util_string_replace(char *search, char *replace, char *string) {
  * \param[in] scattering
  * \return
  */
-bool clay_util_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
+int clay_util_scatnames_exists(osl_scatnames_p scatnames, char *iter) {
   osl_strings_p names = scatnames->names;
   if (names == NULL || names->string[0] == NULL)
     return 0;
@@ -917,3 +918,23 @@ int clay_util_is_row_beta_definition(osl_relation_p relation, int row) {
   return 1;
 }
 
+void clay_alpha_normalize(osl_scop_p scop) {
+  osl_statement_p statement;
+  osl_relation_p scattering;
+
+  if (!scop || !scop->statement)
+    return;
+
+  for (statement = scop->statement; statement != NULL;
+       statement = statement->next) {
+    for (scattering = statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      clay_relation_normalize_alpha(scattering);
+    }
+  }
+}
+
+void clay_scop_normalize(osl_scop_p scop) {
+  clay_alpha_normalize(scop);
+  clay_beta_normalize(scop);
+}
