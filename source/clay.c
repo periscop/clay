@@ -161,6 +161,7 @@ int main(int argc, char * argv[]) {
     candl_options_p candl_opt = candl_options_malloc();
     if (options->candl_fullcheck)
       candl_opt->fullcheck = 1;
+    candl_scop_usr_init(orig_scop);
     candl_violation_p violation = 
         candl_violation(orig_scop, scop, 0, candl_opt);
 
@@ -171,6 +172,7 @@ int main(int argc, char * argv[]) {
         candl_violation_dump(stdout, violation);
     }
 
+    candl_scop_usr_cleanup(orig_scop);
     candl_options_free(candl_opt);
     candl_violation_free(violation);
     osl_scop_free(orig_scop);
