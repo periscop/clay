@@ -339,6 +339,51 @@ int clay_relation_output_form(osl_relation_p relation) {
   return 0;
 }
 
+// Converts relation into ``input form'': coefficients on the input side of the
+// relation matrix are set to 1 whenever possible.
+int clay_relation_input_form(osl_relation_p relation) {
+  int i, j, col_i;
+  clay_array_p row_indices = clay_array_malloc();
+  clay_relation_alpha_equation_rows(row_indices, relation);
+  if (row_indices->size != relation->nb_input_dims) {
+    CLAY_debug("Relation defined by an overdetermined matrix");
+    return -1;
+  }
+
+  // Forward iteration (triangularization).
+  for (i = 0; i < row_indices->size; ++i) {
+    col_i = 1 + relation->nb_output_dims + i;
+    for (j = i + 1; j < row_indices->size; ++j) {
+      clay_relation_zero_coefficient(relation, row_indices->data[i],
+                                     row_indices->data[j], col_i);
+    }
+  }
+
+  // Reverse iteration (diagonalization).
+  for (i = row_indices->size - 1; i >= 0; --i) {
+    col_i = 1 + relation->nb_output_dims + i;
+    for (j = i - 1; j >= 0; --j) {
+      clay_relation_zero_coefficient(relation, row_indices->data[i],
+                                     row_indices->data[j], col_i);
+    }
+  }
+
+  // Change signs on the diagonal.
+  for (i = 0; i < row_indices->size; ++i) {
+    col_i = 1 + relation->nb_output_dims + i;
+    if (osl_int_neg(relation->precision, relation->m[row_indices->data[i]][col_i])) {
+      for (j = 1; j < relation->nb_columns; j++) {
+        osl_int_oppose(relation->precision,
+                       &relation->m[row_indices->data[i]][j],
+                       relation->m[row_indices->data[i]][j]);
+      }
+    }
+  }
+
+  clay_array_free(row_indices);
+  return 0;
+}
+
 // Do a copy of relation before intrusive rank computation.
 int clay_relation_rank(osl_relation_p relation) {
   osl_relation_p copy = osl_relation_clone(relation);

@@ -50,6 +50,7 @@ osl_int_t clay_relation_line_gcd(osl_relation_p, int, int, int);
 osl_int_t clay_relation_gcd(osl_relation_p, int);
 void      clay_relation_normalize_alpha(osl_relation_p);
 int       clay_relation_output_form(osl_relation_p);
+int       clay_relation_input_form(osl_relation_p);
 void      clay_relation_zero_coefficient(osl_relation_p, int, int, int);
 int       clay_relation_output_form(osl_relation_p);
 int       clay_relation_rank(osl_relation_p);
