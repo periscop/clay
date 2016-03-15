@@ -73,7 +73,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./unitary/shift_loop1.c
+unitary/shift_loop1.c
 # Starting line and column
 2 0
 # Ending line and column

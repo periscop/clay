@@ -2,4 +2,4 @@
                 the dim (depth=2) seems to be already used
                 the depth is the depth in the loops
                 a[i][j] = 0;
-[Clay] Error: line 1, privatization failed
+[Clay] Error: line 1: privatization failed

@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (./must_fail/interchange_overflow_loop.c)
+[Clan] Info: parsing file #1 (must_fail/interchange_overflow_loop.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -115,7 +115,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./must_fail/interchange_overflow_loop.c
+must_fail/interchange_overflow_loop.c
 # Starting line and column
 2 0
 # Ending line and column

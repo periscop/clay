@@ -47,6 +47,7 @@
 #include <clay/clay.h>
 #include <clay/beta.h>
 #include <clay/betatree.h>
+#include <clay/errors.h>
 #include <clay/options.h>
 #include <clay/array.h>
 #include <clay/ident.h>
@@ -126,6 +127,9 @@ int main(int argc, char * argv[]) {
     // Read the script file
     if (!options->from_tag) {
       parsing_result = clay_parser_file(scop, options->script, options);
+      if (parsing_result != 0) {
+        fprintf(stderr, "[Clay] %s\n", clay_get_error_message());
+      }
       fclose(options->script);
     
     // Read the script from the extension clay
@@ -145,6 +149,9 @@ int main(int argc, char * argv[]) {
         // parse the clay string
         clay_tag = x->data;
         parsing_result = clay_parser_string(scop, clay_tag->script, options);
+        if (parsing_result != 0) {
+          fprintf(stderr, "[Clay] %s\n", clay_get_error_message());
+        }
 
         // remove the extension clay
         last->next = x->next;

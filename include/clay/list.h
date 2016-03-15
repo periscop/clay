@@ -64,6 +64,8 @@ void              clay_list_clear(clay_list_p);
 clay_list_p       clay_list_clone(clay_list_p);
 int               clay_list_contains(clay_list_p, clay_array_p);
 void              clay_list_cat(clay_list_p, clay_list_p);
+int               clay_list_equal(clay_list_p, clay_list_p);
+char *            clay_list_string(clay_list_p);
 
 # if defined(__cplusplus)
   }

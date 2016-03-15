@@ -137,8 +137,8 @@ tests/double_tile.c
 </coordinates>
 
 <clay>
-   tile([0,0,0],1,1,4,0);
-   tile([0,0,0,0],3,3,4,0);
+   tile([0,0],1,1,4);
+   tile([0,0,0],3,3,4);
  </clay>
 
 </OpenScop>

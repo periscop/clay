@@ -47,12 +47,12 @@ int clay_function_reorder_type[]      = {ARRAY_T, ARRAY_T};
 int clay_function_interchange_type[]  = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_reverse_type[]      = {ARRAY_T, INTEGER_T};
 int clay_function_fuse_type[]         = {ARRAY_T};
-int clay_function_skew_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T};
+int clay_function_skew_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_iss_type[]          = {ARRAY_T, LIST_T};
-int clay_function_stripmine_type[]    = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_stripmine_type[]    = {ARRAY_T, INTEGER_T, INTEGER_T};
 int clay_function_unroll_type[]       = {ARRAY_T, INTEGER_T};
-int clay_function_tile_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T, INTEGER_T};
-int clay_function_shift_type[]        = {ARRAY_T, INTEGER_T, LIST_T};
+int clay_function_tile_type[]         = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
+int clay_function_shift_type[]        = {ARRAY_T, INTEGER_T, ARRAY_T, INTEGER_T};
 int clay_function_peel_type[]         = {ARRAY_T, LIST_T};
 int clay_function_context_type[]      = {ARRAY_T};
 int clay_function_dimreorder_type[]   = {ARRAY_T, INTEGER_T, ARRAY_T};
@@ -72,6 +72,8 @@ int clay_function_densify_type[]      = {ARRAY_T, INTEGER_T};
 int clay_function_reshape_type[]      = {ARRAY_T, INTEGER_T, INTEGER_T, INTEGER_T};
 int clay_function_collapse_type[]     = {ARRAY_T};
 int clay_function_linearize_type[]    = {ARRAY_T, INTEGER_T};
+int clay_function_embed_type[]         = {ARRAY_T};
+int clay_function_unembed_type[]       = {ARRAY_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -103,9 +105,9 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     VOID_T, clay_function_fuse_type, 1
   },
   {
-    "skew",      
-    "void skew(array beta, uint depth, int coeff)",
-    VOID_T, clay_function_skew_type, 3
+    "skew",
+    "void skew(array beta, uint depth, uint depth_other, int coeff)",
+    VOID_T, clay_function_skew_type, 4
   },
   {
     "iss",    
@@ -114,8 +116,8 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "stripmine",
-    "void stripmine(array beta, uint depth, uint size, bool pretty)",
-    VOID_T, clay_function_stripmine_type, 4
+    "void stripmine(array beta, uint depth, uint size)",
+    VOID_T, clay_function_stripmine_type, 3
   },
   {
     "unroll",  
@@ -129,13 +131,13 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "tile",    
-    "void tile(array beta, uint depth, uint depth_outer, uint size, bool pretty)",
-    VOID_T, clay_function_tile_type, 5
+    "void tile(array beta, uint depth, uint depth_outer, uint size)",
+    VOID_T, clay_function_tile_type, 4
   },
   {
-    "shift",   
-    "void shift(array beta, uint depth, list vector { ((output,) (params,)) const })",
-    VOID_T, clay_function_shift_type, 3
+    "shift",
+    "void shift(array beta, uint depth, array params, int constant)",
+    VOID_T, clay_function_shift_type, 4
   },
   {
     "peel",   
@@ -237,5 +239,15 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     "linearize",
     "void linearize(array beta_loop, int depth)",
     VOID_T, clay_function_linearize_type, 2
+  },
+  {
+    "embed",
+    "void embed(array beta_stmt)",
+    VOID_T, clay_function_embed_type, 1
+  },
+  {
+    "unembed",
+    "void unembed(array beta_stmt)",
+    VOID_T, clay_function_unembed_type, 1
   }
 };

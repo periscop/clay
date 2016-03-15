@@ -1,4 +1,4 @@
-[Clan] Info: parsing file #1 (./unitary/iss_loop1.c)
+[Clan] Info: parsing file #1 (unitary/iss_loop1.c)
 #                                                     
 #          <|                                         
 #           A                                         
@@ -263,7 +263,7 @@ b0 i b1
 
 <coordinates>
 # File name
-./unitary/iss_loop1.c
+unitary/iss_loop1.c
 # Starting line and column
 2 0
 # Ending line and column
@@ -273,7 +273,7 @@ b0 i b1
 </coordinates>
 
 <clay>
-   iss([0], {1 | 0 | -1});
+   iss([0], {1 | 0 | 0 | -1});
 </clay>
 
 </OpenScop>

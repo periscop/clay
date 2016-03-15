@@ -264,7 +264,7 @@ b0 i b1 j b2
 
 <coordinates>
 # File name
-./unitary/iss_loop3.c
+unitary/iss_loop3.c
 # Starting line and column
 2 0
 # Ending line and column

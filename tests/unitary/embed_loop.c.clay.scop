@@ -1,0 +1,227 @@
+
+<OpenScop>
+
+# =============================================== Global
+# Language
+C
+
+# Context
+CONTEXT
+0 4 0 0 0 2
+
+# Parameters are provided
+1
+<strings>
+T N
+</strings>
+
+# Number of statements
+4
+
+# =============================================== Statement 1
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  1.1 Domain
+DOMAIN
+3 5 1 0 0 2
+# e/i|  t |  T    N |  1  
+   1    1    0    0    0    ## t >= 0
+   1   -1    1    0   -1    ## -t+T-1 >= 0
+   1    0    1    0   -1    ## T-1 >= 0
+
+# ----------------------------------------------  1.2 Scattering
+SCATTERING
+6 10 5 1 0 2
+# e/i| c1   c2   c3   c4   c5 |  t |  T    N |  1  
+   0   -1    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    1    0    0    0    ## c2 == t
+   0    0    0   -1    0    0    0    0    0    0    ## c3 == 0
+   0    0    0    0    0   -1    0    0    0    0    ## c5 == 0
+   1    0    0    0    1    0    0    0    0    0    ## c4 >= 0
+   1    0    0    0   -1    0    0    0    0    0    ## -c4 >= 0
+
+# ----------------------------------------------  1.3 Access
+READ
+1 6 1 1 0 2
+# e/i| Arr|  t |  T    N |  1  
+   0   -1    0    0    0    1    ## Arr == t
+
+# ----------------------------------------------  1.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+t
+# Statement body expression
+S1(t);
+</body>
+
+# =============================================== Statement 2
+# Number of relations describing the statement:
+4
+
+# ----------------------------------------------  2.1 Domain
+DOMAIN
+6 6 2 0 0 2
+# e/i|  t    i |  T    N |  1  
+   1    1    0    0    0    0    ## t >= 0
+   1   -1    0    1    0   -1    ## -t+T-1 >= 0
+   1    0    0    1    0   -1    ## T-1 >= 0
+   1    0    1    0    0    0    ## i >= 0
+   1    0   -1    0    1   -1    ## -i+N-1 >= 0
+   1    0    0    0    1   -1    ## N-1 >= 0
+
+# ----------------------------------------------  2.2 Scattering
+SCATTERING
+5 11 5 2 0 2
+# e/i| c1   c2   c3   c4   c5 |  t    i |  T    N |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    1    0    0    0    0    ## c2 == t
+   0    0    0   -1    0    0    0    0    0    0    1    ## c3 == 1
+   0    0    0    0   -1    0    0    1    0    0    0    ## c4 == i
+   0    0    0    0    0   -1    0    0    0    0    0    ## c5 == 0
+
+# ----------------------------------------------  2.3 Access
+READ
+1 7 1 2 0 2
+# e/i| Arr|  t    i |  T    N |  1  
+   0   -1    0    0    0    0    1    ## Arr == t
+
+READ
+1 7 1 2 0 2
+# e/i| Arr|  t    i |  T    N |  1  
+   0   -1    0    0    0    0    4    ## Arr == i
+
+# ----------------------------------------------  2.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+2
+# List of original iterators
+t i
+# Statement body expression
+S2(t,i);
+</body>
+
+# =============================================== Statement 3
+# Number of relations describing the statement:
+4
+
+# ----------------------------------------------  3.1 Domain
+DOMAIN
+6 6 2 0 0 2
+# e/i|  t    i |  T    N |  1  
+   1    1    0    0    0    0    ## t >= 0
+   1   -1    0    1    0   -1    ## -t+T-1 >= 0
+   1    0    0    1    0   -1    ## T-1 >= 0
+   1    0    1    0    0    0    ## i >= 0
+   1    0   -1    0    1   -1    ## -i+N-1 >= 0
+   1    0    0    0    1   -1    ## N-1 >= 0
+
+# ----------------------------------------------  3.2 Scattering
+SCATTERING
+5 11 5 2 0 2
+# e/i| c1   c2   c3   c4   c5 |  t    i |  T    N |  1  
+   0   -1    0    0    0    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    0    0    1    0    0    0    0    ## c2 == t
+   0    0    0   -1    0    0    0    0    0    0    1    ## c3 == 1
+   0    0    0    0   -1    0    0    1    0    0    0    ## c4 == i
+   0    0    0    0    0   -1    0    0    0    0    1    ## c5 == 1
+
+# ----------------------------------------------  3.3 Access
+READ
+1 7 1 2 0 2
+# e/i| Arr|  t    i |  T    N |  1  
+   0   -1    0    0    0    0    1    ## Arr == t
+
+READ
+1 7 1 2 0 2
+# e/i| Arr|  t    i |  T    N |  1  
+   0   -1    0    0    0    0    4    ## Arr == i
+
+# ----------------------------------------------  3.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+2
+# List of original iterators
+t i
+# Statement body expression
+S3(t,i);
+</body>
+
+# =============================================== Statement 4
+# Number of relations describing the statement:
+3
+
+# ----------------------------------------------  4.1 Domain
+DOMAIN
+3 5 1 0 0 2
+# e/i|  t |  T    N |  1  
+   1    1    0    0    0    ## t >= 0
+   1   -1    1    0   -1    ## -t+T-1 >= 0
+   1    0    1    0   -1    ## T-1 >= 0
+
+# ----------------------------------------------  4.2 Scattering
+SCATTERING
+3 8 3 1 0 2
+# e/i| c1   c2   c3 |  t |  T    N |  1  
+   0   -1    0    0    0    0    0    0    ## c1 == 0
+   0    0   -1    0    1    0    0    0    ## c2 == t
+   0    0    0   -1    0    0    0    2    ## c3 == 2
+
+# ----------------------------------------------  4.3 Access
+READ
+1 6 1 1 0 2
+# e/i| Arr|  t |  T    N |  1  
+   0   -1    0    0    0    1    ## Arr == t
+
+# ----------------------------------------------  4.4 Statement Extensions
+# Number of Statement Extensions
+1
+<body>
+# Number of original iterators
+1
+# List of original iterators
+t
+# Statement body expression
+S4(t);
+</body>
+
+# =============================================== Extensions
+<scatnames>
+b0 t b1 i b2
+</scatnames>
+
+<arrays>
+# Number of arrays
+8
+# Mapping array-identifiers/array-names
+1 t
+2 T
+3 S1
+4 i
+5 N
+6 S2
+7 S3
+8 S4
+</arrays>
+
+<coordinates>
+# File name
+unitary/embed_loop.c
+# Starting line and column
+2 0
+# Ending line and column
+13 0
+# Indentation
+0
+</coordinates>
+
+</OpenScop>
+

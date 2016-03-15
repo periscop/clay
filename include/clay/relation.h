@@ -50,6 +50,7 @@ osl_int_t clay_relation_line_gcd(osl_relation_p, int, int, int);
 osl_int_t clay_relation_gcd(osl_relation_p, int);
 void      clay_relation_normalize_alpha(osl_relation_p);
 int       clay_relation_output_form(osl_relation_p);
+int       clay_relation_input_form(osl_relation_p);
 void      clay_relation_zero_coefficient(osl_relation_p, int, int, int);
 int       clay_relation_output_form(osl_relation_p);
 int       clay_relation_rank(osl_relation_p);
@@ -58,6 +59,7 @@ void      clay_relation_alpha_equation_rows(clay_array_p, osl_relation_p);
 int       clay_relation_nb_explicit_dim(osl_relation_p);
 int       clay_relation_nb_explicit_dim_intrusive(osl_relation_p);
 void      clay_relation_sort_rows(osl_relation_p);
+void      clay_relation_substitute(osl_relation_p, int, int, int);
 
 #if defined(__cplusplus)
   }

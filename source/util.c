@@ -150,9 +150,22 @@ void clay_util_statement_replace_beta(osl_statement_p statement,
   }
 }
 
+/**
+ * Appends an inequality row to the relation with values coming from the list
+ * grouped by their type (output dimensions, input dimensions, parameters,
+ * constant; in this order).  If first elements in the list are missing, they
+ * are assumed to be zero, for example a list with one array should contains
+ * only a constant.  If any of the arrays in the list is shorter than the
+ * corresponding dimensionality, missing last values are assumed to be zero,
+ * for example an array [1,2,3] will be interpreted as [1,2,3,0,0] if five
+ * dimensions are required.
+ * \param[in,out] relation pointer to the relation that will include the row
+ * \param[in]     inequ    coefficients in the row
+ */
 void clay_util_relation_insert_inequation(osl_relation_p relation,
                                           clay_list_p inequ) {
   clay_array_p dims = NULL,
+               input_dims = NULL,
                params = NULL,
                consts = NULL;
   int row = relation->nb_rows;
@@ -163,30 +176,46 @@ void clay_util_relation_insert_inequation(osl_relation_p relation,
   osl_relation_insert_blank_row(relation, row);
   osl_int_set_si(precision, &relation->m[row][0], 1); // inequality
 
-  if (inequ->size > 3) {
-    CLAY_error("list with more than 3 arrays not supported");
+  if (inequ->size > 4) {
+    CLAY_error("wrong coefficient list inserted (size > 4)");
+  } else if (inequ->size == 0) {
+    CLAY_error("empty coefficient list inserted");
+  } else if (inequ->size == 4) {
+    dims       = inequ->data[0];
+    input_dims = inequ->data[1];
+    params     = inequ->data[2];
+    consts     = inequ->data[3];
   } else if (inequ->size == 3) {
-    dims   = inequ->data[0];
-    params = inequ->data[1];
-    consts = inequ->data[2];
+    input_dims = inequ->data[0];
+    params     = inequ->data[1];
+    consts     = inequ->data[2];
   } else if (inequ->size == 2) {
-    params = inequ->data[0];
-    consts = inequ->data[1];
+    params     = inequ->data[0];
+    consts     = inequ->data[1];
   } else {
-    consts = inequ->data[0];
+    consts     = inequ->data[0];
   }
 
   if (consts->size != 1) {
-    CLAY_error("constant must be a single value");
+    CLAY_error("row insertion: constant must be a single value");
   }
 
   // Decomposition switch, fallthoroughs are _intentional_.
   switch (inequ->size) {
-  case 3:
+  case 4:
     for (j = 0, i = 1; j < dims->size; j++, i++) {
       osl_int_set_si(precision,
                      &relation->m[row][i],
                      dims->data[j]);
+    }
+    // intentional fall through
+  case 3:
+    for (j = 0, i = 1 + relation->nb_output_dims;
+         j < input_dims->size;
+         j++, i++) {
+      osl_int_set_si(precision,
+                     &relation->m[row][i],
+                     input_dims->data[j]);
     }
     // intentional fall through
   case 2:
@@ -277,95 +306,6 @@ void clay_util_statement_set_inequation(
                    &scattering->m[row][scattering->nb_columns-1],
                    arr_const->data[0]);
   }
-}
-
-
-/** 
- * clay_util_statement_set_vector function:
- * Set the equation on each line where the column of the output dim is
- * different of zero
- * \param[in,out] statement
- * \param[in] vector           {(([output, ...],) [param, ..],) [const]}
- * \param[in] column           column on the output dim
- */
-void clay_util_relation_set_vector(
-                        osl_relation_p scattering,
-                        clay_list_p vector, int column) {
-
-  clay_array_p arr_dims = NULL, arr_params = NULL, arr_const = NULL;
-  int i, j, k;
-  int precision = scattering->precision;
-  osl_int_p tmp;
-
-  tmp = osl_int_malloc(precision);
-
-  if (vector->size > 3) {
-    CLAY_error("list with more than 3 arrays not supported");
-  } else if (vector->size == 3) {
-    arr_dims   = vector->data[0];
-    arr_params = vector->data[1];
-    arr_const  = vector->data[2];
-  } else if (vector->size == 2) {
-    arr_params = vector->data[0];
-    arr_const  = vector->data[1];
-  } else {
-    arr_const  = vector->data[0];
-  }
-
-  // for each line where there is a number different from zero on the
-  // column
-  for (k = 0 ; k < scattering->nb_rows ; k++) {
-    if (!osl_int_zero(precision, scattering->m[k][1+column])) {
-
-      // scattering = coeff_outputdim * shifting
-
-      // affect output dims
-      if (vector->size >= 3) {
-        i = 1;
-        for (j = 0 ; j < arr_dims->size ; j++) {
-          osl_int_mul_si(precision,
-                         &scattering->m[k][i],
-                         scattering->m[k][1+column],
-                         arr_dims->data[j]);
-          i++;
-        }
-      }
-
-      // here we add we the last value
-      // scattering += coeff_outputdim * shifting
-
-      // affects parameters
-      if (vector->size >= 2) {
-        i = 1 + scattering->nb_output_dims + scattering->nb_input_dims + 
-            scattering->nb_local_dims;
-        for (j = 0 ; j < arr_params->size ; j++) {
-          osl_int_mul_si(precision,
-                         tmp,
-                         scattering->m[k][1+column],
-                         arr_params->data[j]);
-          osl_int_add(precision,
-                      &scattering->m[k][i],
-                      scattering->m[k][i],
-                      *tmp);
-          i++;
-        }
-      }
-
-      // set the constant
-      if (vector->size >= 1 && arr_const->size == 1) {
-        osl_int_mul_si(precision,
-                       tmp,
-                       scattering->m[k][1+column],
-                       arr_const->data[0]);
-        osl_int_add(precision,
-                    &scattering->m[k][scattering->nb_columns-1],
-                    scattering->m[k][scattering->nb_columns-1],
-                    *tmp);
-      }
-    }
-  }
-  
-  osl_int_free(precision, tmp);
 }
 
 

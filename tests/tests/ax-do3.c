@@ -9,7 +9,7 @@ int main()
 #pragma scop
 /* Clay
 split([0,0], 1);
-stripmine([1,0], 2, 32, 1);
+stripmine([1,0], 2, 32);
 */
   for (i1=1;i1<=n;i1++) {                 
     c[i1] = 0 ;                       

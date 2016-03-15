@@ -69,11 +69,15 @@
 #define CLAY_ERROR_BETAS_NOT_SAME_DIMS       30
 #define CLAY_ERROR_BETAS_NOT_SAME_DOMAIN     31
 #define CLAY_ERROR_ONE_HAS_EXTBODY           32
+#define CLAY_ERROR_WRONG_BETA                33
 
 # if defined(__cplusplus)
 extern "C"
   {
 # endif
+
+char *clay_get_error_message();
+char *clay_error_message_text(int);
 
 # if defined(__cplusplus)
   }

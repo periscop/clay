@@ -110,7 +110,8 @@ libclay_la_SOURCES  = \
   source/data.c \
   source/stack.c \
   source/transformation.c \
-  source/relation.c
+  source/relation.c \
+  source/errors.c
 
 #############################################################################
 
