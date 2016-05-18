@@ -776,6 +776,8 @@ int clay_densify(osl_scop_p scop, clay_array_p beta, int depth,
       }
       CLAY_BETA_CHECK_DEPTH(beta, depth, scattering);
 
+      clay_relation_normalize_alpha(scattering);
+
       factor = clay_relation_gcd(scattering, depth);
       if (osl_int_zero(precision, factor))
         continue;
