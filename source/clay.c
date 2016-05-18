@@ -154,9 +154,7 @@ int main(int argc, char * argv[]) {
         }
 
         // remove the extension clay
-        last->next = x->next;
-        x->next = NULL;
-        osl_generic_free(x);
+        osl_generic_remove(&scop->extension, OSL_URI_CLAY);
       }
     }
   }
