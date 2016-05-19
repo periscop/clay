@@ -85,17 +85,16 @@ pkginclude_HEADERS = \
 	include/clay/transformation.h \
 	include/clay/relation.h
 
-DEFAULT_CPPFLAGS = -I.
-AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
-AM_CFLAGS = $(CFLAGS_WARN)
+AM_CPPFLAGS = -I. -I$(top_builddir)/include -I$(top_srcdir)/include
+AM_CFLAGS = $(CFLAGS_WARN) -std=c99
 YFLAGS = -y -d
 LEX_OUTPUT_ROOT = lex.clay_yy
 
 #############################################################################
 
 libclay_la_LIBADD   = @OSL_LIBS@ @CLAN_LIBS@ @CLOOG_LIBS@ @CANDL_LIBS@ $(OSL_LA) $(CLAN_LA) $(CLOOG_LA) $(CANDL_LA)
-libclay_la_CPPFLAGS = @OSL_CPPFLAGS@ @CLAN_CPPFLAGS@ @CLOOG_CPPFLAGS@ @CANDL_CPPFLAGS@
-#  libclay_la_LDFLAGS  = @OSL_LDFLAGS@ @CLAN_LDFLAGS@ @CLOOG_LDFLAGS@ @CANDL_LDFLAGS@ # TO BE REMOVED
+libclay_la_CPPFLAGS = @OSL_CPPFLAGS@ @CLAN_CPPFLAGS@ @CLOOG_CPPFLAGS@ @CANDL_CPPFLAGS@ \
+		      -I. -I$(top_builddir)/include -I$(top_srcdir)/include
 libclay_la_SOURCES  = \
   source/parser.y \
   source/scanner.l \
@@ -116,8 +115,8 @@ libclay_la_SOURCES  = \
 #############################################################################
 
 LDADD             = @OSL_LIBS@ @CLAN_LIBS@ @CLOOG_LIBS@ @CANDL_LIBS@ libclay.la
-clay_CPPFLAGS     = @OSL_CPPFLAGS@ @CLAN_CPPFLAGS@ @CLOOG_CPPFLAGS@ @CANDL_CPPFLAGS@ -g
-#  clay_LDFLAGS      = # @OSL_LDFLAGS@ @CLAN_LDFLAGS@ @CLOOG_LDFLAGS@ @CANDL_LDFLAGS@ # TO BE REMOVED
+clay_CPPFLAGS     = @OSL_CPPFLAGS@ @CLAN_CPPFLAGS@ @CLOOG_CPPFLAGS@ @CANDL_CPPFLAGS@ \
+		    -I. -I$(top_builddir)/include -I$(top_srcdir)/include
 clay_DEPENDENCIES = libclay.la
 clay_SOURCES      = source/clay.c
 
