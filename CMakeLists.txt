@@ -21,7 +21,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 	endif()
 
 # User's settings - General C Flags
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99 -pedantic")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -std=c99 -pedantic -Wno-sign-compare")
 
 
 # Build doxygen
@@ -56,18 +56,22 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # osl
 	find_package(osl REQUIRED)
-	
+	include_directories(${OSL_INCLUDE_DIR})
+
 # Clan
 	find_package(clan REQUIRED)
+	include_directories(${CLAN_INCLUDE_DIR})
 	add_definitions(-DCLAN_LINKED)
 
 # Candl
 	find_package(candl REQUIRED)
 	add_definitions(-DCANDL_LINKED)
-	
+	include_directories(${CANDL_INCLUDE_DIR})
+
 # CLooG
 	find_package(cloog-isl REQUIRED)
 	add_definitions(-DCLOOG_LINKED)
+	include_directories(${CLOOG_ISL_INCLUDE_DIR})
 
 # Flex
 	find_package(BISON REQUIRED)
