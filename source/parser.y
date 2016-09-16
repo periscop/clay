@@ -588,6 +588,14 @@ int clay_parser_exec_function(char *name) {
           clay_parser_options);
       break;
 
+    case CLAY_FUNCTION_SIEVE:
+      status_result = clay_sieve(
+          clay_parser_scop,
+          clay_parser_stack.stack[top-1].data.obj,
+          clay_parser_stack.stack[top].data.integer,
+          clay_parser_options);
+      break;
+
     case CLAY_FUNCTION_SKEW:
       status_result = clay_skew(
         clay_parser_scop,

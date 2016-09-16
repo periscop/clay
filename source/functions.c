@@ -74,6 +74,7 @@ int clay_function_collapse_type[]     = {ARRAY_T};
 int clay_function_linearize_type[]    = {ARRAY_T, INTEGER_T};
 int clay_function_embed_type[]         = {ARRAY_T};
 int clay_function_unembed_type[]       = {ARRAY_T};
+int clay_function_sieve_type[]        = {ARRAY_T, INTEGER_T};
 
 
 // That is just the prototype of each functions, so there are no data for args
@@ -249,5 +250,10 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     "unembed",
     "void unembed(array beta_stmt)",
     VOID_T, clay_function_unembed_type, 1
+  },
+  {
+    "sieve",
+    "void sieve(array beta_loop, int grain)",
+    VOID_T, clay_function_sieve_type, 2
   }
 };

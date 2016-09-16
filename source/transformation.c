@@ -1254,6 +1254,87 @@ int clay_skew(osl_scop_p scop,
   return CLAY_SUCCESS;
 }
 
+/** clay_sieve function:
+ *
+ */
+int clay_sieve(osl_scop_p scop,
+               clay_array_p beta_loop,
+               int step,
+               clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering, clone;
+  int i, depth, localdim, nb_betas;
+  clay_array_p source_beta, beta_max;
+
+  if (beta_loop->size == 0)
+    return CLAY_ERROR_BETA_EMPTY;
+  depth = beta_loop->size - 1;
+
+  statement = clay_beta_find(scop->statement, beta_loop);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  if (!statement->scattering || statement->scattering->nb_input_dims == 0)
+    return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+  if (step < 2)
+    return CLAY_ERROR_WRONG_FACTOR;
+
+  beta_max = clay_beta_max(statement, beta_loop);
+  nb_betas = beta_max->data[beta_loop->size] + 1;
+  clay_array_free(beta_max);
+
+  for ( ; statement != NULL; statement = statement->next) {
+    for (scattering = statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      if (!clay_beta_check_relation(scattering, beta_loop)) {
+        continue;
+      }
+      CLAY_BETA_IS_LOOP(beta_loop, scattering);
+
+      // Insert localdim in the source scattering.
+      localdim = scattering->nb_columns - 1 - scattering->nb_parameters;
+      osl_relation_insert_blank_column(scattering, localdim);
+      scattering->nb_local_dims += 1;
+      osl_relation_insert_blank_row(scattering, -1);
+
+      // Set up localdim as step*l == iterator,
+      // where iterator is the length(beta_loop)-th input dimension
+      osl_int_set_si(scattering->precision,
+                     &scattering->m[scattering->nb_rows - 1]
+                                   [scattering->nb_output_dims + depth + 1],
+                     -1);
+      osl_int_set_si(scattering->precision,
+                     &scattering->m[scattering->nb_rows - 1][localdim],
+                     step);
+
+      // Create as many clones as steps - 1, and change the constant value to
+      // target other points.
+      for (i = 1; i < step; i++) {
+        clone =  osl_relation_nclone(scattering, 1);
+        osl_int_set_si(clone->precision,
+                       &clone->m[clone->nb_rows - 1][clone->nb_columns - 1],
+                       i);
+
+        // Update the beta
+        source_beta = clay_beta_extract(scattering);
+        source_beta->data[beta_loop->size] += i * nb_betas;
+        clay_util_scattering_update_beta(clone, source_beta);
+        clay_array_free(source_beta);
+
+        // Insert the cloned relation to the relation list, and skip it in
+        // the loop since it was not in the original scop.
+        clone->next = scattering->next;
+        scattering->next = clone;
+        scattering = clone;
+      }
+    }
+  }
+
+  if (options && options->normalize)
+    clay_beta_normalize(scop);
+
+  return CLAY_SUCCESS;
+}
+
 
 /**
  * clay_iss function:
