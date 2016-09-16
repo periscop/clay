@@ -54,6 +54,15 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 	endif()
 
 
+# Include directories (to use #include <> instead of #include "")
+
+	# include/clay/macros.h
+	configure_file("include/clay/macros.h.in" "include/clay/macros.h")
+	include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
+	# clay
+	include_directories("./include")
+
+
 # osl
 	find_package(osl REQUIRED)
 	include_directories(${OSL_INCLUDE_DIR})
@@ -80,15 +89,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 	FLEX_TARGET(clay_scanner source/scanner.l ${CMAKE_CURRENT_BINARY_DIR}/scanner.c)
 	ADD_FLEX_BISON_DEPENDENCY(clay_scanner clay_parser)
 	include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# Include directories (to use #include <> instead of #include "")
-
-	# include/clay/macros.h
-	configure_file("include/clay/macros.h.in" "include/clay/macros.h")
-	include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
-	# clay
-	include_directories("./include")
-
 
 # Compiler log
 	message(STATUS "---")
