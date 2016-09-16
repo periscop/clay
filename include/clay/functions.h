@@ -36,7 +36,7 @@
 #ifndef CLAY_FUNCTIONS_H
 #define CLAY_FUNCTIONS_H
 
-  #define CLAY_FUNCTIONS_TOTAL           35
+  #define CLAY_FUNCTIONS_TOTAL           34
   
   #define CLAY_FUNCTION_SPLIT             0
   #define CLAY_FUNCTION_REORDER           1
@@ -47,7 +47,7 @@
   #define CLAY_FUNCTION_ISS               6
   #define CLAY_FUNCTION_STRIPMINE         7
   #define CLAY_FUNCTION_UNROLL            8
-  #define CLAY_FUNCTION_UNROLL_NOEPILOG   9
+  #define CLAY_FUNCTION_SIEVE             9
   #define CLAY_FUNCTION_TILE             10
   #define CLAY_FUNCTION_SHIFT            11
   #define CLAY_FUNCTION_PEEL             12
@@ -72,7 +72,6 @@
   #define CLAY_FUNCTION_LINEARIZE        31
   #define CLAY_FUNCTION_EMBED            32
   #define CLAY_FUNCTION_UNEMBED          33
-  #define CLAY_FUNCTION_SIEVE            34
 
 # if defined(__cplusplus)
 extern "C"

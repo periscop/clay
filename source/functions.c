@@ -126,9 +126,9 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     VOID_T, clay_function_unroll_type, 2
   },
   {
-    "unroll_noepilog",
-    "void unroll_noepilog(array beta_loop, uint factor)",
-    VOID_T, clay_function_unroll_type, 2
+    "sieve",
+    "void sieve(array beta_loop, int grain)",
+    VOID_T, clay_function_sieve_type, 2
   },
   {
     "tile",    
@@ -250,10 +250,5 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
     "unembed",
     "void unembed(array beta_stmt)",
     VOID_T, clay_function_unembed_type, 1
-  },
-  {
-    "sieve",
-    "void sieve(array beta_loop, int grain)",
-    VOID_T, clay_function_sieve_type, 2
   }
 };

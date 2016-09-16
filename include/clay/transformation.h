@@ -59,7 +59,7 @@ int clay_iss(osl_scop_p, clay_array_p, clay_list_p, clay_array_p*,
              clay_options_p);
 int clay_stripmine(osl_scop_p, clay_array_p, unsigned int, unsigned int,
                    clay_options_p);
-int clay_unroll(osl_scop_p, clay_array_p, unsigned int, int, clay_options_p);
+int clay_unroll(osl_scop_p, clay_array_p, unsigned int, clay_options_p);
 int clay_tile(osl_scop_p, clay_array_p, unsigned int, unsigned int, 
               unsigned int, clay_options_p);
 int clay_shift(osl_scop_p scop, clay_array_p beta, unsigned int depth,
