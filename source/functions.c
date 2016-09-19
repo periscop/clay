@@ -127,7 +127,7 @@ const clay_prototype_t functions[CLAY_FUNCTIONS_TOTAL] =
   },
   {
     "sieve",
-    "void sieve(array beta_loop, int grain)",
+    "void sieve(array beta_loop, uint grain)",
     VOID_T, clay_function_sieve_type, 2
   },
   {

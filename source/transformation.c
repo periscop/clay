@@ -1254,8 +1254,17 @@ int clay_skew(osl_scop_p scop,
   return CLAY_SUCCESS;
 }
 
-/** clay_sieve function:
- *
+/**
+ * Transform the scattering relation into a union with \ref step parts  where
+ * i-th part is applied to points with the stride step and offset i.  In
+ * particular, the first part schedules points 0,step,2*step,...; the second
+ * part schedules points 1,step+1,2*step+1,...; the third part schedules points
+ * 2,step+2,2*step+2,...; etc.
+ * \param[in,out] scop       osl scop describing the program
+ * \param[in]     beta_loop  beta-prefix of the target loop
+ * \param[in]     step       stride
+ * \param[in]     options    clay options
+ * \returns                  error code, see errors.h
  */
 int clay_sieve(osl_scop_p scop,
                clay_array_p beta_loop,
@@ -1606,6 +1615,15 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
   return CLAY_SUCCESS;
 }
 
+/**
+ * Unrolls a loop, that is transforms it so that the loop body is repeated
+ * \ref factor times.  Takes care of access indexes accordingly.
+ * \param[in,out] scop       osl scop describing the program
+ * \param[in]     beta_loop  beta-prefix of the target loop
+ * \param[in]     factor     unrolling factor
+ * \param[in]     options    clay options
+ * \returns                  error code, see errors.h
+ */
 int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
                 clay_options_p options) {
   int retcode, i, j, nb_betas;
@@ -1654,7 +1672,6 @@ int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
     for (j = 1; j < factor; j++) {
       clay_array_p beta = clay_array_clone(beta_loop);
       clay_array_add(beta, endings->data[i] + j * nb_betas);
-      clay_array_print(stderr, beta, 1);
       retcode = clay_shift(scop, beta, beta_loop->size, empty_array, j, options);
       clay_array_free(beta);
       if (retcode != CLAY_SUCCESS)
