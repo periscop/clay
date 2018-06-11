@@ -185,7 +185,9 @@ AC_SUBST(CANDL_LDFLAGS)
 AC_SUBST(CANDL_LIBS)
 case "$with_candl" in
 bundled)
-	CANDL_CPPFLAGS="-I$srcdir/candl/include -Icandl/include -DCANDL_LINKED"
+	CANDL_CPPFLAGS="-I$srcdir/candl/include -Icandl/include "\
+                 "-I$srcdir/candl/piplib/include -Icandl/piplib/include "\
+                 "-DCANDL_LINKED"
   CANDL_LIBS="$srcdir/candl/libcandl.la"
 	;;
 build)
