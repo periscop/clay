@@ -2449,7 +2449,6 @@ int clay_datacopy(osl_scop_p scop,
   osl_strings_p params;
   osl_body_p body = NULL;
   osl_extbody_p extbody = NULL;
-  int is_extbody = 0;
   osl_generic_p gen = NULL;
   char* buffer;
   arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
@@ -2500,7 +2499,6 @@ int clay_datacopy(osl_scop_p scop,
   extbody = osl_generic_lookup(stmt_2->extension, OSL_URI_EXTBODY);
   if (extbody) {
     ebody->body->iterators = osl_strings_clone(extbody->body->iterators);
-    is_extbody = 1;
   }
   else {
     body = osl_generic_lookup(stmt_2->extension, OSL_URI_BODY);

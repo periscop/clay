@@ -78,7 +78,7 @@
 int main(int argc, char * argv[]) {
 
   osl_scop_p scop = NULL;
-  osl_generic_p x, last;
+  osl_generic_p x;
   osl_clay_p clay_tag;
   clay_options_p options;
   int parsing_result = 0;
@@ -137,11 +137,9 @@ int main(int argc, char * argv[]) {
       // equivalent to osl_generic_lookup, but we need the last extension
       // to remove the clay extension in the list
       x = scop->extension;
-      last = NULL;
       while (x != NULL) {
         if (osl_generic_has_URI(x, OSL_URI_CLAY))
           break;
-        last = x;
         x = x->next;
       }
      

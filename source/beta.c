@@ -90,7 +90,7 @@ void clay_beta_normalize(osl_scop_p scop) {
 
   osl_statement_p next_statement, stmt;
   clay_array_p beta, beta_next, new_beta;
-  int difference, depth;
+  int depth;
   int i;
   int counter_loops[CLAY_MAX_BETA_SIZE];
   for (i = 0; i < CLAY_MAX_BETA_SIZE; i++) {
@@ -116,7 +116,7 @@ void clay_beta_normalize(osl_scop_p scop) {
     if (beta_next == NULL)
       break;
 
-    difference = clay_beta_compare(beta_next, beta, &depth);
+    clay_beta_compare(beta_next, beta, &depth);
     if (depth != beta_next->size && depth >= 0) {
       counter_loops[depth]++;
     }
@@ -607,14 +607,12 @@ int clay_scattering_check_zeros(osl_relation_p scattering, int i, int j) {
 
   int precision = scattering->precision;
   int t;
-  osl_relation_p scattering_next;
 
   for (t = i+1 ; t < scattering->nb_rows ; t++) {
     if (!osl_int_zero(precision, scattering->m[t][j])) {
       fprintf(stderr, "[Clay] Warning: the scattering is incorrect (column %d)\n",
               j);
       fprintf(stderr, "[Clay] a non-zero value appear\n");
-      scattering_next = scattering->next;
       scattering->next = NULL;
       osl_relation_dump(stderr, scattering);
       scattering->next = scattering->next;
@@ -626,7 +624,6 @@ int clay_scattering_check_zeros(osl_relation_p scattering, int i, int j) {
       fprintf(stderr, "[Clay] Warning: the scattering is incorrect (line %d)\n",
               i+1);
       fprintf(stderr, "[Clay] a non-zero value appear\n");
-      scattering_next = scattering->next;
       scattering->next = NULL;
       osl_relation_dump(stderr, scattering);
       scattering->next = scattering->next;
