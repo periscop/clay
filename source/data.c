@@ -145,7 +145,7 @@ clay_data_p clay_data_clone(clay_data_p d) {
       break;
 
     case STRING_T:
-      newd->data.obj = strdup((char*) d->data.obj);
+      CLAY_strdup(newd->data.obj, (char*) d->data.obj);
       break;
   }
 

@@ -59,7 +59,7 @@
   #define YY_USER_ACTION yylloc.first_line = yylloc.last_line = yylineno; \
       yylloc.first_column = yycolumn; yylloc.last_column = yycolumn + yyleng - 1; \
       yycolumn += yyleng; \
-      yylval.str = strdup(yytext);
+      CLAY_strdup(yylval.str, yytext);
   */
 //#define YY_USER_ACTION clay_yylloc.first_line = clay_yylloc.last_line = clay_yylineno;
 
@@ -98,19 +98,19 @@ false              {
                      char *tmp = trim(clay_yytext);
                      // remove the '('
                      tmp[strlen(tmp)-1] = '\0';
-                     clay_yylval.sval = strdup(trim(tmp));
+                     CLAY_strdup(clay_yylval.sval, trim(tmp));
                      return IDENT_FUNCTION_NO_ARGS;
                   }
 
 [a-zA-Z_][a-zA-Z0-9_]*{SEPARATOR}\( {
                      // remove the '('
                      clay_yytext[strlen(clay_yytext)-1] = '\0';
-                     clay_yylval.sval = strdup(trim(clay_yytext));
+                     CLAY_strdup(clay_yylval.sval, trim(clay_yytext));
                      return IDENT_FUNCTION;
                    }
 
 [a-zA-Z_][a-zA-Z0-9_]* {
-                     clay_yylval.sval = strdup(clay_yytext);
+                     CLAY_strdup(clay_yylval.sval, clay_yytext);
                      return IDENT;
                    }
 
