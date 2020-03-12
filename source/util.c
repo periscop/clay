@@ -496,7 +496,7 @@ void clay_util_scop_export_body(osl_scop_p scop) {
 }
 
 
-void static clay_util_name_sprint(char **dst, int *hwm, 
+void static clay_util_name_sprint(char **dst, size_t *hwm,
                                   int *print_plus, int val, char *name) {
   if (*print_plus)
     osl_util_safe_strcat(dst, " + ", hwm);
@@ -575,7 +575,7 @@ void clay_util_body_regenerate_access(osl_extbody_p ebody,
 
   char *new_body;
   char end_body[OSL_MAX_STRING];
-  int hwm = OSL_MAX_STRING;
+  size_t hwm = OSL_MAX_STRING;
 
   CLAY_malloc(new_body, char *, OSL_MAX_STRING * sizeof(char));
 
