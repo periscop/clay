@@ -2681,7 +2681,7 @@ int clay_block(osl_scop_p scop,
   char *new_expr;
 
   osl_extbody_p ebody_1, ebody_2;
-  osl_body_p body_1, body_2;
+  osl_body_p body_1 = NULL, body_2 = NULL;
   osl_generic_p gen = NULL;
 
   // get the body string
