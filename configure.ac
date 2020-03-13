@@ -85,6 +85,20 @@ AC_CHECK_HEADERS([errno.h stddef.h stdlib.h string.h strings.h unistd.h])
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strtol)
 
+AC_EGREP_CPP(posix_200112L_supported,
+             [#define _POSIX_C_SOURCE 200112L
+              #include <unistd.h>
+              #ifdef _POSIX_VERSION
+              #if _POSIX_VERSION == 200112L
+              posix_200112L_supported
+              #endif
+              #endif
+             ],
+             [AC_DEFINE(_POSIX_C_SOURCE,200112L)],
+             [AC_MSG_FAILURE([*** Implementation must conform to the POSIX.1-2001 standard.])]
+)
+
+
 
 dnl /**************************************************************************
 dnl  *                             Option setting                             *
