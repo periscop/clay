@@ -1254,6 +1254,96 @@ int clay_skew(osl_scop_p scop,
   return CLAY_SUCCESS;
 }
 
+/**
+ * Transform the scattering relation into a union with \ref step parts  where
+ * i-th part is applied to points with the stride step and offset i.  In
+ * particular, the first part schedules points 0,step,2*step,...; the second
+ * part schedules points 1,step+1,2*step+1,...; the third part schedules points
+ * 2,step+2,2*step+2,...; etc.
+ * \param[in,out] scop       osl scop describing the program
+ * \param[in]     beta_loop  beta-prefix of the target loop
+ * \param[in]     step       stride
+ * \param[in]     options    clay options
+ * \returns                  error code, see errors.h
+ */
+int clay_sieve(osl_scop_p scop,
+               clay_array_p beta_loop,
+               int step,
+               clay_options_p options) {
+  osl_statement_p statement;
+  osl_relation_p scattering, clone;
+  int i, depth, localdim, nb_betas;
+  clay_array_p source_beta, beta_max;
+
+  if (beta_loop->size == 0)
+    return CLAY_ERROR_BETA_EMPTY;
+  depth = beta_loop->size - 1;
+
+  statement = clay_beta_find(scop->statement, beta_loop);
+  if (!statement)
+    return CLAY_ERROR_BETA_NOT_FOUND;
+  if (!statement->scattering || statement->scattering->nb_input_dims == 0)
+    return CLAY_ERROR_BETA_NOT_IN_A_LOOP;
+  if (step < 2)
+    return CLAY_ERROR_WRONG_FACTOR;
+
+  beta_max = clay_beta_max(statement, beta_loop);
+  nb_betas = beta_max->data[beta_loop->size] + 1;
+  clay_array_free(beta_max);
+
+  for ( ; statement != NULL; statement = statement->next) {
+    for (scattering = statement->scattering; scattering != NULL;
+         scattering = scattering->next) {
+      if (!clay_beta_check_relation(scattering, beta_loop)) {
+        continue;
+      }
+      CLAY_BETA_IS_LOOP(beta_loop, scattering);
+
+      // Insert localdim in the source scattering.
+      localdim = scattering->nb_columns - 1 - scattering->nb_parameters;
+      osl_relation_insert_blank_column(scattering, localdim);
+      scattering->nb_local_dims += 1;
+      osl_relation_insert_blank_row(scattering, -1);
+
+      // Set up localdim as step*l == iterator,
+      // where iterator is the length(beta_loop)-th input dimension
+      osl_int_set_si(scattering->precision,
+                     &scattering->m[scattering->nb_rows - 1]
+                                   [scattering->nb_output_dims + depth + 1],
+                     -1);
+      osl_int_set_si(scattering->precision,
+                     &scattering->m[scattering->nb_rows - 1][localdim],
+                     step);
+
+      // Create as many clones as steps - 1, and change the constant value to
+      // target other points.
+      for (i = 1; i < step; i++) {
+        clone =  osl_relation_nclone(scattering, 1);
+        osl_int_set_si(clone->precision,
+                       &clone->m[clone->nb_rows - 1][clone->nb_columns - 1],
+                       i);
+
+        // Update the beta
+        source_beta = clay_beta_extract(scattering);
+        source_beta->data[beta_loop->size] += i * nb_betas;
+        clay_util_scattering_update_beta(clone, source_beta);
+        clay_array_free(source_beta);
+
+        // Insert the cloned relation to the relation list, and skip it in
+        // the loop since it was not in the original scop.
+        clone->next = scattering->next;
+        scattering->next = clone;
+        scattering = clone;
+      }
+    }
+  }
+
+  if (options && options->normalize)
+    clay_beta_normalize(scop);
+
+  return CLAY_SUCCESS;
+}
+
 
 /**
  * clay_iss function:
@@ -1525,322 +1615,78 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
   return CLAY_SUCCESS;
 }
 
-
-/** clay_unroll function: Unroll a loop \param[in,out] scop \param[in]
- * beta_loop     Loop beta vector \param[in] factor        > 0 \param[in]
- * setepilog     if true the epilog will be added \param[in] options \return
- * Status
+/**
+ * Unrolls a loop, that is transforms it so that the loop body is repeated
+ * \ref factor times.  Takes care of access indexes accordingly.
+ * \param[in,out] scop       osl scop describing the program
+ * \param[in]     beta_loop  beta-prefix of the target loop
+ * \param[in]     factor     unrolling factor
+ * \param[in]     options    clay options
+ * \returns                  error code, see errors.h
  */
 int clay_unroll(osl_scop_p scop, clay_array_p beta_loop, unsigned int factor,
-                int setepilog, clay_options_p options) {
-
-  /* Description:
-   * Clone statements in the beta_loop, and recreate the body.
-   * Generate an epilog where the lower bound was removed.
-   */
-
-  if (beta_loop->size == 0)
-    return CLAY_ERROR_BETA_EMPTY;
-  if (factor < 1)
-    return CLAY_ERROR_WRONG_FACTOR;
-  if (factor == 1)
-    return CLAY_SUCCESS;
-  
-  osl_relation_p scattering;
-  osl_relation_p domain;
-  osl_relation_p epilog_domain = NULL;
+                clay_options_p options) {
+  int retcode, i, j, nb_betas;
+  clay_array_p beta_max, current_beta, endings, empty_array;
   osl_statement_p statement;
-  osl_statement_p newstatement;
-  osl_statement_p original_stmt;
-  osl_statement_p epilog_stmt;
-  clay_array_p beta_max;
-  int column = beta_loop->size*2;
-  int precision;
-  int row;
-  int nb_stmts;
-  int i;
-  int max; // last value of beta_max
-  int order;
-  int order_epilog = 0; // order juste after the beta_loop
-  int current_stmt = 0; // counter of statements
-  int last_level = -1;
-  int current_level;
-  
-  osl_body_p body = NULL;
-  osl_extbody_p ext_body = NULL;
-  osl_body_p newbody = NULL;
-  osl_extbody_p newextbody = NULL;
-  osl_body_p tmpbody = NULL;
-  osl_generic_p gen = NULL;
-  char *expression;
-  char **iterator;
-  char *substitued;
-  char *newexpression;
-  char *replacement;
-  char substitution[] = "@0@";
-  
-  int iterator_index = beta_loop->size-1;
-  int iterator_size;
+  osl_relation_p scattering;
 
-  int is_extbody = 0;
-  
-  statement = clay_beta_find(scop->statement, beta_loop);
-  if (!statement)
-    return CLAY_ERROR_BETA_NOT_FOUND;
-
-  precision = statement->scattering->precision;
-  
-  // alloc an array of string, wich will contain the current iterator and NULL
-  // used for osl_util_identifier_substitution with only one variable
-  CLAY_malloc(iterator, char**, sizeof(char*)*2);
-  iterator[1] = NULL;
-  
-  // infos used to reorder cloned statements
-  nb_stmts = clay_beta_nb_parts(statement, beta_loop);
-  beta_max = clay_beta_max(statement, beta_loop);
-  max = beta_max->data[beta_max->size-1];
+  beta_max = clay_beta_max(scop->statement, beta_loop);
+  nb_betas = beta_max->data[beta_loop->size] + 1;
   clay_array_free(beta_max);
-  
-  if (setepilog) {
-    // shift to let the place for the epilog loop
-    clay_beta_shift_after(scop->statement, beta_loop, beta_loop->size);
-    order_epilog = beta_loop->data[beta_loop->size-1] + 1;
-  }
-      
-  while (statement != NULL) {
-    scattering = statement->scattering;
-    
-    if (clay_beta_check(statement, beta_loop)) {
-      
-      // create the body with symbols for the substitution
-      original_stmt = statement;
 
-      ext_body = osl_generic_lookup(statement->extension,
-                                    OSL_URI_EXTBODY);
-      if (ext_body) {
-        body = ext_body->body;
-        is_extbody = 1;
-      } else {
-        body = (osl_body_p) osl_generic_lookup(statement->extension,
-                                               OSL_URI_BODY);
-      }
-      if (body == NULL)
-        CLAY_error("Missing statement body\n");
-
-      expression = body->expression->string[0];
-      iterator[0] = (char*) body->iterators->string[iterator_index];
-      iterator_size = strlen(iterator[0]);
-      substitued = osl_util_identifier_substitution(expression, iterator);
-      
-      CLAY_malloc(replacement, char*, 1 + iterator_size + 1 + 16 + 1 + 1);
-      
-      if (setepilog) {
-        // Clone the statment with only those parts of scattering relation
-        // union, that match the given beta, and modify these parts
-        // accordingly.
-        epilog_stmt = osl_statement_malloc();
-        epilog_stmt->domain = osl_relation_clone(original_stmt->domain);
-        epilog_stmt->access = osl_relation_list_clone(original_stmt->access);
-        epilog_stmt->extension = osl_generic_clone(original_stmt->extension);
-        epilog_stmt->scattering = NULL;
-        epilog_stmt->next = NULL;
-        osl_relation_p scat = original_stmt->scattering;
-        osl_relation_p ptr = NULL;
-        while (scat != NULL) {
-          if (clay_beta_check_relation(scat, beta_loop)) {
-            CLAY_BETA_IS_LOOP(beta_loop, scat);
-            if (ptr == NULL) {
-              epilog_stmt->scattering = osl_relation_nclone(scat, 1);
-              ptr = epilog_stmt->scattering;
-            } else {
-              ptr->next = osl_relation_nclone(scat, 1);
-              ptr = ptr->next;
-            }
-
-            row = clay_util_relation_get_line(scat, column - 2);
-            osl_int_set_si(precision,
-                           &ptr->m[row][ptr->nb_columns-1],
-                           order_epilog);
-
-        //# AZ: fixing up post-iss changes to scattering union, that would be
-        //translated into loop boundary changes, namely removing presumably
-        //lower bound (FIXME!) conditions on the alpha dimension corresponding
-        //to the unrolled iterator.  Other possible solution: take the lower
-        //bound from unrolled statements, add +1 and transformed to the lower
-        //bound for epilog.
-            for (i = 0; i < ptr->nb_rows; i++) {
-              if (osl_int_pos(precision, ptr->m[i][(iterator_index+1)*2])) {
-                osl_int_set_si(precision, &ptr->m[i][(iterator_index+1)*2], 0);
-              }
-              int j, to_remove = 1;
-              for (j = 0; j < ptr->nb_output_dims; j++) {
-                if (!osl_int_zero(precision, ptr->m[i][j+1])) {
-                  to_remove = 0;
-                  break;
-                }
-              }
-              if (to_remove) {
-                osl_relation_remove_row(ptr, i);
-                i--;
-              }
-            }
-          }
-          scat = scat->next;
-        }
-
-        // the order is not important in the statements list
-        epilog_stmt->next = statement->next;
-        statement->next = epilog_stmt;
-        statement = epilog_stmt;
-      }
-      
-      // modify the matrix domain
-      domain = original_stmt->domain;
-      
-      if (setepilog) {
-        epilog_domain = epilog_stmt->domain;
-      }
-      
-      while (domain != NULL) {
-      
-        for (i = domain->nb_rows-1 ; i >= 0  ; i--) {
-          if (!osl_int_zero(precision, domain->m[i][0])) {
-          
-            // remove the lower bound on the epilog statement
-            if(setepilog &&
-               osl_int_pos(precision, domain->m[i][iterator_index+1])) {
-              osl_relation_remove_row(epilog_domain, i);
-            }
-            // remove the upper bound on the original statement
-            if (osl_int_neg(precision, domain->m[i][iterator_index+1])) {
-              osl_int_add_si(precision, 
-                             &domain->m[i][domain->nb_columns-1],
-                             domain->m[i][domain->nb_columns-1],
-                             -factor);
-            }
-          }
-        }
-        
-        // Don't add local dimension to the domain since it may affect other
-        // parts of the statement scattered with different betas.
-        
-        domain = domain->next;
-        
-        if (setepilog)
-          epilog_domain = epilog_domain->next;
-      }
-
-      // clone factor-1 times the original statement
-     
-      // FIXME: here scattering was pointing to the scattering of epilog (probably bug)
-      // FIXME: I don't see much sense in this magic: it sets current_stmt to 1
-      // (instead of 0) unless the last value of the beta-vector for epilog (if
-      // requested) or original statement was -1.  Leave it as is.
-      row = clay_util_relation_get_line(original_stmt->scattering, column);
-      current_level = osl_int_get_si(scattering->precision,
-                                 scattering->m[row][scattering->nb_columns-1]);
-      if (last_level != current_level) {
-        current_stmt++;
-        last_level = current_level;
-      }
-
-      // Update those scattering relation union
-      scattering = original_stmt->scattering;
-      while (scattering != NULL) {
-        if (clay_beta_check_relation(scattering, beta_loop)) {
-          // Insert local dimension.
-          osl_relation_insert_blank_column(scattering, scattering->nb_output_dims + scattering->nb_input_dims + 1);
-          (scattering->nb_local_dims)++;
-          osl_relation_insert_blank_row(scattering, scattering->nb_rows);
-          osl_int_set_si(scattering->precision,
-                         &scattering->m[scattering->nb_rows - 1][(iterator_index+1)*2],
-                         1);
-          osl_int_set_si(scattering->precision,
-                         &scattering->m[scattering->nb_rows - 1][scattering->nb_output_dims + scattering->nb_input_dims + 1],
-                         -factor);
-        }
-        scattering = scattering->next;
-      }
-      
-      for (i = 0 ; i < factor-1 ; i++) {
-        // Clone the expression with only matching parts.
-        newstatement = osl_statement_malloc();
-        newstatement->domain = osl_relation_clone(original_stmt->domain);
-        newstatement->access = osl_relation_list_clone(original_stmt->access);
-        newstatement->extension = osl_generic_clone(original_stmt->extension);
-        newstatement->next = NULL;
-        newstatement->scattering = NULL;
-        osl_relation_p ptr = NULL;
-        osl_relation_p scat = original_stmt->scattering;
-        while (scat != NULL) {
-          if (clay_beta_check_relation(scat, beta_loop)) {
-            if (ptr == NULL) {
-              newstatement->scattering = osl_relation_nclone(scat, 1);
-              ptr = newstatement->scattering;
-            } else {
-              ptr->next = osl_relation_nclone(scat, 1);
-              ptr = ptr->next;
-            }
-          }
-          scat = scat->next;
-        }
-
-        scattering = newstatement->scattering;
-        // reorder
-        while (scattering != NULL) {
-          order = current_stmt + max + nb_stmts*(i + 1) + 1;
-          osl_int_set_si(precision,
-                         &scattering->m[row][scattering->nb_columns-1],
-                         order);
-          scattering = scattering->next;
-        }
-
-        // update the body
-        sprintf(replacement, "(%s+%d)", iterator[0], i+1);
-        newexpression = clay_util_string_replace(substitution, replacement,
-                                            substitued);
-
-        if (is_extbody) {
-          newextbody = osl_generic_lookup(newstatement->extension,
-                           OSL_URI_EXTBODY);
-          newbody = newextbody->body;
-        }
-        else {
-          newbody = osl_generic_lookup(newstatement->extension, OSL_URI_BODY);
-        }
-
-        free(newbody->expression->string[0]);
-        newbody->expression->string[0] = newexpression;
-
-        // synchronize extbody and body (if both are different)
-        if (is_extbody) {
-          tmpbody = osl_generic_lookup(newstatement->extension, OSL_URI_BODY);
-          if (tmpbody) {
-            osl_generic_remove(&newstatement->extension, OSL_URI_BODY);
-            tmpbody = osl_body_clone(newbody);
-            gen = osl_generic_shell(tmpbody, osl_body_interface());
-            osl_generic_add(&newstatement->extension, gen);
-          }
-        }
-
-        // the order is not important in the statements list
-        newstatement->next = statement->next;
-        statement->next = newstatement;
-        statement = newstatement;
-      }
-      free(substitued);
-      free(replacement);
+  // Collect all unique values immediately following the given prefix
+  // in order to avoid relying on normalized betas.
+  endings = clay_array_malloc();
+  if (options && options->normalize) {
+    for (i = 0; i < nb_betas; i++) {
+      clay_array_add(endings, i);
     }
-    statement = statement->next;
+  } else {
+    for (statement = scop->statement; statement != NULL;
+         statement = statement->next) {
+      for (scattering = statement->scattering; scattering != NULL;
+           scattering = scattering->next) {
+        if (!clay_beta_check_relation(scattering, beta_loop)) {
+          continue;
+        }
+        current_beta = clay_beta_extract(scattering);
+        CLAY_BETA_IS_LOOP(beta_loop, scattering);
+        if (!clay_array_contains(endings, current_beta->data[beta_loop->size])) {
+          clay_array_add(endings, current_beta->data[beta_loop->size]);
+        }
+        clay_array_free(current_beta);
+      }
+    }
   }
-  free(iterator);
-  
+
+  retcode = clay_sieve(scop, beta_loop, factor, options);
+  if (retcode != CLAY_SUCCESS) {
+    clay_array_free(endings);
+    return retcode;
+  }
+
+  empty_array = clay_array_malloc();
+  // Leverage per-statement shift (otherwise need to split/fuse around it).
+  for (i = 0; i < endings->size; i++) {
+    for (j = 1; j < factor; j++) {
+      clay_array_p beta = clay_array_clone(beta_loop);
+      clay_array_add(beta, endings->data[i] + j * nb_betas);
+      retcode = clay_shift(scop, beta, beta_loop->size, empty_array, j, options);
+      clay_array_free(beta);
+      if (retcode != CLAY_SUCCESS)
+        break;
+    }
+  }
+
+  clay_array_free(empty_array);
+  clay_array_free(endings);
+
   if (options && options->normalize)
     clay_beta_normalize(scop);
-  
-  return CLAY_SUCCESS;
-}
 
+  return retcode;
+}
 
 /**
  * clay_tile function:
