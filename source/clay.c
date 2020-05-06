@@ -139,7 +139,7 @@ int main(int argc, char * argv[]) {
      
       if (x != NULL) {
         // parse the clay string
-        clay_tag = x;
+        clay_tag = (osl_clay_p) x;
         parsing_result = clay_parser_string(scop, clay_tag->script, options);
         if (parsing_result != 0) {
           fprintf(stderr, "[Clay] %s\n", clay_get_error_message());
