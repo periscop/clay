@@ -46,6 +46,8 @@
 # define CLAY_TRUE			1
 # define CLAY_FALSE			0
 
+# include "osl/macros.h"
+
 /*--------------------------------------------------------------------------+
  |                              UTILITY MACROS                              |
  +--------------------------------------------------------------------------*/
@@ -90,17 +92,7 @@
              CLAY_error("memory overflow");                                \
          } while (0)
 
-# define CLAY_strdup(destination, source)                                  \
-         do {                                                              \
-           if (source != NULL) {                                           \
-             if (((destination) = strdup(source)) == NULL)                 \
-               CLAY_error("memory overflow");                              \
-           }                                                               \
-           else {                                                          \
-             destination = NULL;                                           \
-             CLAY_debug("strdup of a NULL string");                        \
-           }                                                               \
-         } while (0)
+# define CLAY_strdup(destination, source) OSL_strdup(destination, source)
 
 # define CLAY_max(x,y) ((x) > (y)? (x) : (y))
 

@@ -1488,7 +1488,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
             names->string[column+1], i);
     i++;
   } while (clay_util_scatnames_exists(scat, buffer));
-  new_var_iter = strdup(buffer);
+  CLAY_strdup(new_var_iter, buffer);
 
   // generate beta variable name
   i = 0;
@@ -1496,7 +1496,7 @@ int clay_stripmine(osl_scop_p scop, clay_array_p beta,
     sprintf(buffer, "__b%d", i);
     i++;
   } while (clay_util_scatnames_exists(scat, buffer));
-  new_var_beta = strdup(buffer);
+  CLAY_strdup(new_var_beta, buffer);
 
   // insert the two variables
   nb_strings = osl_strings_size(names) + 2;
@@ -2311,7 +2311,7 @@ int clay_add_array(osl_scop_p scop,
   id++;
   
   arrays->id[sz] = id;
-  arrays->names[sz] = strdup(name);
+  CLAY_strdup(arrays->names[sz], name);
 
   *result = id;
 
@@ -2449,8 +2449,8 @@ int clay_datacopy(osl_scop_p scop,
   osl_strings_p params;
   osl_body_p body = NULL;
   osl_extbody_p extbody = NULL;
-  int is_extbody = 0;
   osl_generic_p gen = NULL;
+  char* buffer;
   arrays = osl_generic_lookup(scop->extension, OSL_URI_ARRAYS);
   scatnames = osl_generic_lookup(scop->extension, OSL_URI_SCATNAMES);
   params = osl_generic_lookup(scop->parameters, OSL_URI_STRINGS);
@@ -2492,13 +2492,13 @@ int clay_datacopy(osl_scop_p scop,
   ebody->body = osl_body_malloc();
 
   // body string (it will be regenerated)
-  ebody->body->expression = osl_strings_encapsulate(strdup("@ = @;"));
+  CLAY_strdup(buffer, "@ = @;");
+  ebody->body->expression = osl_strings_encapsulate(buffer);
 
   // copy iterators
   extbody = osl_generic_lookup(stmt_2->extension, OSL_URI_EXTBODY);
   if (extbody) {
     ebody->body->iterators = osl_strings_clone(extbody->body->iterators);
-    is_extbody = 1;
   }
   else {
     body = osl_generic_lookup(stmt_2->extension, OSL_URI_BODY);
@@ -2681,7 +2681,7 @@ int clay_block(osl_scop_p scop,
   char *new_expr;
 
   osl_extbody_p ebody_1, ebody_2;
-  osl_body_p body_1, body_2;
+  osl_body_p body_1 = NULL, body_2 = NULL;
   osl_generic_p gen = NULL;
 
   // get the body string

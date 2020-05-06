@@ -78,7 +78,7 @@
 int main(int argc, char * argv[]) {
 
   osl_scop_p scop = NULL;
-  osl_generic_p x, last;
+  osl_generic_p x;
   osl_clay_p clay_tag;
   clay_options_p options;
   int parsing_result = 0;
@@ -134,20 +134,12 @@ int main(int argc, char * argv[]) {
     
     // Read the script from the extension clay
     } else {
-      // equivalent to osl_generic_lookup, but we need the last extension
-      // to remove the clay extension in the list
-      x = scop->extension;
-      last = NULL;
-      while (x != NULL) {
-        if (osl_generic_has_URI(x, OSL_URI_CLAY))
-          break;
-        last = x;
-        x = x->next;
-      }
+      // Find the extension clay
+      x = osl_generic_lookup(scop->extension, OSL_URI_CLAY);
      
       if (x != NULL) {
         // parse the clay string
-        clay_tag = x->data;
+        clay_tag = (osl_clay_p) x;
         parsing_result = clay_parser_string(scop, clay_tag->script, options);
         if (parsing_result != 0) {
           fprintf(stderr, "[Clay] %s\n", clay_get_error_message());
