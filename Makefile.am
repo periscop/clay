@@ -84,6 +84,8 @@ pkginclude_HEADERS = \
 	include/clay/stack.h \
 	include/clay/transformation.h \
 	include/clay/relation.h
+	
+BUILT_SOURCES = source/parser.h
 
 AM_CPPFLAGS = -I. -I$(top_builddir)/include -I$(top_srcdir)/include
 AM_CFLAGS = $(CFLAGS_WARN) -std=c99
